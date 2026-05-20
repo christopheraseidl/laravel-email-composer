@@ -1,47 +1,51 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "christopheraseidl/laravel-email-composer",
+    "description": "A simple Laravel package to compose email drafts and send to recipients.",
     "keywords": [
-        ":vendor_name",
+        "christopheraseidl",
         "laravel",
-        ":package_slug"
+        "laravel-email-composer"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/christopheraseidl/laravel-email-composer",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Chris Seidl",
+            "email": "christopheraseidl@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.4",
+        "illuminate/contracts": "^11.0||^12.0||^13.0",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^11.0||^12.0||^13.0"
+        "spatie/laravel-translatable": "^6.11"
     },
     "require-dev": {
+        "bezhansalleh/filament-language-switch": "^4.0",
+        "filament/filament": "^5.6",
+        "lara-zeus/spatie-translatable": "^2.0",
+        "larastan/larastan": "^3.0",
         "laravel/pint": "^1.14",
         "nunomaduro/collision": "^8.8",
-        "larastan/larastan": "^3.0",
         "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
         "pestphp/pest": "^4.0",
         "pestphp/pest-plugin-arch": "^4.0",
         "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-livewire": "^4.0",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "spatie/laravel-ray": "^1.35"
+        "phpstan/phpstan-phpunit": "^2.0"
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "CSeidl\\EmailComposer\\": "src/",
+            "CSeidl\\EmailComposer\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "CSeidl\\EmailComposer\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -63,10 +67,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "CSeidl\\EmailComposer\\EmailComposerServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "EmailComposer": "CSeidl\\EmailComposer\\Facades\\EmailComposer"
             }
         }
     },

@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace CSeidl\EmailComposer\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class EmailComposerCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-email-composer';
 
     public $description = 'My command';
 
