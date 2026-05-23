@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('email_composer_recipients', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email');
+            $table->string('locale', 10)->nullable();
+            $table->json('metadata')->nullable();
+            $table->timestamp('unsubscribed_at')->nullable();
+            $table->timestamps();
+
+            $table->unique('email');
+            $table->index('name');
+            $table->index('unsubscribed_at');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('email_composer_recipients');
+    }
+};
