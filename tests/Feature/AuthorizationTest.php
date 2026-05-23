@@ -15,25 +15,40 @@ it('denies when no resolver is registered', function () {
 });
 
 it('uses the registered ability resolver', function () {
-    EmailComposer::resolveAbilityUsing(fn ($user, $ability) => $ability === 'view-recipients');
+    EmailComposer::resolveAbilityUsing(fn ($user, $ability, $model) => $ability === 'view-recipients');
 
     $user = UserFactory::new()->create();
     expect(EmailComposer::userCan($user, 'view-recipients'))->toBeTrue();
     expect(EmailComposer::userCan($user, 'delete-recipients'))->toBeFalse();
 });
 
-it('passes the user and ability to the resolver', function () {
+it('passes the user, ability, and model to the resolver', function () {
     $captured = [];
-    EmailComposer::resolveAbilityUsing(function ($user, $ability) use (&$captured) {
-        $captured = ['user_id' => $user->id, 'ability' => $ability];
+    EmailComposer::resolveAbilityUsing(function ($user, $ability, $model) use (&$captured) {
+        $captured = ['user_id' => $user->id, 'ability' => $ability, 'model' => $model];
 
         return true;
     });
 
     $user = UserFactory::new()->create();
-    EmailComposer::userCan($user, 'send-draft');
+    $target = UserFactory::new()->create();
+    EmailComposer::userCan($user, 'send-draft', $target);
 
-    expect($captured)->toBe(['user_id' => $user->id, 'ability' => 'send-draft']);
+    expect($captured)->toBe(['user_id' => $user->id, 'ability' => 'send-draft', 'model' => $target]);
+});
+
+it('passes null as the model when none is provided', function () {
+    $capturedModel = 'sentinel';
+    EmailComposer::resolveAbilityUsing(function ($user, $ability, $model) use (&$capturedModel) {
+        $capturedModel = $model;
+
+        return true;
+    });
+
+    $user = UserFactory::new()->create();
+    EmailComposer::userCan($user, 'view-recipients');
+
+    expect($capturedModel)->toBeNull();
 });
 
 it('coerces non-boolean resolver returns to bool', function () {

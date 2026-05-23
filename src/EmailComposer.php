@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer;
 
 use Closure;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Database\Eloquent\Model;
 
 class EmailComposer
 {
@@ -14,13 +15,13 @@ class EmailComposer
         static::$abilityResolver = $callback;
     }
 
-    public static function userCan(?Authenticatable $user, string $ability): bool
+    public static function userCan(?Authenticatable $user, string $ability, ?Model $model = null): bool
     {
         if ($user === null || static::$abilityResolver === null) {
             return false;
         }
 
-        return (bool) (static::$abilityResolver)($user, $ability);
+        return (bool) (static::$abilityResolver)($user, $ability, $model);
     }
 
     /** Internal: used by tests to reset resolver state. */
