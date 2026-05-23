@@ -21,11 +21,12 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasMigrations([
                 'create_email_composer_recipients_table',
-                'create_email_composer_templates_table',
-                'create_email_composer_drafts_table',
-                'create_email_composer_draft_recipient_table',
-                'create_email_composer_draft_feedbacks_table',
+                // 'create_email_composer_templates_table',
+                // 'create_email_composer_drafts_table',
+                // 'create_email_composer_draft_recipient_table',
+                // 'create_email_composer_draft_feedbacks_table',
             ])
+            ->runsMigrations()
             ->hasRoute('web');
     }
 

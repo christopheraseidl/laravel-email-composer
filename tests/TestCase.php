@@ -13,6 +13,7 @@ use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\File;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
@@ -28,7 +29,9 @@ class TestCase extends Orchestra
 
         $this->loadLaravelMigrations();
 
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        foreach (File::allFiles(__DIR__ . '/../database/migrations') as $migration) {
+            (include $migration->getRealPath())->up();
+        }
     }
 
     protected function getPackageProviders($app)
