@@ -19,7 +19,8 @@
         "php": "^8.4",
         "illuminate/contracts": "^12.4||^13.0",
         "spatie/laravel-package-tools": "^1.16",
-        "spatie/laravel-translatable": "^6.11"
+        "spatie/laravel-translatable": "^6.11",
+        "spatie/yaml-front-matter": "^2.1"
     },
     "require-dev": {
         "bezhansalleh/filament-language-switch": "^4.0",
