@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer;
 
 use Closure;
+use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -28,5 +29,10 @@ class EmailComposer
     public static function flushResolvers(): void
     {
         static::$abilityResolver = null;
+    }
+
+    public static function templates(): TemplateRegistry
+    {
+        return app(TemplateRegistry::class);
     }
 }

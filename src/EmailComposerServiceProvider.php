@@ -2,7 +2,9 @@
 
 namespace CSeidl\EmailComposer;
 
+use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Filament\Panel;
+use Override;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -18,7 +20,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
         $package
             ->name('laravel-email-composer')
             ->hasConfigFile()
-            ->hasViews()
+            ->hasAssets()
             ->hasMigrations([
                 'create_email_composer_recipients_table',
                 'create_email_composer_templates_table',
@@ -39,5 +41,13 @@ class EmailComposerServiceProvider extends PackageServiceProvider
 
         // Resources are registered via a plugin (see Branch 8); the plugin gives
         // consumers control over which panel(s) get the email-composer UI.
+    }
+
+    #[Override]
+    public function packageRegistered()
+    {
+        $this->app->singleton(TemplateRegistry::class, fn () => new TemplateRegistry);
+
+        return parent::packageRegistered();
     }
 }

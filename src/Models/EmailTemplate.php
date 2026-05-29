@@ -16,7 +16,7 @@ class EmailTemplate extends Model
 
     protected $table = 'email_composer_templates';
 
-    protected $fillable = ['key', 'name', 'body', 'placeholders', 'css',];
+    protected $fillable = ['key', 'name', 'body', 'placeholders', 'css'];
 
     protected $casts = [
         'placeholders' => 'array',
