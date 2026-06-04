@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer;
 
+use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Filament\Panel;
 use Override;
@@ -20,10 +21,12 @@ class EmailComposerServiceProvider extends PackageServiceProvider
         $package
             ->name('laravel-email-composer')
             ->hasConfigFile()
+            ->hasViews()
             ->hasAssets()
             ->hasMigrations([
                 'create_email_composer_recipients_table',
                 'create_email_composer_templates_table',
+                'create_email_composer_theme_table',
                 // 'create_email_composer_drafts_table',
                 // 'create_email_composer_draft_recipient_table',
                 // 'create_email_composer_draft_feedbacks_table',
@@ -47,6 +50,10 @@ class EmailComposerServiceProvider extends PackageServiceProvider
     public function packageRegistered()
     {
         $this->app->singleton(TemplateRegistry::class, fn () => new TemplateRegistry);
+        $this->app->singleton(EmailTheme::class, fn () => EmailTheme::query()->firstOrCreate(
+            [],
+            ['css' => EmailTheme::defaultCss()],
+        ));
 
         return parent::packageRegistered();
     }

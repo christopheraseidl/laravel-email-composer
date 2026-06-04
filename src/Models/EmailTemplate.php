@@ -7,7 +7,19 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $key
+ * @property string $name
+ * @property string $body
+ * @property array<int, string>|null $placeholders
+ * @property string|null $css
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ */
 #[UseFactory(EmailTemplateFactory::class)]
 class EmailTemplate extends Model
 {
