@@ -27,8 +27,8 @@ class EmailComposerServiceProvider extends PackageServiceProvider
                 'create_email_composer_recipients_table',
                 'create_email_composer_templates_table',
                 'create_email_composer_theme_table',
-                // 'create_email_composer_drafts_table',
-                // 'create_email_composer_draft_recipient_table',
+                'create_email_composer_drafts_table',
+                'create_email_composer_draft_recipient_table',
                 // 'create_email_composer_draft_feedbacks_table',
             ])
             ->runsMigrations()
