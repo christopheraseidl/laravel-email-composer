@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('email_composer_draft_recipient', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('email_draft_id')->constrained('email_composer_drafts')->cascadeOnDelete();
+            $table->foreignId('recipient_id')->constrained('email_composer_recipients')->cascadeOnDelete();
+            $table->string('delivery_status')->default('pending');
+            $table->string('locale', 10)->nullable();
+            $table->timestamp('sent_at')->nullable();
+            $table->text('error')->nullable();
+            $table->unsignedTinyInteger('attempts')->default(0);
+            $table->timestamps();
+
+            $table->unique(['email_draft_id', 'recipient_id']);
+            $table->index('delivery_status');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('email_composer_draft_recipient');
+    }
+};

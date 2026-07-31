@@ -5,6 +5,7 @@ namespace CSeidl\EmailComposer\Tests;
 use BladeUI\Heroicons\BladeHeroiconsServiceProvider;
 use BladeUI\Icons\BladeIconsServiceProvider;
 use CSeidl\EmailComposer\EmailComposerServiceProvider;
+use CSeidl\EmailComposer\Tests\Fixtures\User;
 use Filament\Actions\ActionsServiceProvider;
 use Filament\FilamentServiceProvider;
 use Filament\Forms\FormsServiceProvider;
@@ -58,7 +59,12 @@ class TestCase extends Orchestra
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
+            // SQLite ignores foreign keys unless the pragma is set, and the
+            // connector only sets it when the key is present. Without this,
+            // nullOnDelete/cascadeOnDelete never fire in tests.
+            'foreign_key_constraints' => true,
         ]);
+        config()->set('auth.providers.users.model', User::class);
         config()->set('email-composer.locales', ['en', 'es']);
         config()->set('email-composer.storage.disk', 'local');
         config()->set('queue.default', 'sync');
