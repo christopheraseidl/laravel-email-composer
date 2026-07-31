@@ -123,13 +123,10 @@ class EmailDraft extends Model
      */
     public function getLocalizedSubjectAttribute(): string
     {
-        $locale = app()->getLocale();
-        $fallback = config('email-composer.default_locale', 'en');
-
-        // Fallback to default locale or first available translation
-        return $this->subject[$locale]
-            ?? $this->subject[$fallback]
-            ?? reset($this->subject) ?: 'Untitled Draft';
+        // $this->subject is the current locale's string, not the per-locale
+        // array, so it cannot be read by locale key. subjectFor() already
+        // walks locale then default_locale.
+        return $this->subjectFor(app()->getLocale()) ?: 'Untitled Draft';
     }
 
     public function getTitleAttribute(): string

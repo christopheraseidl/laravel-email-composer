@@ -39,9 +39,9 @@ class EmailDraftsTable
                     })
                     ->sortable(),
                 TextColumn::make('status')
-                    ->formatStateUsing(fn ($record) => EmailDraftStatus::from($record->status)->label())
+                    ->formatStateUsing(fn ($record) => $record->status->label())
                     ->badge()
-                    ->color(fn ($record) => EmailDraftStatus::from($record->status)->color()),
+                    ->color(fn ($record) => $record->status->color()),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()

@@ -45,22 +45,33 @@ class EmailDraftForm
                     ->multiple()
                     ->relationship('recipients', 'email')
                     ->preload(),
-                Text::make(fn (Get $get) => $get('status'))
-                    ->color(fn (Get $get) => EmailDraftStatus::from($get('status'))->color())
-                    ->icon(function (Get $get) {
-                        $status = $get('status');
-
-                        return match ($status) {
-                            EmailDraftStatus::Draft => Heroicon::OutlinedPencil,
-                            EmailDraftStatus::UnderReview => Heroicon::OutlinedEye,
-                            EmailDraftStatus::Approved => Heroicon::OutlinedCheckCircle,
-                            EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
-                            default => throw new \InvalidArgumentException(
-                                "The provided status '{$status}' is not an available option."
-                            )
-                        };
+                Text::make(fn (Get $get) => static::status($get)->label())
+                    ->color(fn (Get $get) => static::status($get)->color())
+                    ->icon(fn (Get $get) => match (static::status($get)) {
+                        EmailDraftStatus::Draft => Heroicon::OutlinedPencil,
+                        EmailDraftStatus::UnderReview => Heroicon::OutlinedEye,
+                        EmailDraftStatus::Approved => Heroicon::OutlinedCheckCircle,
+                        EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
                     }),
             ])
-            ->disabled(fn (Get $get) => EmailDraftStatus::from($get('status')) !== EmailDraftStatus::Draft);
+            ->disabled(fn (Get $get) => static::status($get) !== EmailDraftStatus::Draft);
+    }
+
+    /**
+     * Read the status out of the form state.
+     *
+     * The state is the backed value on an existing record and absent
+     * altogether on the create page, so neither an enum comparison nor
+     * EmailDraftStatus::from() is safe on the raw value.
+     */
+    protected static function status(Get $get): EmailDraftStatus
+    {
+        $status = $get('status');
+
+        if ($status instanceof EmailDraftStatus) {
+            return $status;
+        }
+
+        return EmailDraftStatus::tryFrom((string) $status) ?? EmailDraftStatus::Draft;
     }
 }
