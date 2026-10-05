@@ -6,6 +6,7 @@ use BackedEnum;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\RelationManagers\FeedbackRelationManager;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Schemas\EmailDraftForm;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables\EmailDraftsTable;
 use CSeidl\EmailComposer\Models\EmailDraft;
@@ -37,7 +38,7 @@ class EmailDraftResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            FeedbackRelationManager::class,
         ];
     }
 
