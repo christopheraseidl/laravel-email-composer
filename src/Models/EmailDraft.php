@@ -13,10 +13,12 @@ use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\URL;
 use Spatie\Translatable\HasTranslations;
@@ -34,6 +36,7 @@ use Spatie\Translatable\HasTranslations;
  * @property int|null $approved_by
  * @property Carbon|null $sent_at
  * @property-read EmailTemplate|null $template
+ * @property-read Collection<int, DraftFeedback> $feedback
  */
 #[UseFactory(EmailDraftFactory::class)]
 class EmailDraft extends Model
@@ -94,6 +97,11 @@ class EmailDraft extends Model
         return $this->belongsToMany(Recipient::class, 'email_composer_draft_recipient')
             ->withPivot(['delivery_status', 'locale', 'sent_at', 'error', 'attempts'])
             ->withTimestamps();
+    }
+
+    public function feedback(): HasMany
+    {
+        return $this->hasMany(DraftFeedback::class, 'email_draft_id');
     }
 
     public function resolveTemplate(): EmailTemplate|FileTemplate|null

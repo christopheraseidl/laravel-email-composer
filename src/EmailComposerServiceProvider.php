@@ -29,7 +29,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
                 'create_email_composer_theme_table',
                 'create_email_composer_drafts_table',
                 'create_email_composer_draft_recipient_table',
-                // 'create_email_composer_draft_feedbacks_table',
+                'create_email_composer_draft_feedback_table',
             ])
             ->runsMigrations()
             ->hasRoute('web');

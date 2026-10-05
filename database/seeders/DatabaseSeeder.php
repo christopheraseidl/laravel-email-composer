@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RecipientSeeder::class,
             EmailTemplateSeeder::class,
             EmailDraftSeeder::class,
+            DraftFeedbackSeeder::class,
         ]);
     }
 }
