@@ -101,6 +101,29 @@ it('throws RuntimeException when two files declare the same key', function () {
     expect(fn () => $registry->all())->toThrow(RuntimeException::class);
 });
 
+it('throws RuntimeException when two files in one folder share a key alongside another folder', function () {
+    $dir = templateDir([
+        'original.html' => "---\nkey: example\nname: Original example\n---\n\n<p>Original body.</p>",
+        'dupe.html' => "---\nkey: example\nname: Duplicate example\n---\n\n<p>Duplicate body.</p>",
+    ]);
+
+    $registry = new TemplateRegistry([$dir, __DIR__.'/../../resources/views/templates']);
+
+    expect(fn () => $registry->all())->toThrow(RuntimeException::class);
+});
+
+it('lets an app template with key default replace the bundled one', function () {
+    $dir = templateDir([
+        'default.html' => "---\nkey: default\nname: App default\n---\n\n<p>App body.</p>",
+    ]);
+
+    $templates = (new TemplateRegistry([$dir, __DIR__.'/../../resources/views/templates']))->all();
+
+    expect($templates)->toHaveCount(1);
+    expect($templates['default']->name)->toBe('App default');
+    expect($templates['default']->body)->toBe('<p>App body.</p>');
+});
+
 it('tolerates a search path that does not exist', function () {
     $registry = new TemplateRegistry(['/no/such/template/dir']);
 

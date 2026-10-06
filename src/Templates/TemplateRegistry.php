@@ -17,24 +17,15 @@ class TemplateRegistry
     {
         $this->searchPaths = $searchPaths ?? array_values(array_filter([
             config('email-composer.templates.path'),
-            __DIR__.'/../../resources/dist/templates',
+            __DIR__.'/../../resources/views/templates',
         ]));
     }
 
     /** @return Collection<string, EmailTemplate|FileTemplate> keyed by `key` */
     public function all(): Collection
     {
-        $files = $this->fileTemplates();
-
-        $dupes = $files->pluck('key')->duplicates();
-        if ($dupes->isNotEmpty()) {
-            throw new \RuntimeException(
-                'Duplicate file template keys: '.$dupes->unique()->implode(', ')
-            );
-        }
-
         // File templates win on key collision (repo-controlled / canonical).
-        return EmailTemplate::all()->keyBy('key')->toBase()->merge($files->keyBy('key'));
+        return EmailTemplate::all()->keyBy('key')->toBase()->merge($this->fileTemplates());
     }
 
     public function find(string $key): EmailTemplate|FileTemplate|null
@@ -42,14 +33,34 @@ class TemplateRegistry
         return $this->all()->get($key);
     }
 
-    /** @return Collection<int, FileTemplate> */
+    /**
+     * An earlier search path wins over a later one on a shared key, so app
+     * templates override the bundled ones.
+     *
+     * @return Collection<string, FileTemplate> keyed by `key`
+     */
     protected function fileTemplates(): Collection
     {
         return collect($this->searchPaths)
             ->filter(fn ($path) => is_dir($path))
-            ->flatMap(fn ($path) => File::glob(rtrim($path, '/').'/*.html'))
-            ->map(fn ($path) => $this->loadFile($path))
-            ->values();
+            ->reverse()
+            ->reduce(fn (Collection $templates, string $path) => $templates->merge($this->pathTemplates($path)), collect());
+    }
+
+    /** @return Collection<string, FileTemplate> keyed by `key` */
+    protected function pathTemplates(string $path): Collection
+    {
+        $files = collect(File::glob(rtrim($path, '/').'/*.html'))
+            ->map(fn ($file) => $this->loadFile($file));
+
+        $dupes = $files->pluck('key')->duplicates();
+        if ($dupes->isNotEmpty()) {
+            throw new \RuntimeException(
+                "Duplicate file template keys in [{$path}]: ".$dupes->unique()->implode(', ')
+            );
+        }
+
+        return $files->keyBy('key');
     }
 
     public function loadFile(string $path): FileTemplate

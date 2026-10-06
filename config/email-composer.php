@@ -16,7 +16,7 @@ return [
     // Where email templates live in the consuming app. Files dropped here
     // are auto-discovered by the TemplateRegistry.
     'templates' => [
-        'path' => public_path('vendor/email-composer/templates'),
+        'path' => resource_path('views/vendor/email-composer/templates'),
     ],
 
     // Global logo. Per-template logos (set via Filament) override this.
