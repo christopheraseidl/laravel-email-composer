@@ -197,6 +197,18 @@ it('approves a draft under review', function () {
         ->approved_by->toBe($approver->getKey());
 });
 
+it('publishes the rendered locales when approved', function () {
+    $draft = EmailDraft::factory()->underReview()->create();
+
+    $draft->approve(UserFactory::new()->create());
+
+    $files = $draft->fresh()->public_files;
+    expect($files)->toHaveKeys(['en', 'es']);
+    foreach ($files as $path) {
+        Storage::disk(config('email-composer.storage.disk'))->assertExists($path);
+    }
+});
+
 it('sends an approved draft', function () {
     $draft = EmailDraft::factory()->approved()->create();
 
