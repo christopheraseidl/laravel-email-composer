@@ -43,6 +43,11 @@ return [
         'link_ttl_days' => null,
     ],
 
+    // Signed review links for external reviewers expire after this many days.
+    'review' => [
+        'link_ttl_days' => 7,
+    ],
+
     // Filament panel(s) the EmailComposerPlugin should attach to.
     // null = attach when the plugin is registered on a panel directly.
     'filament' => [

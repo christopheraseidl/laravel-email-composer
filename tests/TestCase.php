@@ -64,6 +64,8 @@ class TestCase extends Orchestra
             // nullOnDelete/cascadeOnDelete never fire in tests.
             'foreign_key_constraints' => true,
         ]);
+        // Signed URLs are hashed with the app key.
+        config()->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
         config()->set('auth.providers.users.model', User::class);
         config()->set('email-composer.locales', ['en', 'es']);
         config()->set('email-composer.storage.disk', 'local');
