@@ -22,6 +22,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ->name('laravel-email-composer')
             ->hasConfigFile()
             ->hasViews()
+            ->hasTranslations()
             ->hasAssets()
             ->hasMigrations([
                 'create_email_composer_recipients_table',
