@@ -4,7 +4,7 @@
 return [
     // Locales the composer UI and emails support. Should be a subset of
     // (or equal to) the host app's available locales.
-    'locales' => ['en', 'es', 'fr'],
+    'locales' => ['en', 'es'],
     'default_locale' => 'en',
 
     // Where rendered email HTML is stored.
