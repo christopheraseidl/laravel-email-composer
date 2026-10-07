@@ -2,6 +2,8 @@
 
 namespace CSeidl\EmailComposer;
 
+use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
+use CSeidl\EmailComposer\Mail\MailableSender;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Filament\Panel;
@@ -50,6 +52,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
     #[Override]
     public function packageRegistered()
     {
+        $this->app->bind(EmailSenderInterface::class, MailableSender::class);
         $this->app->singleton(TemplateRegistry::class, fn () => new TemplateRegistry);
         $this->app->singleton(EmailTheme::class, fn () => EmailTheme::query()->firstOrCreate(
             [],
