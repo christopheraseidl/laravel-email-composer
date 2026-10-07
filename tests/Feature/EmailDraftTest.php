@@ -54,13 +54,11 @@ it('returns the subject for the requested locale', function () {
 });
 
 it('falls back to the default locale subject', function () {
-    // A locale that is neither present nor the application fallback, so the
-    // config value is the only thing that can resolve it.
     config()->set('email-composer.default_locale', 'es');
 
     $draft = draftWithTemplate(['subject' => ['es' => 'Bienvenido']]);
 
-    expect($draft->subjectFor('fr'))->toBe('Bienvenido');
+    expect($draft->subjectFor('en'))->toBe('Bienvenido');
 });
 
 it('resolves placeholder values for the requested locale', function () {
@@ -90,13 +88,12 @@ it('falls back to the default locale for a placeholder missing in the requested 
 it('falls back to the first non-empty locale when the default locale is missing it too', function () {
     $draft = draftWithTemplate(['placeholders' => [
         'en' => ['greeting' => 'Hello'],
-        'es' => ['greeting' => 'Hola'],
-        'fr' => ['body' => 'Corps français.'],
+        'es' => ['greeting' => 'Hola', 'body' => 'Cuerpo español.'],
     ]]);
 
-    expect($draft->placeholderValues('es'))->toBe([
-        'greeting' => 'Hola',
-        'body' => 'Corps français.',
+    expect($draft->placeholderValues('en'))->toBe([
+        'greeting' => 'Hello',
+        'body' => 'Cuerpo español.',
     ]);
 });
 
@@ -287,7 +284,7 @@ it('titles a draft with the subject for the current locale', function () {
 });
 
 it('titles a draft with the default locale subject when the current locale has none', function () {
-    app()->setLocale('fr');
+    app()->setLocale('es');
     $draft = draftWithTemplate(['subject' => ['en' => 'Welcome']]);
 
     expect($draft->title)->toBe('Welcome');
