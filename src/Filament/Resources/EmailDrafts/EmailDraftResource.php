@@ -16,9 +16,12 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class EmailDraftResource extends Resource
 {
+    use Translatable;
+
     protected static ?string $model = EmailDraft::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
@@ -54,6 +57,16 @@ class EmailDraftResource extends Resource
     public static function getTranslatableLocales(): array
     {
         return config('email-composer.locales');
+    }
+
+    // Open the form in the panel's active language (set by LanguageSwitch).
+    public static function getDefaultTranslatableLocale(): string
+    {
+        $locale = app()->getLocale();
+
+        return in_array($locale, static::getTranslatableLocales(), true)
+            ? $locale
+            : static::getTranslatableLocales()[0];
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

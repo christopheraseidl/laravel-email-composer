@@ -6,7 +6,6 @@ use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Mail\MailableSender;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
-use Filament\Panel;
 use Override;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
@@ -36,17 +35,6 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ])
             ->runsMigrations()
             ->hasRoute('web');
-    }
-
-    public function packageBooted(): void
-    {
-        // Filament integration is opt-in — only register when Filament is present.
-        if (! class_exists(Panel::class)) {
-            return;
-        }
-
-        // Resources are registered via a plugin (see Branch 8); the plugin gives
-        // consumers control over which panel(s) get the email-composer UI.
     }
 
     #[Override]

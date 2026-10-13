@@ -6,13 +6,12 @@ use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
 use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Models\EmailTemplate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
 
 use function Pest\Livewire\livewire;
 
-// Every test here needs a Filament panel, which lands in feat/language-switch.
-// They are un-skipped in Branch 10.
 pest()->use(RefreshDatabase::class);
 
 afterEach(fn () => EmailComposer::flushResolvers());
@@ -22,7 +21,7 @@ it('lists drafts', function () {
 
     livewire(ListEmailDrafts::class)
         ->assertCountTableRecords(5);
-})->skip('panel registered in feat/language-switch');
+});
 
 it('filters drafts by status', function () {
     EmailDraft::factory()->count(3)->create();
@@ -32,17 +31,17 @@ it('filters drafts by status', function () {
         ->filterTable('status', EmailDraftStatus::UnderReview->value)
         ->assertCanSeeTableRecords([$underReview])
         ->assertCountTableRecords(1);
-})->skip('panel registered in feat/language-switch');
+});
 
 it('renders the status column with its label', function () {
     $draft = EmailDraft::factory()->underReview()->create();
 
     livewire(ListEmailDrafts::class)
         ->assertTableColumnFormattedStateSet('status', EmailDraftStatus::UnderReview->label(), $draft);
-})->skip('panel registered in feat/language-switch');
+});
 
 it('shows the submit action only where the policy allows it', function () {
-    EmailComposer::resolveAbilityUsing(fn ($user, $ability) => $ability === 'submit-draft');
+    EmailComposer::resolveAbilityUsing(fn ($user, $ability) => in_array($ability, ['view-any-draft', 'submit-draft'], true));
 
     $author = UserFactory::new()->create();
     $this->actingAs($author);
@@ -53,17 +52,99 @@ it('shows the submit action only where the policy allows it', function () {
     livewire(ListEmailDrafts::class)
         ->assertTableActionVisible('submit', $draft)
         ->assertTableActionHidden('submit', $sent);
-})->skip('panel registered in feat/language-switch');
+});
 
 it('renders the create form with no status in state', function () {
     livewire(CreateEmailDraft::class)
         ->assertSuccessful();
-})->skip('panel registered in feat/language-switch');
+});
 
 it('disables the edit form for a draft that has left draft status', function () {
     $draft = EmailDraft::factory()->approved()->create();
 
     livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
         ->assertSuccessful()
-        ->assertFormFieldIsDisabled('subject');
-})->skip('panel registered in feat/language-switch');
+        ->assertFormFieldDisabled('subject');
+});
+
+it('refuses to save a draft that has left draft status', function () {
+    $draft = EmailDraft::factory()->underReview()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+        ->call('save')
+        ->assertForbidden();
+});
+
+it('refuses the edit page to a user who cannot view the draft', function () {
+    EmailComposer::flushResolvers();
+
+    $draft = EmailDraft::factory()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+        ->assertForbidden();
+});
+
+it('creates a draft in every locale filled through the locale switcher', function () {
+    $template = EmailTemplate::factory()->create(['placeholders' => ['greeting']]);
+
+    livewire(CreateEmailDraft::class)
+        ->fillForm([
+            'email_template_id' => $template->getKey(),
+            'subject' => 'Hello',
+            'placeholders' => ['greeting' => 'Hi'],
+        ])
+        ->set('activeLocale', 'es')
+        ->fillForm([
+            'subject' => 'Hola',
+            'placeholders' => ['greeting' => 'Buenas'],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $draft = EmailDraft::sole();
+
+    expect($draft->getTranslations('subject'))->toBe(['es' => 'Hola', 'en' => 'Hello'])
+        ->and($draft->getTranslations('placeholders'))->toBe(['es' => ['greeting' => 'Buenas'], 'en' => ['greeting' => 'Hi']]);
+});
+
+it('creates a draft in the active locale only', function () {
+    app()->setLocale('es');
+
+    $template = EmailTemplate::factory()->create(['placeholders' => ['greeting']]);
+
+    livewire(CreateEmailDraft::class)
+        ->fillForm([
+            'email_template_id' => $template->getKey(),
+            'subject' => 'Hola',
+            'placeholders' => ['greeting' => 'Buenas'],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $draft = EmailDraft::sole();
+
+    expect($draft->getTranslations('subject'))->toBe(['es' => 'Hola'])
+        ->and($draft->getTranslations('placeholders'))->toBe(['es' => ['greeting' => 'Buenas']]);
+});
+
+it('fills the edit form with the active locale', function () {
+    $draft = EmailDraft::factory()->create(['subject' => ['en' => 'Hello', 'es' => 'Hola']]);
+
+    app()->setLocale('es');
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+        ->assertSchemaStateSet(['subject' => 'Hola']);
+});
+
+it('saves edits to the active locale and keeps the others', function () {
+    $draft = EmailDraft::factory()->create(['subject' => ['en' => 'Hello', 'es' => 'Hola']]);
+
+    app()->setLocale('es');
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+        ->fillForm(['subject' => 'Buenas'])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($draft->refresh()->getTranslations('subject'))->toBe(['en' => 'Hello', 'es' => 'Buenas']);
+});

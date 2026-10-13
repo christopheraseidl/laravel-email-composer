@@ -10,4 +10,4 @@ it('lists templates', function () {
 
     livewire(ListEmailTemplates::class)
         ->assertCountTableRecords(5);
-})->skip('panel registered in feat/language-switch');
+});

@@ -6,7 +6,8 @@ use CSeidl\EmailComposer\Models\Recipient;
 use function Pest\Livewire\livewire;
 
 it('lists recipients with searchable table', function () {
-    Recipient::factory()->count(30)->create();
+    // Stays under the table's 10-per-page default so the target is on page one.
+    Recipient::factory()->count(5)->create();
     $target = Recipient::factory()->create(['name' => 'Findable Person']);
 
     livewire(ListRecipients::class)
@@ -14,4 +15,4 @@ it('lists recipients with searchable table', function () {
         ->searchTable('Findable')
         ->assertCanSeeTableRecords([$target])
         ->assertCountTableRecords(1);
-})->skip('panel registered in feat/language-switch');
+});

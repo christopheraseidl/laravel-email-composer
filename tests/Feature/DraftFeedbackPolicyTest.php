@@ -10,6 +10,8 @@ pest()->use(RefreshDatabase::class);
 afterEach(fn () => EmailComposer::flushResolvers());
 
 it('denies every action when no resolver is registered', function () {
+    EmailComposer::flushResolvers();
+
     $user = UserFactory::new()->create();
     $feedback = DraftFeedback::factory()->create();
 
