@@ -39,6 +39,11 @@
         "phpstan/phpstan-deprecation-rules": "^2.0",
         "phpstan/phpstan-phpunit": "^2.0"
     },
+    "suggest": {
+        "bezhansalleh/filament-language-switch": "Required by EmailComposerPlugin for the panel language switcher.",
+        "filament/filament": "Admin panel for recipients, templates, drafts and the theme (^5.6).",
+        "lara-zeus/spatie-translatable": "Required by EmailComposerPlugin for translated drafts."
+    },
     "autoload": {
         "psr-4": {
             "CSeidl\\EmailComposer\\": "src/",

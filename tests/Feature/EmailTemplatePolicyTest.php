@@ -7,6 +7,8 @@ use Orchestra\Testbench\Factories\UserFactory;
 afterEach(fn () => EmailComposer::flushResolvers());
 
 it('denies all actions when no resolver is registered', function () {
+    EmailComposer::flushResolvers();
+
     $user = UserFactory::new()->create();
     $template = EmailTemplate::factory()->create();
 

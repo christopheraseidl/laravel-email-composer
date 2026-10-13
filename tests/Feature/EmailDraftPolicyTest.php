@@ -46,6 +46,8 @@ function draftInState(string $state, array $attributes = []): EmailDraft
 }
 
 it('denies every action when no resolver is registered', function () {
+    EmailComposer::flushResolvers();
+
     $user = UserFactory::new()->create();
     $draft = EmailDraft::factory()->create(['author_id' => $user->getKey()]);
 

@@ -10,6 +10,8 @@ it('denies when no user is provided', function () {
 });
 
 it('denies when no resolver is registered', function () {
+    EmailComposer::flushResolvers();
+
     $user = UserFactory::new()->create();
     expect(EmailComposer::userCan($user, 'view-recipients'))->toBeFalse();
 });
