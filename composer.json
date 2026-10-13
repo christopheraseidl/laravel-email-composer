@@ -25,7 +25,7 @@
     },
     "require-dev": {
         "bezhansalleh/filament-language-switch": "^4.0",
-        "filament/filament": "^5.6",
+        "filament/filament": "^5.10",
         "lara-zeus/spatie-translatable": "^2.0",
         "larastan/larastan": "^3.0",
         "laravel/pint": "^1.14",
@@ -41,7 +41,7 @@
     },
     "suggest": {
         "bezhansalleh/filament-language-switch": "Required by EmailComposerPlugin for the panel language switcher.",
-        "filament/filament": "Admin panel for recipients, templates, drafts and the theme (^5.6).",
+        "filament/filament": "Admin panel for recipients, templates, drafts and the theme (^5.10).",
         "lara-zeus/spatie-translatable": "Required by EmailComposerPlugin for translated drafts."
     },
     "autoload": {
