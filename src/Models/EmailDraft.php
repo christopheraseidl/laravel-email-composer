@@ -92,6 +92,7 @@ class EmailDraft extends Model
         return $this->belongsTo(EmailTemplate::class, 'email_template_id');
     }
 
+    /** @return BelongsToMany<Recipient, $this> */
     public function recipients(): BelongsToMany
     {
         return $this->belongsToMany(Recipient::class, 'email_composer_draft_recipient')
@@ -251,8 +252,6 @@ class EmailDraft extends Model
             );
         }
     }
-
-    // --- Scopes (#[Scope]) ---
 
     #[Scope]
     protected function ownedBy(Builder $query, int $userId): void

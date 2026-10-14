@@ -83,5 +83,6 @@ class TestCase extends Orchestra
         config()->set('email-composer.locales', ['en', 'es']);
         config()->set('email-composer.storage.disk', 'local');
         config()->set('queue.default', 'sync');
+        config()->set('queue.batching.database', 'testing');
     }
 }
