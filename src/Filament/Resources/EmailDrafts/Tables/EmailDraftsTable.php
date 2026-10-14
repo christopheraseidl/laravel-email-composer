@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables;
 
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
+use CSeidl\EmailComposer\Facades\EmailComposer;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -73,7 +74,7 @@ class EmailDraftsTable
                 Action::make('send')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->color('success')
-                    ->action(fn ($record) => $record->send())
+                    ->action(fn ($record) => EmailComposer::send($record))
                     ->authorize(fn ($record) => Gate::allows('send', $record)),
             ])
             ->toolbarActions([

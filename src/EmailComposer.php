@@ -3,7 +3,10 @@
 namespace CSeidl\EmailComposer;
 
 use Closure;
+use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Services\DraftDispatcher;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
+use Illuminate\Bus\Batch;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -34,5 +37,10 @@ class EmailComposer
     public static function templates(): TemplateRegistry
     {
         return app(TemplateRegistry::class);
+    }
+
+    public static function send(EmailDraft $draft): Batch
+    {
+        return app(DraftDispatcher::class)->dispatch($draft);
     }
 }
