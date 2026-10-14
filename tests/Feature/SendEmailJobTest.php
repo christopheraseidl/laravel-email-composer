@@ -1,7 +1,6 @@
 <?php
 
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
-use CSeidl\EmailComposer\Database\Factories\RecipientFactory;
 use CSeidl\EmailComposer\Jobs\SendEmailJob;
 use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailDraft;
@@ -44,7 +43,7 @@ function sendableDraft(): EmailDraft
 
 function attachedRecipient(EmailDraft $draft, array $attributes = []): Recipient
 {
-    $recipient = RecipientFactory::new()->create(['locale' => 'en', ...$attributes]);
+    $recipient = Recipient::factory()->create(['locale' => 'en', ...$attributes]);
     $draft->recipients()->attach($recipient->getKey());
 
     return $recipient;
@@ -144,7 +143,7 @@ it('defaults to fallback when locale is unknown', function () {
 });
 
 it('is retried three times with a 30 second backoff', function () {
-    $job = new SendEmailJob(sendableDraft(), RecipientFactory::new()->create());
+    $job = new SendEmailJob(sendableDraft(), Recipient::factory()->create());
 
     expect($job)->tries->toBe(3)->backoff->toBe(30);
 });
