@@ -30,7 +30,7 @@ use Spatie\Translatable\HasTranslations;
  * @property array<string, string> $subject
  * @property array<string, array<string, string>> $placeholders
  * @property EmailDraftStatus $status
- * @property array|null $public_files
+ * @property array<string, string>|null $public_files
  * @property Carbon|null $submitted_at
  * @property Carbon|null $approved_at
  * @property int|null $approved_by
@@ -77,16 +77,19 @@ class EmailDraft extends Model
         ];
     }
 
+    /** @return BelongsTo<Model, $this> */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(config('auth.providers.users.model'), 'author_id');
+        return $this->belongsTo(EmailComposer::userModel(), 'author_id');
     }
 
+    /** @return BelongsTo<Model, $this> */
     public function approver(): BelongsTo
     {
-        return $this->belongsTo(config('auth.providers.users.model'), 'approved_by');
+        return $this->belongsTo(EmailComposer::userModel(), 'approved_by');
     }
 
+    /** @return BelongsTo<EmailTemplate, $this> */
     public function template(): BelongsTo
     {
         return $this->belongsTo(EmailTemplate::class, 'email_template_id');
@@ -100,6 +103,7 @@ class EmailDraft extends Model
             ->withTimestamps();
     }
 
+    /** @return HasMany<DraftFeedback, $this> */
     public function feedback(): HasMany
     {
         return $this->hasMany(DraftFeedback::class, 'email_draft_id');
@@ -184,7 +188,11 @@ class EmailDraft extends Model
         return app(TemplateRenderer::class)->render($template, $this->placeholderValues($locale), $locale);
     }
 
-    /** Declared placeholders with no value in the given locale (nor any fallback). */
+    /**
+     * Declared placeholders with no value in the given locale (nor any fallback).
+     *
+     * @return list<string>
+     */
     public function missingPlaceholders(string $locale): array
     {
         $values = $this->placeholderValues($locale);
@@ -253,12 +261,14 @@ class EmailDraft extends Model
         }
     }
 
+    /** @param Builder<self> $query */
     #[Scope]
     protected function ownedBy(Builder $query, int $userId): void
     {
         $query->where('author_id', $userId);
     }
 
+    /** @param Builder<self> $query */
     #[Scope]
     protected function inStatus(Builder $query, EmailDraftStatus $status): void
     {

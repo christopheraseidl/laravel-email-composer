@@ -32,7 +32,8 @@ class ComposedEmail extends Mailable
         $path = $files[$this->locale]
             ?? $files[config('email-composer.default_locale', 'en')]
             ?? null;
-        $body = $path && $disk->exists($path) ? $disk->get($path) : $this->draft->renderFor($this->locale);
+        $body = ($path && $disk->exists($path) ? $disk->get($path) : null)
+            ?? $this->draft->renderFor($this->locale);
 
         return new Content(htmlString: $this->appendFooter($body));
     }

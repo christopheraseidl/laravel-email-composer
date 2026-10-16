@@ -35,7 +35,7 @@ class TemplateRenderer
             '/\[\[\s*([a-zA-Z0-9_]+)\s*\]\]/',
             fn ($m) => $values[$m[1]] ?? '',
             $body
-        );
+        ) ?? throw new \RuntimeException('Could not interpolate placeholders: '.preg_last_error_msg());
     }
 
     protected function assembleCss(EmailTemplate|FileTemplate $template): string

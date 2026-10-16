@@ -82,7 +82,9 @@ class TemplateRegistry
         $css = null;
         if (preg_match('/<style\b[^>]*>(.*?)<\/style>/is', $body, $match)) {
             $css = trim($match[1]);
-            $body = trim(preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $body));
+            $body = preg_replace('/<style\b[^>]*>.*?<\/style>/is', '', $body)
+                ?? throw new \RuntimeException("Could not strip <style> from [{$path}]: ".preg_last_error_msg());
+            $body = trim($body);
         }
 
         return new FileTemplate(
