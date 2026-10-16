@@ -54,6 +54,7 @@ class EmailDraftResource extends Resource
         ];
     }
 
+    /** @return array<int, string> */
     public static function getTranslatableLocales(): array
     {
         return config('email-composer.locales');

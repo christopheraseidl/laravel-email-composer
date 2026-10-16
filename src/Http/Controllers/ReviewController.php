@@ -16,7 +16,7 @@ class ReviewController
     {
         $this->ensureUnderReview($draft);
 
-        $locales = config('email-composer.locales');
+        $locales = config()->array('email-composer.locales');
         $locale = in_array($request->query('locale'), $locales, true)
             ? $request->query('locale')
             : config('email-composer.default_locale');

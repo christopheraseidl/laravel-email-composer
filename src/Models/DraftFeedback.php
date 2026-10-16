@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Models;
 
 use CSeidl\EmailComposer\Database\Factories\DraftFeedbackFactory;
+use CSeidl\EmailComposer\EmailComposer;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -41,13 +42,15 @@ class DraftFeedback extends Model
         ];
     }
 
+    /** @return BelongsTo<EmailDraft, $this> */
     public function draft(): BelongsTo
     {
         return $this->belongsTo(EmailDraft::class, 'email_draft_id');
     }
 
+    /** @return BelongsTo<Model, $this> */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(config('auth.providers.users.model'), 'user_id');
+        return $this->belongsTo(EmailComposer::userModel(), 'user_id');
     }
 }

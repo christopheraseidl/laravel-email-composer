@@ -14,6 +14,7 @@ use Filament\Schemas\Schema;
 /** @property-read Schema $content */
 class ManageEmailTheme extends Page
 {
+    /** @var array<string, mixed>|null */
     public ?array $data = [];
 
     public EmailTheme $record;

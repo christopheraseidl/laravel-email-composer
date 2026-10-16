@@ -25,11 +25,11 @@ class EmailTemplateForm
                             return;
                         }
 
-                        if (($get('key') ?? '') !== Str::slug($old)) {
+                        if (($get('key') ?? '') !== Str::slug($old ?? '')) {
                             return;
                         }
 
-                        $set('key', Str::slug($state));
+                        $set('key', Str::slug($state ?? ''));
                     }),
                 TextInput::make('key')
                     ->required()

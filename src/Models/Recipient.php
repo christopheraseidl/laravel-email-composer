@@ -50,6 +50,8 @@ class Recipient extends Model
 
     /**
      * Scope the query to only include subscribed recipients.
+     *
+     * @param  Builder<self>  $query
      */
     #[Scope]
     protected function subscribed(Builder $query): void
@@ -59,6 +61,8 @@ class Recipient extends Model
 
     /**
      * Scope the query to only include unscubscribed recipients.
+     *
+     * @param  Builder<self>  $query
      */
     #[Scope]
     protected function unsubscribed(Builder $query): void

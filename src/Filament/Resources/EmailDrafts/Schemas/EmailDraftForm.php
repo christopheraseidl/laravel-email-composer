@@ -28,14 +28,13 @@ class EmailDraftForm
                 Section::make('Placeholders')
                     ->schema(function (Get $get) {
                         $templateId = $get('email_template_id');
+                        $template = $templateId ? EmailTemplate::find((int) $templateId) : null;
 
-                        if (! $templateId) {
+                        if (! $template) {
                             return [
                                 Text::make('Pick a template to see its placeholders.'),
                             ];
                         }
-
-                        $template = EmailTemplate::find($templateId);
 
                         return collect($template->placeholderNames())->map(
                             fn ($name) => Textarea::make("placeholders.{$name}")

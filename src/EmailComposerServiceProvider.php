@@ -34,7 +34,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
     }
 
     #[Override]
-    public function packageRegistered()
+    public function packageRegistered(): void
     {
         $this->app->bind(EmailSenderInterface::class, MailableSender::class);
         $this->app->singleton(TemplateRegistry::class, fn () => new TemplateRegistry);
@@ -43,6 +43,6 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ['css' => EmailTheme::defaultCss()],
         ));
 
-        return parent::packageRegistered();
+        parent::packageRegistered();
     }
 }

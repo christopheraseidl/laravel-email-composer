@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Http\Controllers;
 
 use CSeidl\EmailComposer\Models\EmailDraft;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
 class ViewInBrowserController
@@ -10,7 +11,7 @@ class ViewInBrowserController
     /**
      * Show the published draft HTML.
      */
-    public function show(EmailDraft $draft, string $locale)
+    public function show(EmailDraft $draft, string $locale): Response
     {
         $files = $draft->public_files ?? [];
         $path = $files[$locale]

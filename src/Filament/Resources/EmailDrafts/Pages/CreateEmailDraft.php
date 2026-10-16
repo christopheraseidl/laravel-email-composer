@@ -37,8 +37,10 @@ class CreateEmailDraft extends CreateRecord
 
         $record->fill(Arr::except($data, $translatableAttributes));
 
+        $activeLocale = $this->activeLocale ?? static::getResource()::getDefaultTranslatableLocale();
+
         foreach (Arr::only($data, $translatableAttributes) as $key => $value) {
-            $record->setTranslation($key, $this->activeLocale, $value);
+            $record->setTranslation($key, $activeLocale, $value);
         }
 
         foreach ($this->otherLocaleData as $locale => $localeData) {
