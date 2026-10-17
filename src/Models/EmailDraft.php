@@ -132,6 +132,16 @@ class EmailDraft extends Model
     }
 
     /**
+     * Get the published file path for the locale, falling back to the default locale.
+     */
+    public function publicFileFor(string $locale): ?string
+    {
+        return $this->public_files[$locale]
+            ?? $this->public_files[config('email-composer.default_locale', 'en')]
+            ?? null;
+    }
+
+    /**
      * Get the localized subject for the current application locale.
      */
     public function getLocalizedSubjectAttribute(): string

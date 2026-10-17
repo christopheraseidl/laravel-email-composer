@@ -61,6 +61,26 @@ it('falls back to the default locale subject', function () {
     expect($draft->subjectFor('en'))->toBe('Bienvenido');
 });
 
+it('returns the public file for the requested locale', function () {
+    $draft = draftWithTemplate(['public_files' => ['en' => 'drafts/1/en.html', 'es' => 'drafts/1/es.html']]);
+
+    expect($draft->publicFileFor('es'))->toBe('drafts/1/es.html');
+});
+
+it('falls back to the default locale public file', function () {
+    config()->set('email-composer.default_locale', 'es');
+
+    $draft = draftWithTemplate(['public_files' => ['es' => 'drafts/1/es.html']]);
+
+    expect($draft->publicFileFor('en'))->toBe('drafts/1/es.html');
+});
+
+it('returns null when the draft has no public files', function () {
+    $draft = draftWithTemplate(['public_files' => null]);
+
+    expect($draft->publicFileFor('en'))->toBeNull();
+});
+
 it('resolves placeholder values for the requested locale', function () {
     $draft = draftWithTemplate(['placeholders' => [
         'en' => ['greeting' => 'Hello', 'body' => 'English body.'],

@@ -13,10 +13,7 @@ class ViewInBrowserController
      */
     public function show(EmailDraft $draft, string $locale): Response
     {
-        $files = $draft->public_files ?? [];
-        $path = $files[$locale]
-            ?? $files[config('email-composer.default_locale', 'en')]
-            ?? null;
+        $path = $draft->publicFileFor($locale);
 
         abort_if($path === null, 404);
 

@@ -28,10 +28,7 @@ class ComposedEmail extends Mailable
     public function content(): Content
     {
         $disk = Storage::disk(config('email-composer.storage.disk'));
-        $files = $this->draft->public_files ?? [];
-        $path = $files[$this->locale]
-            ?? $files[config('email-composer.default_locale', 'en')]
-            ?? null;
+        $path = $this->draft->publicFileFor($this->locale);
         $body = ($path && $disk->exists($path) ? $disk->get($path) : null)
             ?? $this->draft->renderFor($this->locale);
 
