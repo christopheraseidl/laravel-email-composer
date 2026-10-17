@@ -66,9 +66,8 @@ class SendEmailJob implements ShouldQueue
     {
         $default = config('email-composer.default_locale', 'en');
         $preferred = $this->recipient->locale ?? $default;
-        $files = $this->draft->public_files ?? [];
 
-        return isset($files[$preferred]) ? $preferred : $default;
+        return isset($this->draft->public_files[$preferred]) ? $preferred : $default;
     }
 
     /**
