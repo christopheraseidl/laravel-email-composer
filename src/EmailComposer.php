@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer;
 
 use Closure;
 use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Services\ConfigService;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Illuminate\Bus\Batch;
@@ -34,16 +35,9 @@ class EmailComposer
         static::$abilityResolver = null;
     }
 
-    /** @return class-string<Model> */
-    public static function userModel(): string
+    public static function config(): ConfigService
     {
-        $model = config('auth.providers.users.model');
-
-        if (! is_string($model) || ! is_a($model, Model::class, true)) {
-            throw new \UnexpectedValueException('auth.providers.users.model must name an Eloquent model class.');
-        }
-
-        return $model;
+        return app(ConfigService::class);
     }
 
     public static function templates(): TemplateRegistry

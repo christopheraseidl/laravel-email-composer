@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Unsubscribe;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Support\Facades\URL;
 
@@ -9,7 +10,7 @@ class UnsubscribeLink
 {
     public static function for(Recipient $recipient): string
     {
-        $ttl = config('email-composer.unsubscribe.link_ttl_days');
+        $ttl = EmailComposer::config()->unsubscribeLinkTtlDays();
         $parameters = ['recipient' => $recipient->getKey()];
 
         if ($ttl === null) {

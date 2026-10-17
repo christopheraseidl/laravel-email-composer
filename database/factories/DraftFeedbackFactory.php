@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Database\Factories;
 
+use CSeidl\EmailComposer\Database\Factories\Concerns\BuildsHostUsers;
 use CSeidl\EmailComposer\Models\DraftFeedback;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 #[UseModel(DraftFeedback::class)]
 class DraftFeedbackFactory extends Factory
 {
+    use BuildsHostUsers;
+
     /**
      * Define the model's default state.
      *
@@ -20,11 +23,9 @@ class DraftFeedbackFactory extends Factory
      */
     public function definition(): array
     {
-        $userModel = config('auth.providers.users.model');
-
         return [
             'email_draft_id' => EmailDraft::factory(),
-            'user_id' => $userModel::factory(),
+            'user_id' => $this->userFactory(),
             'reviewer_name' => null,
             'reviewer_email' => null,
             'comment' => fake()->paragraph(),

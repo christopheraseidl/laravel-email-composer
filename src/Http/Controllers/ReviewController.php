@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Http\Controllers;
 
 use Carbon\Carbon;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Review\ReviewLink;
@@ -16,10 +17,10 @@ class ReviewController
     {
         $this->ensureUnderReview($draft);
 
-        $locales = config()->array('email-composer.locales');
+        $locales = EmailComposer::config()->locales();
         $locale = in_array($request->query('locale'), $locales, true)
             ? $request->query('locale')
-            : config('email-composer.default_locale');
+            : EmailComposer::config()->defaultLocale();
 
         // A locale appended to a signed URL would break its signature, so each
         // switch link is signed again with the original expiry.

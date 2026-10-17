@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Facade;
 
 /**
  * @method static \Illuminate\Bus\Batch send(\CSeidl\EmailComposer\Models\EmailDraft $draft)
+ * @method static \CSeidl\EmailComposer\Services\ConfigService config()
  *
  * @see \CSeidl\EmailComposer\EmailComposer
  */

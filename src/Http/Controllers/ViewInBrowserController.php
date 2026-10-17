@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Http\Controllers;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
@@ -17,7 +18,7 @@ class ViewInBrowserController
 
         abort_if($path === null, 404);
 
-        $disk = Storage::disk(config('email-composer.storage.disk'));
+        $disk = Storage::disk(EmailComposer::config()->storageDisk());
         abort_unless($disk->exists($path), 404);
 
         return response($disk->get($path), 200, ['Content-Type' => 'text/html; charset=UTF-8']);

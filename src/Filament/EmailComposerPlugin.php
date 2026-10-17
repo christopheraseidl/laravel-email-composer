@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament;
 
 use BezhanSalleh\LanguageSwitch\LanguageSwitch;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Pages\ManageEmailTheme;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\EmailTemplateResource;
@@ -50,7 +51,7 @@ class EmailComposerPlugin implements Plugin
         // A host that registered it first keeps its own configuration.
         if (! $panel->hasPlugin('spatie-translatable')) {
             $panel->plugin(
-                SpatieTranslatablePlugin::make()->defaultLocales(config('email-composer.locales')),
+                SpatieTranslatablePlugin::make()->defaultLocales(EmailComposer::config()->locales()),
             );
         }
     }
@@ -60,7 +61,7 @@ class EmailComposerPlugin implements Plugin
     {
         LanguageSwitch::configureUsing(function (LanguageSwitch $switch) {
             if ($switch->getLocales() === []) {
-                $switch->locales(config('email-composer.locales'));
+                $switch->locales(EmailComposer::config()->locales());
             }
         });
     }

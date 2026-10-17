@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Database\Factories;
 
+use CSeidl\EmailComposer\Database\Factories\Concerns\BuildsHostUsers;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 #[UseModel(EmailDraft::class)]
 class EmailDraftFactory extends Factory
 {
+    use BuildsHostUsers;
+
     /**
      * Define the model's default state.
      *
@@ -21,10 +24,8 @@ class EmailDraftFactory extends Factory
      */
     public function definition(): array
     {
-        $userModel = config('auth.providers.users.model');
-
         return [
-            'author_id' => $userModel::factory(),
+            'author_id' => $this->userFactory(),
             'email_template_id' => EmailTemplate::factory(),
             'template_key' => null,
             'subject' => ['en' => fake()->sentence(), 'es' => fake()->sentence()],
@@ -54,13 +55,11 @@ class EmailDraftFactory extends Factory
 
     public function approved(): static
     {
-        $userModel = config('auth.providers.users.model');
-
         return $this->state(fn () => [
             'status' => EmailDraftStatus::Approved,
             'submitted_at' => now()->subHours(4),
             'approved_at' => now()->subHour(),
-            'approved_by' => $userModel::factory(),
+            'approved_by' => $this->userFactory(),
         ]);
     }
 

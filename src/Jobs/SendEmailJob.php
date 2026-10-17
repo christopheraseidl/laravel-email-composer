@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Jobs;
 
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
@@ -64,7 +65,7 @@ class SendEmailJob implements ShouldQueue
 
     protected function resolveLocale(): string
     {
-        $default = config('email-composer.default_locale', 'en');
+        $default = EmailComposer::config()->defaultLocale();
         $preferred = $this->recipient->locale ?? $default;
 
         return isset($this->draft->public_files[$preferred]) ? $preferred : $default;

@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Http\Controllers;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
@@ -32,9 +33,9 @@ class UnsubscribeController
 
     protected function useRecipientLocale(Recipient $recipient): void
     {
-        $locale = in_array($recipient->locale, config('email-composer.locales'), true)
+        $locale = $recipient->locale !== null && in_array($recipient->locale, EmailComposer::config()->locales(), true)
             ? $recipient->locale
-            : config('email-composer.default_locale');
+            : EmailComposer::config()->defaultLocale();
 
         App::setLocale($locale);
     }
