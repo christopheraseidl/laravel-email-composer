@@ -29,7 +29,7 @@ return [
     'queue' => [
         'enabled' => env('EMAIL_COMPOSER_QUEUE', true),
         'connection' => env('EMAIL_COMPOSER_QUEUE_CONNECTION', null),
-        'queue' => env('EMAIL_COMPOSER_QUEUE_NAME', 'emails'),
+        'queue' => env('EMAIL_COMPOSER_QUEUE_NAME', null),
     ],
 
     // Bulk-send chunking: dispatch N jobs at a time, sleep between batches.
