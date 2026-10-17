@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer;
 
+use CSeidl\EmailComposer\Commands\InstallCommand;
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Mail\MailableSender;
 use CSeidl\EmailComposer\Models\EmailTheme;
@@ -29,8 +30,8 @@ class EmailComposerServiceProvider extends PackageServiceProvider
                 'create_email_composer_draft_recipient_table',
                 'create_email_composer_draft_feedback_table',
             ])
-            ->runsMigrations()
-            ->hasRoute('web');
+            ->hasRoute('web')
+            ->hasConsoleCommand(InstallCommand::class);
     }
 
     #[Override]
