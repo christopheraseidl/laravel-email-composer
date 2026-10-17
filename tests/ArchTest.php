@@ -46,6 +46,7 @@ arch('models declare their factory')
 
 arch('factories declare their model')
     ->expect('CSeidl\EmailComposer\Database\Factories')
+    ->classes()
     ->toHaveAttribute(UseModel::class);
 
 it('has a policy for every model', function (string $model) {

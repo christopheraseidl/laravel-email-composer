@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts;
 
 use BackedEnum;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
@@ -57,7 +58,7 @@ class EmailDraftResource extends Resource
     /** @return array<int, string> */
     public static function getTranslatableLocales(): array
     {
-        return config('email-composer.locales');
+        return EmailComposer::config()->locales();
     }
 
     // Open the form in the panel's active language (set by LanguageSwitch).

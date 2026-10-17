@@ -80,13 +80,13 @@ class EmailDraft extends Model
     /** @return BelongsTo<Model, $this> */
     public function author(): BelongsTo
     {
-        return $this->belongsTo(EmailComposer::userModel(), 'author_id');
+        return $this->belongsTo(EmailComposer::config()->userModel(), 'author_id');
     }
 
     /** @return BelongsTo<Model, $this> */
     public function approver(): BelongsTo
     {
-        return $this->belongsTo(EmailComposer::userModel(), 'approved_by');
+        return $this->belongsTo(EmailComposer::config()->userModel(), 'approved_by');
     }
 
     /** @return BelongsTo<EmailTemplate, $this> */
@@ -124,7 +124,7 @@ class EmailDraft extends Model
 
     public function subjectFor(string $locale): string
     {
-        $fallback = config('email-composer.default_locale', 'en');
+        $fallback = EmailComposer::config()->defaultLocale();
 
         return $this->getTranslation('subject', $locale, true)
             ?: $this->getTranslation('subject', $fallback, true)
@@ -137,7 +137,7 @@ class EmailDraft extends Model
     public function publicFileFor(string $locale): ?string
     {
         return $this->public_files[$locale]
-            ?? $this->public_files[config('email-composer.default_locale', 'en')]
+            ?? $this->public_files[EmailComposer::config()->defaultLocale()]
             ?? null;
     }
 
@@ -160,7 +160,7 @@ class EmailDraft extends Model
     /** @return array<string, string> placeholder name => value for locale (with fallback) */
     public function placeholderValues(string $locale): array
     {
-        $fallback = config('email-composer.default_locale', 'en');
+        $fallback = EmailComposer::config()->defaultLocale();
         $perLocale = $this->getTranslations('placeholders'); // [locale => [name => value]]
         $names = $this->resolveTemplate()?->placeholderNames() ?? [];
 

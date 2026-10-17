@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Mail;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
@@ -27,7 +28,7 @@ class ComposedEmail extends Mailable
 
     public function content(): Content
     {
-        $disk = Storage::disk(config('email-composer.storage.disk'));
+        $disk = Storage::disk(EmailComposer::config()->storageDisk());
         $path = $this->draft->publicFileFor($this->locale);
         $body = ($path && $disk->exists($path) ? $disk->get($path) : null)
             ?? $this->draft->renderFor($this->locale);

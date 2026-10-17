@@ -51,6 +51,6 @@ class DraftFeedback extends Model
     /** @return BelongsTo<Model, $this> */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(EmailComposer::userModel(), 'user_id');
+        return $this->belongsTo(EmailComposer::config()->userModel(), 'user_id');
     }
 }

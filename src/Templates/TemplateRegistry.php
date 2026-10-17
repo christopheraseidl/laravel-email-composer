@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Templates;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
@@ -16,7 +17,7 @@ class TemplateRegistry
     public function __construct(?array $searchPaths = null)
     {
         $this->searchPaths = $searchPaths ?? array_values(array_filter([
-            config('email-composer.templates.path'),
+            EmailComposer::config()->templatesPath(),
             __DIR__.'/../../resources/views/templates',
         ]));
     }

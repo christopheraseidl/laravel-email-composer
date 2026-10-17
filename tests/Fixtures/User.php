@@ -11,8 +11,8 @@ use Orchestra\Testbench\Factories\UserFactory;
  * Stand-in for the host application's user model.
  *
  * Testbench's default (Illuminate\Foundation\Auth\User) has no HasFactory, so
- * EmailDraftFactory's `config('auth.providers.users.model')::factory()` call
- * would fail against it. Real applications always have the trait.
+ * BuildsHostUsers::userFactory() would throw against it. Real applications
+ * always have the trait.
  */
 class User extends Authenticatable
 {

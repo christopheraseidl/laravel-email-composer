@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Services;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,8 +16,8 @@ class DraftPublisher
      */
     public function publish(EmailDraft $draft): array
     {
-        $disk = Storage::disk(config('email-composer.storage.disk'));
-        $base = trim((string) config('email-composer.storage.path', 'email-composer'), '/');
+        $disk = Storage::disk(EmailComposer::config()->storageDisk());
+        $base = trim(EmailComposer::config()->storagePath(), '/');
         $folder = $this->folderFor($draft);
 
         $paths = [];
@@ -50,7 +51,7 @@ class DraftPublisher
         return array_values(array_unique(array_merge(
             array_keys($draft->getTranslations('subject')),
             array_keys($draft->getTranslations('placeholders')),
-            [config('email-composer.default_locale', 'en')],
+            [EmailComposer::config()->defaultLocale()],
         )));
     }
 }
