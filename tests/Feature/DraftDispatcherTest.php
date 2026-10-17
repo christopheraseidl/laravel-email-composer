@@ -52,6 +52,15 @@ it('uses the default connection when none is configured', function () {
     Bus::assertBatched(fn (PendingBatch $batch) => $batch->connection() === null);
 });
 
+it('uses the connection\'s default queue when none is configured', function () {
+    Bus::fake();
+    config()->set('email-composer.queue.queue', null);
+
+    app(DraftDispatcher::class)->dispatch(approvedDraftWithRecipients(1));
+
+    Bus::assertBatched(fn (PendingBatch $batch) => $batch->queue() === null);
+});
+
 it('refuses a draft that is not approved', function (EmailDraftStatus $status) {
     Bus::fake();
     $draft = EmailDraft::factory()->create(['status' => $status]);
