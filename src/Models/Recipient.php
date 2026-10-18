@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -37,6 +38,13 @@ class Recipient extends Model
         'metadata' => 'array',
         'unsubscribed_at' => 'datetime',
     ];
+
+    /** @return BelongsToMany<RecipientList, $this> */
+    public function lists(): BelongsToMany
+    {
+        return $this->belongsToMany(RecipientList::class, 'email_composer_list_recipient')
+            ->withTimestamps();
+    }
 
     /**
      * Mark the recipient as unsubscribed, keeping the first unsubscribe time.

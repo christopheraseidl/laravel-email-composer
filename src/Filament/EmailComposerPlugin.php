@@ -7,6 +7,7 @@ use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Pages\ManageEmailTheme;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\EmailTemplateResource;
+use CSeidl\EmailComposer\Filament\Resources\RecipientLists\RecipientListResource;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\RecipientResource;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
@@ -41,6 +42,7 @@ class EmailComposerPlugin implements Plugin
         $panel
             ->resources([
                 RecipientResource::class,
+                RecipientListResource::class,
                 EmailTemplateResource::class,
                 EmailDraftResource::class,
             ])

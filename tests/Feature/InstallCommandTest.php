@@ -21,7 +21,7 @@ it('publishes the config and migrations, and the migrate prompt can be declined'
             ->assertSuccessful();
 
         expect(File::exists(config_path('email-composer.php')))->toBeTrue()
-            ->and(File::glob(database_path('migrations/*_create_email_composer_*_table.php')))->toHaveCount(6);
+            ->and(File::glob(database_path('migrations/*_create_email_composer_*_table.php')))->toHaveCount(8);
     } finally {
         deletePublishedInstallFiles();
     }
