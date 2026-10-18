@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables;
 
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Facades\EmailComposer;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -71,6 +72,7 @@ class EmailDraftsTable
                     ->color('info')
                     ->action(fn ($record) => $record->approve(auth()->user()))
                     ->authorize(fn ($record) => Gate::allows('approve', $record)),
+                ReviewLinkAction::make(),
                 Action::make('send')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->color('success')
