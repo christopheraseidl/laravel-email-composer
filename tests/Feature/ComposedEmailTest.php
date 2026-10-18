@@ -137,6 +137,21 @@ it('appends the footer when the body has no </body>', function () {
         ->toContain(e($draft->viewInBrowserUrl('en')));
 });
 
+it('adds one-click list-unsubscribe headers pointing at the footer link', function () {
+    $mail = new ComposedEmail(composedDraft(), Recipient::factory()->create(), 'en');
+
+    $headers = $mail->headers()->text;
+
+    expect($headers)
+        ->toHaveKey('List-Unsubscribe')
+        ->toHaveKey('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click')
+        ->and($headers['List-Unsubscribe'])->toMatch('/^<.+>$/');
+
+    $url = substr($headers['List-Unsubscribe'], 1, -1);
+
+    expect($mail->render())->toContain(e($url));
+});
+
 it('binds the sender interface to the mailable sender', function () {
     expect(app(EmailSenderInterface::class))->toBeInstanceOf(MailableSender::class);
 });

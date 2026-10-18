@@ -1,9 +1,13 @@
 <?php
 
+use CSeidl\EmailComposer\Mail\ComposedEmail;
+use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Route;
 
 pest()->use(RefreshDatabase::class);
 
@@ -58,6 +62,21 @@ it('unsubscribes the recipient and shows the done page', function () {
         ->assertSee('ada@example.com');
 
     expect($recipient->fresh()->unsubscribed_at)->not->toBeNull();
+});
+
+it('unsubscribes the recipient on a one-click post to the list-unsubscribe header url', function () {
+    $recipient = Recipient::factory()->create();
+    $header = (new ComposedEmail(EmailDraft::factory()->make(), $recipient, 'en'))->headers()->text['List-Unsubscribe'];
+
+    $this->post(substr($header, 1, -1), ['List-Unsubscribe' => 'One-Click'])->assertOk();
+
+    expect($recipient->fresh()->unsubscribed_at)->not->toBeNull();
+});
+
+it('exempts the unsubscribe post from csrf verification', function () {
+    $route = Route::getRoutes()->getByName('email-composer.unsubscribe.store');
+
+    expect($route->excludedMiddleware())->toContain(ValidateCsrfToken::class);
 });
 
 it('keeps the original unsubscribe time when posted again', function () {
