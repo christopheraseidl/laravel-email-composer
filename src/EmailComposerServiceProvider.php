@@ -24,6 +24,8 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ->hasAssets()
             ->hasMigrations([
                 'create_email_composer_recipients_table',
+                'create_email_composer_recipient_lists_table',
+                'create_email_composer_list_recipient_table',
                 'create_email_composer_templates_table',
                 'create_email_composer_theme_table',
                 'create_email_composer_drafts_table',

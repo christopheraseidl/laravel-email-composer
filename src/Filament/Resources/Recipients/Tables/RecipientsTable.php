@@ -6,6 +6,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -45,6 +46,9 @@ class RecipientsTable
                         false: fn (Builder $query) => $query->whereNull('unsubscribed_at'),
                         blank: fn (Builder $query) => $query,
                     ),
+                SelectFilter::make('lists')
+                    ->relationship('lists', 'name')
+                    ->preload(),
             ])
             ->recordActions([
                 EditAction::make(),

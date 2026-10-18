@@ -1,7 +1,9 @@
 <?php
 
+use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\EditRecipient;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\ListRecipients;
 use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Models\RecipientList;
 
 use function Pest\Livewire\livewire;
 
@@ -15,4 +17,28 @@ it('lists recipients with searchable table', function () {
         ->searchTable('Findable')
         ->assertCanSeeTableRecords([$target])
         ->assertCountTableRecords(1);
+});
+
+it('filters recipients by list', function () {
+    $list = RecipientList::factory()->create();
+    $member = Recipient::factory()->create();
+    $outsider = Recipient::factory()->create();
+    $list->recipients()->attach($member);
+
+    livewire(ListRecipients::class)
+        ->filterTable('lists', $list->id)
+        ->assertCanSeeTableRecords([$member])
+        ->assertCanNotSeeTableRecords([$outsider]);
+});
+
+it('assigns lists from the recipient form', function () {
+    $list = RecipientList::factory()->create();
+    $recipient = Recipient::factory()->create(['locale' => null]);
+
+    livewire(EditRecipient::class, ['record' => $recipient->getRouteKey()])
+        ->fillForm(['lists' => [$list->id]])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($recipient->lists->modelKeys())->toBe([$list->id]);
 });

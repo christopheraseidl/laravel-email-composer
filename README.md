@@ -106,6 +106,13 @@ always denied.
 | `delete-recipient` | `Recipient` | Delete a recipient |
 | `restore-recipient` | `Recipient` | Restore a recipient |
 | `force-delete-recipient` | `Recipient` | Permanently delete a recipient |
+| `view-recipient-lists` | no | List recipient lists |
+| `view-recipient-list` | `RecipientList` | View a recipient list |
+| `create-recipient-lists` | no | Create recipient lists |
+| `update-recipient-list` | `RecipientList` | Edit a recipient list |
+| `delete-recipient-list` | `RecipientList` | Delete a recipient list |
+| `restore-recipient-list` | `RecipientList` | Restore a deleted recipient list |
+| `force-delete-recipient-list` | `RecipientList` | Permanently delete a recipient list |
 | `view-templates` | no | List templates |
 | `view-template` | `EmailTemplate` | View a template |
 | `create-templates` | no | Create templates |
@@ -158,13 +165,32 @@ public function panel(Panel $panel): Panel
 }
 ```
 
-The plugin adds the Recipients, Email Templates, and Email Drafts resources
-and the Manage Email Theme page. It also:
+The plugin adds the Recipients, Recipient Lists, Email Templates, and Email
+Drafts resources and the Manage Email Theme page. It also:
 
 - registers `SpatieTranslatablePlugin` with `locales` as its default locales, unless the panel already registers it,
 - sets the language switcher's locales to `locales`, unless they were configured elsewhere.
 
 Registration throws a `LogicException` if either dependency is missing.
+
+## Recipient lists
+
+A recipient list is a named group of recipients. A recipient can belong to
+any number of lists. Members are chosen in the Recipient Lists resource or
+from a recipient's form, and the Recipients table filters by list.
+
+```php
+use CSeidl\EmailComposer\Models\RecipientList;
+
+$list = RecipientList::create(['name' => 'Staff']);
+$list->recipients()->attach($recipientIds);
+
+$recipient->lists;   // lists the recipient belongs to
+```
+
+Deleting a list soft-deletes it and keeps its memberships, so restoring it
+brings them back. Force deleting a list, or deleting a recipient, removes
+the memberships.
 
 ## Templates
 

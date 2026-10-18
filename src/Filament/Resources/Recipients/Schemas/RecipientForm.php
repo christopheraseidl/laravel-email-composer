@@ -24,6 +24,10 @@ class RecipientForm
                     ->required(),
                 Select::make('locale')
                     ->options(EmailComposer::config()->locales()),
+                Select::make('lists')
+                    ->multiple()
+                    ->relationship('lists', 'name')
+                    ->preload(),
                 Textarea::make('metadata')
                     ->columnSpanFull(),
                 DateTimePicker::make('unsubscribed_at'),
