@@ -81,6 +81,15 @@ class EmailDraftPolicy
     }
 
     /**
+     * Determine whether the user can share the draft's review link.
+     */
+    public function share(Authenticatable $user, EmailDraft $draft): bool
+    {
+        return EmailComposer::userCan($user, 'share-draft', $draft)
+            && $draft->status === EmailDraftStatus::UnderReview;
+    }
+
+    /**
      * Determine whether the user can send the draft.
      */
     public function send(Authenticatable $user, EmailDraft $draft): bool

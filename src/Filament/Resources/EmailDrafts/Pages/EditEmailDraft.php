@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages;
 
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -45,6 +46,7 @@ class EditEmailDraft extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            ReviewLinkAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

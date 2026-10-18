@@ -58,6 +58,7 @@ it('denies every action when no resolver is registered', function () {
     expect($user->can('delete', $draft))->toBeFalse();
     expect($user->can('submit', $draft))->toBeFalse();
     expect($user->can('approve', $draft))->toBeFalse();
+    expect($user->can('share', $draft))->toBeFalse();
     expect($user->can('send', $draft))->toBeFalse();
     expect($user->can('restore', $draft))->toBeFalse();
     expect($user->can('forceDelete', $draft))->toBeFalse();
@@ -155,6 +156,7 @@ it('gates a transition action on the draft status', function (string $action, st
 })->with([
     'submit' => ['submit', 'submit-draft', 'draft'],
     'approve' => ['approve', 'approve-draft', 'underReview'],
+    'share' => ['share', 'share-draft', 'underReview'],
     'send' => ['send', 'send-draft', 'approved'],
 ]);
 
@@ -173,6 +175,7 @@ it('forwards the draft to the resolver for per-model abilities', function () {
     $user->can('delete', $draft);
     $user->can('submit', $draft);
     $user->can('approve', $draft);
+    $user->can('share', $draft);
     $user->can('send', $draft);
     $user->can('restore', $draft);
     $user->can('forceDelete', $draft);
@@ -181,6 +184,7 @@ it('forwards the draft to the resolver for per-model abilities', function () {
     expect($captured['delete-draft'])->toBe($draft);
     expect($captured['submit-draft'])->toBe($draft);
     expect($captured['approve-draft'])->toBe($draft);
+    expect($captured['share-draft'])->toBe($draft);
     expect($captured['send-draft'])->toBe($draft);
     expect($captured['restore-draft'])->toBe($draft);
     expect($captured['force-delete-draft'])->toBe($draft);
