@@ -4,7 +4,7 @@ namespace CSeidl\EmailComposer\Services;
 
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
-use CSeidl\EmailComposer\Jobs\SendEmailJob;
+use CSeidl\EmailComposer\Jobs\QueueDraftRecipients;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Bus\Batch;
 use Illuminate\Support\Facades\Bus;
@@ -22,15 +22,13 @@ class DraftDispatcher
             );
         }
 
-        // An empty batch never runs its finally callback, so the draft would stay approved.
-        if ($draft->recipients->isEmpty()) {
+        // Sending to nobody would still mark the draft sent.
+        if ($draft->recipients()->doesntExist()) {
             throw new \DomainException("Cannot send draft #{$draft->id}: it has no recipients.");
         }
 
-        $jobs = $draft->recipients->map(fn ($recipient) => new SendEmailJob($draft, $recipient));
-
         // A batch pushes its jobs on its own connection and queue, ignoring each job's.
-        return Bus::batch($jobs->all())
+        return Bus::batch([new QueueDraftRecipients($draft)])
             ->name("email-composer draft #{$draft->id}")
             // null means the app's default connection, which onConnection() doesn't accept.
             ->when(EmailComposer::config()->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))

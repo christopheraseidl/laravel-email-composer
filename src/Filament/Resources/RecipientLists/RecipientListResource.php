@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\RecipientLists;
 
 use BackedEnum;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\CreateRecipientList;
 use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\EditRecipientList;
 use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\ListRecipientLists;
@@ -48,6 +49,11 @@ class RecipientListResource extends Resource
             'create' => CreateRecipientList::route('/create'),
             'edit' => EditRecipientList::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return EmailComposer::config()->navigationGroup();
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

@@ -32,6 +32,11 @@ class ConfigService
         return config()->string('email-composer.storage.path', 'email-composer');
     }
 
+    public function publicDisk(): string
+    {
+        return config()->string('email-composer.storage.public_disk', 'public');
+    }
+
     public function templatesPath(): ?string
     {
         return $this->stringOrNull('email-composer.templates.path');
@@ -49,6 +54,11 @@ class ConfigService
         return $this->stringOrNull('email-composer.queue.queue');
     }
 
+    public function bulkChunkSize(): int
+    {
+        return max(1, (int) config('email-composer.bulk.chunk_size', 100));
+    }
+
     /** null means unsubscribe links never expire. */
     public function unsubscribeLinkTtlDays(): ?int
     {
@@ -60,6 +70,12 @@ class ConfigService
     public function reviewLinkTtlDays(): int
     {
         return (int) config('email-composer.review.link_ttl_days', 7);
+    }
+
+    /** null means the Filament pages appear outside any navigation group. */
+    public function navigationGroup(): ?string
+    {
+        return $this->stringOrNull('email-composer.filament.navigation_group', 'Email');
     }
 
     /**
@@ -78,9 +94,9 @@ class ConfigService
         return $model;
     }
 
-    protected function stringOrNull(string $key): ?string
+    protected function stringOrNull(string $key, ?string $default = null): ?string
     {
-        $value = config($key);
+        $value = config($key, $default);
 
         return is_string($value) ? $value : null;
     }

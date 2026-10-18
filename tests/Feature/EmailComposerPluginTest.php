@@ -30,6 +30,18 @@ it('registers the resources and the theme page on the panel', function () {
         ->and($panel->getPages())->toContain(ManageEmailTheme::class);
 });
 
+it('puts the resources and the theme page in the configured navigation group', function (string $class) {
+    config(['email-composer.filament.navigation_group' => 'Mail']);
+
+    expect($class::getNavigationGroup())->toBe('Mail');
+})->with([
+    RecipientResource::class,
+    RecipientListResource::class,
+    EmailTemplateResource::class,
+    EmailDraftResource::class,
+    ManageEmailTheme::class,
+]);
+
 it('registers spatie-translatable with the package locales', function () {
     $plugin = Filament::getPanel('admin')->getPlugin('spatie-translatable');
 

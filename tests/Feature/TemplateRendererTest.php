@@ -1,9 +1,11 @@
 <?php
 
 use CSeidl\EmailComposer\Models\EmailTemplate;
+use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Templates\FileTemplate;
 use CSeidl\EmailComposer\Templates\TemplateRenderer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 
 pest()->use(RefreshDatabase::class);
 
@@ -116,4 +118,30 @@ it('renders a FileTemplate, not just a database template', function () {
     );
 
     expect(renderTemplate($template, ['name' => 'John']))->toContain('Hello, John!');
+});
+
+it('renders the theme logo when set', function () {
+    EmailTheme::current()->update(['logo_url' => 'https://example.com/logo.png', 'logo_alt' => 'Acme']);
+
+    expect(renderTemplate(template()))
+        ->toContain('src="https://example.com/logo.png"')
+        ->toContain('alt="Acme"');
+});
+
+it('renders no logo when the theme has none', function () {
+    expect(renderTemplate(template()))->not->toContain('<img');
+});
+
+it('falls back to the app name for the logo alt text', function () {
+    config(['app.name' => 'Acme App']);
+    EmailTheme::current()->update(['logo_url' => 'https://example.com/logo.png']);
+
+    expect(renderTemplate(template()))->toContain('alt="Acme App"');
+});
+
+it('renders an uploaded logo from the public disk', function () {
+    EmailTheme::current()->update(['logo_path' => 'email-composer/logos/logo.png']);
+
+    expect(renderTemplate(template()))
+        ->toContain('src="'.Storage::disk('public')->url('email-composer/logos/logo.png').'"');
 });

@@ -6,9 +6,9 @@
         <style>{!! $css !!}</style>
     </head>
     <body>
-        @if (config('email-composer.path'))
-            <img src="{{ config('email-composer.path')}}"
-                 alt="{{ config('email-composer.alt')}}">
+        @php($logoSrc = $theme->logoSrc())
+        @if ($logoSrc)
+            <img src="{{ $logoSrc }}" alt="{{ $theme->logoAlt() }}">
         @endif
 
         {!! $body !!}

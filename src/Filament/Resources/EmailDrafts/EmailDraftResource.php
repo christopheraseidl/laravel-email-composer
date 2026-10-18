@@ -55,6 +55,11 @@ class EmailDraftResource extends Resource
         ];
     }
 
+    public static function getNavigationGroup(): ?string
+    {
+        return EmailComposer::config()->navigationGroup();
+    }
+
     /** @return array<int, string> */
     public static function getTranslatableLocales(): array
     {

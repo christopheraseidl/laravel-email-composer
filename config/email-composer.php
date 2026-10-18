@@ -11,6 +11,8 @@ return [
     'storage' => [
         'disk' => env('EMAIL_COMPOSER_DISK', 'local'),
         'path' => 'email-composer',
+        // Disk for files email clients load by URL, such as an uploaded logo.
+        'public_disk' => env('EMAIL_COMPOSER_PUBLIC_DISK', 'public'),
     ],
 
     // Where email templates live in the consuming app. Files dropped here
@@ -19,20 +21,14 @@ return [
         'path' => resource_path('views/vendor/email-composer/templates'),
     ],
 
-    // Global logo. Per-template logos (set via Filament) override this.
-    'logo' => [
-        'path' => null,       // e.g. public_path('logo.png') or a URL
-        'alt' => env('APP_NAME', 'Company'),
-    ],
-
     // Sending behaviour.
     'queue' => [
-        'enabled' => env('EMAIL_COMPOSER_QUEUE', true),
         'connection' => env('EMAIL_COMPOSER_QUEUE_CONNECTION', null),
         'queue' => env('EMAIL_COMPOSER_QUEUE_NAME', null),
     ],
 
-    // Bulk-send chunking: dispatch N jobs at a time, sleep between batches.
+    // Send jobs added to the batch per queue push when a draft is sent.
+    // Bounds memory and the size of each push (one insert on the database driver).
     'bulk' => [
         'chunk_size' => 100,
     ],
@@ -48,8 +44,8 @@ return [
         'link_ttl_days' => 7,
     ],
 
-    // Filament panel(s) the EmailComposerPlugin should attach to.
-    // null = attach when the plugin is registered on a panel directly.
+    // Navigation group the Filament resources and theme page appear under.
+    // null = no group.
     'filament' => [
         'navigation_group' => 'Email',
     ],

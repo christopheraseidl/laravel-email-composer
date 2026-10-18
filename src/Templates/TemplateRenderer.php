@@ -16,10 +16,11 @@ class TemplateRenderer
      */
     public function render(EmailTemplate|FileTemplate $template, array $values, string $locale): string
     {
+        $theme = EmailTheme::current();
         $body = $this->interpolate($template->body, $values);
-        $css = $this->assembleCss($template);
+        $css = $this->assembleCss($theme, $template);
 
-        $html = View::make('email-composer::layout', compact('body', 'css', 'locale'))->render();
+        $html = View::make('email-composer::layout', compact('body', 'css', 'locale', 'theme'))->render();
         $html = (new CssToInlineStyles)->convert($html, $css);
 
         return $this->sanitize($html);
@@ -38,10 +39,10 @@ class TemplateRenderer
         ) ?? throw new \RuntimeException('Could not interpolate placeholders: '.preg_last_error_msg());
     }
 
-    protected function assembleCss(EmailTemplate|FileTemplate $template): string
+    protected function assembleCss(EmailTheme $theme, EmailTemplate|FileTemplate $template): string
     {
         // Template CSS overrides the global theme.
-        return trim(EmailTheme::current()->css."\n".($template->css ?? ''));
+        return trim($theme->css."\n".($template->css ?? ''));
     }
 
     protected function sanitize(string $html): string
