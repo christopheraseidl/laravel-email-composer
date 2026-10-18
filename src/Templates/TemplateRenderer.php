@@ -17,21 +17,17 @@ class TemplateRenderer
     public function render(EmailTemplate|FileTemplate $template, array $values, string $locale): string
     {
         $theme = EmailTheme::current();
-        $body = $this->interpolate($template->body, $values);
+        $body = $this->sanitize($this->interpolate($template->body, $values));
         $css = $this->assembleCss($theme, $template);
 
         $html = View::make('email-composer::layout', compact('body', 'css', 'locale', 'theme'))->render();
-        $html = (new CssToInlineStyles)->convert($html, $css);
 
-        return $this->sanitize($html);
+        return (new CssToInlineStyles)->convert($html, $css);
     }
 
     /** @param array<string, string> $values */
     protected function interpolate(string $body, array $values): string
     {
-        // Values are inserted raw to allow rich-text (HTML) fields; the final
-        // sanitize() pass over the whole document is the XSS boundary. A single
-        // replace pass means an injected value cannot smuggle in new tokens.
         return preg_replace_callback(
             '/\[\[\s*([a-zA-Z0-9_]+)\s*\]\]/',
             fn ($m) => $values[$m[1]] ?? '',
@@ -41,8 +37,7 @@ class TemplateRenderer
 
     protected function assembleCss(EmailTheme $theme, EmailTemplate|FileTemplate $template): string
     {
-        // Template CSS overrides the global theme.
-        return trim($theme->css."\n".($template->css ?? ''));
+        return str_replace('<', '', trim($theme->css."\n".($template->css ?? '')));
     }
 
     protected function sanitize(string $html): string

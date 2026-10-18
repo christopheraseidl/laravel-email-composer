@@ -72,7 +72,7 @@ it('leaves nothing behind for a missing value', function () {
     expect($html)
         ->not->toContain('[[')
         ->not->toContain(']]')
-        ->not->toContain('body');
+        ->toMatch('/<div[^>]*><\/div>/');
 });
 
 it('inlines CSS into style attributes', function () {
@@ -91,9 +91,10 @@ it('lets template CSS override the theme', function () {
         ['greeting' => '<h1>Greetings</h1>', 'body' => '<p>Hello world!</p>'],
     );
 
+    // Assert on inlined style attributes; the <style> block keeps both rules.
     expect($html)
-        ->not->toContain('font-size:16px;')
-        ->toContain('font-size:12px;')
+        ->not->toMatch('/style="[^"]*font-size: 16px;/')
+        ->toMatch('/<div style="[^"]*font-size: 12px;/')
         // A theme rule the template does not touch still applies.
         ->toContain('#2b2b2b');
 });
@@ -104,7 +105,16 @@ it('sanitizes a script payload smuggled through CSS', function () {
         ['greeting' => '<h1>Greetings</h1>', 'body' => '<p>Hello world!</p>'],
     );
 
-    expect($html)->not->toContain('malicious.js');
+    // The payload stays inside the <style> block as inert text.
+    expect($html)
+        ->not->toContain('<script')
+        ->not->toMatch('/<\/style>.*<\/style>/s');
+});
+
+it('keeps the default theme media queries in the head', function () {
+    expect(renderTemplate(template()))
+        ->toContain('<html lang="en">')
+        ->toMatch('/<head>.*<style>.*@media.*<\/style>.*<\/head>/s');
 });
 
 it('renders a FileTemplate, not just a database template', function () {
