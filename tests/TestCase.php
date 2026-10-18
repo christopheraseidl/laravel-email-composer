@@ -67,7 +67,9 @@ class TestCase extends Orchestra
 
     public function getEnvironmentSetUp($app)
     {
-        $app->useDatabasePath(sys_get_temp_dir().'/email-composer-tests-'.(getenv('TEST_TOKEN') ?: '0'));
+        $dir = sys_get_temp_dir().'/email-composer-tests-'.(getenv('TEST_TOKEN') ?: '0');
+        $app->useDatabasePath($dir);
+        $app->useConfigPath($dir.'/config');
         config()->set('database.default', 'testing');
         config()->set('database.connections.testing', [
             'driver' => 'sqlite',
