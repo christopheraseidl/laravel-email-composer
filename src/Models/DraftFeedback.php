@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $email_draft_id
@@ -16,13 +18,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $reviewer_email
  * @property string $comment
  * @property bool $resolved
+ * @property Carbon|null $deleted_at
  * @property-read EmailDraft $draft
  */
 #[UseFactory(DraftFeedbackFactory::class)]
 class DraftFeedback extends Model
 {
     /** @use HasFactory<DraftFeedbackFactory> */
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'email_composer_draft_feedback';
 

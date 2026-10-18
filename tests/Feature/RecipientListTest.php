@@ -49,12 +49,23 @@ it('removes pivot rows when a list is force deleted', function () {
     expect(DB::table('email_composer_list_recipient')->count())->toBe(0);
 });
 
-it('removes pivot rows when a recipient is deleted', function () {
+it('keeps pivot rows when a recipient is soft deleted', function () {
     $list = RecipientList::factory()->create();
     $recipient = Recipient::factory()->create();
     $list->recipients()->attach($recipient);
 
     $recipient->delete();
 
-    expect($list->recipients()->count())->toBe(0);
+    expect(DB::table('email_composer_list_recipient')->count())->toBe(1)
+        ->and($list->recipients()->count())->toBe(0);
+});
+
+it('removes pivot rows when a recipient is force deleted', function () {
+    $list = RecipientList::factory()->create();
+    $recipient = Recipient::factory()->create();
+    $list->recipients()->attach($recipient);
+
+    $recipient->forceDelete();
+
+    expect(DB::table('email_composer_list_recipient')->count())->toBe(0);
 });
