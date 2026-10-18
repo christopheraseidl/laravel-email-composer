@@ -9,16 +9,20 @@ use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Support\Facades\Storage;
 
 class ComposedEmail extends Mailable
 {
+    protected string $unsubscribeUrl;
+
     public function __construct(
         public EmailDraft $draft,
         public Recipient $recipient,
         string $locale,
     ) {
         $this->locale($locale);
+        $this->unsubscribeUrl = UnsubscribeLink::for($recipient);
     }
 
     public function envelope(): Envelope
@@ -36,11 +40,19 @@ class ComposedEmail extends Mailable
         return new Content(htmlString: $this->appendFooter($body));
     }
 
+    public function headers(): Headers
+    {
+        return new Headers(text: [
+            'List-Unsubscribe' => "<{$this->unsubscribeUrl}>",
+            'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
+        ]);
+    }
+
     protected function appendFooter(string $html): string
     {
         $footer = view('email-composer::mail.footer', [
             'recipient' => $this->recipient,
-            'unsubscribeUrl' => UnsubscribeLink::for($this->recipient),
+            'unsubscribeUrl' => $this->unsubscribeUrl,
             'viewInBrowserUrl' => $this->draft->viewInBrowserUrl($this->locale),
         ])->render();
 
