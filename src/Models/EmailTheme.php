@@ -31,7 +31,7 @@ class EmailTheme extends Model
 
     public static function current(): self
     {
-        return app(static::class);
+        return static::query()->firstOrCreate([], ['css' => static::defaultCss()]);
     }
 
     /** The uploaded logo, else the logo URL. */

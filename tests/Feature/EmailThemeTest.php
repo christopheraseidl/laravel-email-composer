@@ -11,10 +11,12 @@ it('creates the first row from the shipped default on first call to current', fu
     expect(EmailTheme::current()->css)->toBe($css);
 });
 
-it('returns the same singleton on subsequent calls to current', function () {
-    $theme = EmailTheme::current();
+it('reads the current row on each call to current', function () {
+    EmailTheme::current();
 
-    expect(EmailTheme::current())->toBe($theme);
+    EmailTheme::query()->update(['css' => 'body {color: red;}']);
+
+    expect(EmailTheme::current()->css)->toBe('body {color: red;}');
 });
 
 it('persists css after edits', function () {
