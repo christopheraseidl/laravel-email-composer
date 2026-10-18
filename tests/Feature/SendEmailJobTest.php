@@ -89,6 +89,20 @@ it('skips an unsubscribed recipient', function () {
         ->attempts->toBe(0);
 });
 
+it('skips a soft deleted recipient', function () {
+    $draft = sendableDraft();
+    $recipient = attachedRecipient($draft);
+    $recipient->delete();
+    $this->mock(EmailSenderInterface::class)->shouldNotReceive('send');
+
+    runSendJob($draft, $recipient);
+
+    expect($draft->recipients()->withTrashed()->findOrFail($recipient->getKey())->pivot)
+        ->delivery_status->toBe('skipped')
+        ->sent_at->toBeNull()
+        ->attempts->toBe(0);
+});
+
 it('records the failure and its error', function () {
     $draft = sendableDraft();
     $recipient = attachedRecipient($draft);

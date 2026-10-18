@@ -4,6 +4,8 @@ use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\EditRecipient;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\ListRecipients;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\RestoreAction;
 
 use function Pest\Livewire\livewire;
 
@@ -41,4 +43,18 @@ it('assigns lists from the recipient form', function () {
         ->assertHasNoFormErrors();
 
     expect($recipient->lists->modelKeys())->toBe([$list->id]);
+});
+
+it('deletes and restores a recipient', function () {
+    $recipient = Recipient::factory()->create();
+
+    livewire(EditRecipient::class, ['record' => $recipient->getRouteKey()])
+        ->callAction(DeleteAction::class);
+
+    expect($recipient->fresh()->trashed())->toBeTrue();
+
+    livewire(EditRecipient::class, ['record' => $recipient->getRouteKey()])
+        ->callAction(RestoreAction::class);
+
+    expect($recipient->fresh()->trashed())->toBeFalse();
 });

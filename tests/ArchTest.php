@@ -1,8 +1,10 @@
 <?php
 
+use CSeidl\EmailComposer\Models\EmailTheme;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Gate;
 
 /** @return list<class-string> */
@@ -54,6 +56,13 @@ it('has a policy for every model', function (string $model) {
 
     expect(Gate::getPolicyFor($model))->toBeInstanceOf($policy);
 })->with(classesIn('src/Models', 'CSeidl\EmailComposer\Models'));
+
+it('soft deletes every model except EmailTheme', function (string $model) {
+    expect(class_uses_recursive($model))->toHaveKey(SoftDeletes::class);
+})->with(array_values(array_diff(
+    classesIn('src/Models', 'CSeidl\EmailComposer\Models'),
+    [EmailTheme::class],
+)));
 
 it('returns bool from every policy method', function (ReflectionMethod $method) {
     expect((string) $method->getReturnType())->toBe('bool');
