@@ -65,15 +65,14 @@ Sending is queued, so a queue worker must be running.
 | `default_locale` | `'en'` | Fallback locale for subjects, placeholders, published files, and recipients with no locale |
 | `storage.disk` | `env('EMAIL_COMPOSER_DISK', 'local')` | Disk for published draft HTML. `null` uses the app's default disk |
 | `storage.path` | `'email-composer'` | Directory on that disk. Files go to `{path}/drafts/{hash}/{locale}.html` |
+| `storage.public_disk` | `env('EMAIL_COMPOSER_PUBLIC_DISK', 'public')` | Disk for uploaded logos, under `{path}/logos`. Must serve files by URL |
 | `templates.path` | `resource_path('views/vendor/email-composer/templates')` | Directory scanned for file templates |
 | `queue.connection` | `env('EMAIL_COMPOSER_QUEUE_CONNECTION')` | Queue connection for send batches. `null` uses the app's default |
 | `queue.queue` | `env('EMAIL_COMPOSER_QUEUE_NAME')` | Queue name. `null` uses the connection's default |
+| `bulk.chunk_size` | `100` | Send jobs queued per push when a draft is sent |
 | `unsubscribe.link_ttl_days` | `null` | Days before unsubscribe links expire. `null` never expires |
 | `review.link_ttl_days` | `7` | Days before external review links expire |
-
-The config file also contains `logo.path`, `logo.alt`, `queue.enabled`,
-`bulk.chunk_size`, and `filament.navigation_group`. Version 1.0.0 does not
-read them.
+| `filament.navigation_group` | `'Email'` | Navigation group for the resources and theme page. `null` for none |
 
 Drafts and feedback belong to the model named in
 `auth.providers.users.model`, which must be an Eloquent model.
@@ -267,6 +266,14 @@ use CSeidl\EmailComposer\Models\EmailTheme;
 EmailTheme::current()->css;
 ```
 
+The page also sets a logo shown above every email: either an absolute
+`logo_url`, or an image uploaded to `storage.public_disk` (stored in
+`logo_path`). The alt text falls back to `app.name`:
+
+```php
+EmailTheme::current()->update(['logo_url' => $url]);
+```
+
 ## Drafts
 
 A draft moves through four statuses:
@@ -310,8 +317,8 @@ once the draft leaves `under_review`.
 
 ### Sending
 
-`EmailComposer::send($draft)` queues one job per recipient in a job batch
-and returns the `Batch`. It throws a `DomainException` if the draft is not
+`EmailComposer::send($draft)` queues one job per recipient in a job batch,
+`bulk.chunk_size` at a time, and returns the `Batch`. It throws a `DomainException` if the draft is not
 `approved` or has no recipients.
 
 Each job:

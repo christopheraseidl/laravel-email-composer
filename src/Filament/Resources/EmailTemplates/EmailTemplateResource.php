@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailTemplates;
 
 use BackedEnum;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\CreateEmailTemplate;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\EditEmailTemplate;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\ListEmailTemplates;
@@ -46,5 +47,10 @@ class EmailTemplateResource extends Resource
             'create' => CreateEmailTemplate::route('/create'),
             'edit' => EditEmailTemplate::route('/{record}/edit'),
         ];
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return EmailComposer::config()->navigationGroup();
     }
 }
