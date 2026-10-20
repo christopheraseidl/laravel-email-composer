@@ -2,15 +2,18 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Schemas;
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
@@ -20,15 +23,39 @@ class EmailDraftForm
     {
         return $schema
             ->components([
-                Select::make('email_template_id')
+                Select::make('template')
                     ->required()
-                    ->options(EmailTemplate::pluck('name', 'id'))
-                    ->live(),
+                    ->live()
+                    ->dehydrated(false)
+                    ->options(fn () => [
+                        'Database' => EmailTemplate::pluck('name', 'id')
+                            ->mapWithKeys(fn ($name, $id) => ["db:{$id}" => $name])
+                            ->all(),
+                        'Files' => EmailComposer::templates()->fileTemplates()
+                            ->mapWithKeys(fn ($template, $key) => ["file:{$key}" => $template->name])
+                            ->all(),
+                    ])
+                    ->afterStateHydrated(fn (Select $component, Get $get) => $component->state(match (true) {
+                        filled($get('email_template_id')) => "db:{$get('email_template_id')}",
+                        filled($get('template_key')) => "file:{$get('template_key')}",
+                        default => null,
+                    }))
+                    ->afterStateUpdated(function (?string $state, Set $set) {
+                        [$source, $value] = array_pad(explode(':', $state ?? '', 2), 2, null);
+
+                        $set('email_template_id', $source === 'db' ? (int) $value : null);
+                        $set('template_key', $source === 'file' ? $value : null);
+                    }),
+                Hidden::make('email_template_id'),
+                Hidden::make('template_key'),
                 TextInput::make('subject'),
                 Section::make('Placeholders')
                     ->schema(function (Get $get) {
                         $templateId = $get('email_template_id');
-                        $template = $templateId ? EmailTemplate::find((int) $templateId) : null;
+                        $template = EmailComposer::templates()->resolve(
+                            filled($templateId) ? (int) $templateId : null,
+                            $get('template_key'),
+                        );
 
                         if (! $template) {
                             return [

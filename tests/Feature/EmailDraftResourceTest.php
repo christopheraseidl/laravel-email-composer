@@ -89,7 +89,7 @@ it('creates a draft in every locale filled through the locale switcher', functio
 
     livewire(CreateEmailDraft::class)
         ->fillForm([
-            'email_template_id' => $template->getKey(),
+            'template' => "db:{$template->getKey()}",
             'subject' => 'Hello',
             'placeholders' => ['greeting' => 'Hi'],
         ])
@@ -114,7 +114,7 @@ it('creates a draft in the active locale only', function () {
 
     livewire(CreateEmailDraft::class)
         ->fillForm([
-            'email_template_id' => $template->getKey(),
+            'template' => "db:{$template->getKey()}",
             'subject' => 'Hola',
             'placeholders' => ['greeting' => 'Buenas'],
         ])
@@ -147,4 +147,41 @@ it('saves edits to the active locale and keeps the others', function () {
         ->assertHasNoFormErrors();
 
     expect($draft->refresh()->getTranslations('subject'))->toBe(['en' => 'Hello', 'es' => 'Buenas']);
+});
+
+it('creates a draft from a file template', function () {
+    livewire(CreateEmailDraft::class)
+        ->fillForm(['template' => 'file:default'])
+        ->assertSeeText('BODY')
+        ->fillForm(['subject' => 'Hello', 'placeholders' => ['body' => 'Hi']])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(EmailDraft::sole())
+        ->template_key->toBe('default')
+        ->email_template_id->toBeNull();
+});
+
+it('creates a draft from a database template', function () {
+    $template = EmailTemplate::factory()->create(['placeholders' => ['greeting']]);
+
+    livewire(CreateEmailDraft::class)
+        ->fillForm([
+            'template' => "db:{$template->getKey()}",
+            'subject' => 'Hello',
+            'placeholders' => ['greeting' => 'Hi'],
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(EmailDraft::sole())
+        ->email_template_id->toBe($template->getKey())
+        ->template_key->toBeNull();
+});
+
+it('selects the file template when editing a draft that uses one', function () {
+    $draft = EmailDraft::factory()->create(['email_template_id' => null, 'template_key' => 'default']);
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+        ->assertSchemaStateSet(['template' => 'file:default']);
 });
