@@ -46,6 +46,16 @@ it('serves the stored HTML for each published locale', function (string $locale,
     ['es', 'Hola a todos'],
 ]);
 
+it('sends hardening headers', function () {
+    $draft = publishedDraft();
+
+    $this->get($draft->viewInBrowserUrl('en'))
+        ->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
+        ->assertHeader('X-Robots-Tag', 'noindex')
+        ->assertHeader('Content-Security-Policy', "script-src 'none'");
+});
+
 it('falls back to the default locale file when the requested locale has none', function () {
     $draft = publishedDraft();
 

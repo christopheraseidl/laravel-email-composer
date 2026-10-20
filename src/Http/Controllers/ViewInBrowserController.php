@@ -21,6 +21,11 @@ class ViewInBrowserController
         $disk = Storage::disk(EmailComposer::config()->storageDisk());
         abort_unless($disk->exists($path), 404);
 
-        return response($disk->get($path), 200, ['Content-Type' => 'text/html; charset=UTF-8']);
+        return response($disk->get($path), 200, [
+            'Content-Type' => 'text/html; charset=UTF-8',
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Robots-Tag' => 'noindex',
+            'Content-Security-Policy' => "script-src 'none'",
+        ]);
     }
 }

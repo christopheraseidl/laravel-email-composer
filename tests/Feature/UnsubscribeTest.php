@@ -4,6 +4,7 @@ use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -76,7 +77,12 @@ it('unsubscribes the recipient on a one-click post to the list-unsubscribe heade
 it('exempts the unsubscribe post from csrf verification', function () {
     $route = Route::getRoutes()->getByName('email-composer.unsubscribe.store');
 
-    expect($route->excludedMiddleware())->toContain(ValidateCsrfToken::class);
+    $csrf = collect(app('router')->gatherRouteMiddleware($route))->filter(
+        fn ($middleware) => is_string($middleware)
+            && (is_a($middleware, PreventRequestForgery::class, true) || is_a($middleware, ValidateCsrfToken::class, true))
+    );
+
+    expect($csrf)->toBeEmpty();
 });
 
 it('keeps the original unsubscribe time when posted again', function () {
