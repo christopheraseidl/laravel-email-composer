@@ -39,7 +39,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
     public function packageRegistered(): void
     {
         $this->app->bind(EmailSenderInterface::class, MailableSender::class);
-        $this->app->singleton(TemplateRegistry::class, fn () => new TemplateRegistry);
+        $this->app->scoped(TemplateRegistry::class, fn () => new TemplateRegistry);
 
         parent::packageRegistered();
     }
