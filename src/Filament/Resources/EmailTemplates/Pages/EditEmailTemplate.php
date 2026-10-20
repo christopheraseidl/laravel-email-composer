@@ -4,6 +4,8 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages;
 
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\EmailTemplateResource;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditEmailTemplate extends EditRecord
@@ -14,6 +16,8 @@ class EditEmailTemplate extends EditRecord
     {
         return [
             DeleteAction::make(),
+            ForceDeleteAction::make(),
+            RestoreAction::make(),
         ];
     }
 }

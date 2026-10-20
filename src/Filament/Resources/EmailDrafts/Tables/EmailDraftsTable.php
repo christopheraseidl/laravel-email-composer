@@ -24,8 +24,7 @@ class EmailDraftsTable
     {
         return $table
             ->columns([
-                TextColumn::make('subject')
-                    ->sortable(),
+                TextColumn::make('subject'),
                 TextColumn::make('author_id')
                     ->label('Author')
                     ->formatStateUsing(function ($record): string {
