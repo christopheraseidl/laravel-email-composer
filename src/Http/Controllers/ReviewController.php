@@ -9,11 +9,11 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Review\ReviewLink;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
+use Illuminate\Http\Response;
 
 class ReviewController
 {
-    public function show(Request $request, EmailDraft $draft): View
+    public function show(Request $request, EmailDraft $draft): Response
     {
         $this->ensureUnderReview($draft);
 
@@ -22,19 +22,20 @@ class ReviewController
             ? $request->query('locale')
             : EmailComposer::config()->defaultLocale();
 
-        // A locale appended to a signed URL would break its signature, so each
-        // switch link is signed again with the original expiry.
         $expires = Carbon::createFromTimestamp((int) $request->query('expires'));
         $localeLinks = collect($locales)->mapWithKeys(fn (string $code) => [
             $code => ReviewLink::for($draft, $code, $expires),
         ]);
 
-        return view('email-composer::review.show', [
+        return response()->view('email-composer::review.show', [
             'locale' => $locale,
             'localeLinks' => $localeLinks,
             'subject' => $draft->subjectFor($locale),
             'html' => $draft->renderFor($locale),
             'action' => $request->fullUrl(),
+        ])->withHeaders([
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Robots-Tag' => 'noindex',
         ]);
     }
 

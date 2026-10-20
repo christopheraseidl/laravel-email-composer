@@ -42,6 +42,14 @@ it('shows the rendered draft in the default locale', function () {
         ->assertDontSee('Hola a todos');
 });
 
+it('sends hardening headers without a content security policy', function () {
+    $this->get(ReviewLink::for(reviewableDraft()))
+        ->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
+        ->assertHeader('X-Robots-Tag', 'noindex')
+        ->assertHeaderMissing('Content-Security-Policy');
+});
+
 it('shows another configured locale when its switch link is followed', function () {
     $draft = reviewableDraft();
     $page = $this->get(ReviewLink::for($draft))->assertOk();
@@ -103,6 +111,18 @@ it('stores feedback from the reviewer and redirects back with a message', functi
         ->reviewer_email->toBe('ada@example.com')
         ->comment->toBe('Shorten the greeting.')
         ->resolved->toBeFalse();
+});
+
+it('throttles feedback to 10 posts a minute', function () {
+    $link = ReviewLink::for(reviewableDraft());
+
+    foreach (range(1, 10) as $ignored) {
+        $this->post($link, feedbackInput())->assertRedirect($link);
+    }
+
+    $this->post($link, feedbackInput())->assertTooManyRequests();
+
+    expect(DraftFeedback::count())->toBe(10);
 });
 
 it('rejects feedback without a name, a valid email, or a comment', function () {
