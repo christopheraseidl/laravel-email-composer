@@ -1,11 +1,13 @@
 <?php
 
+use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\CreateRecipient;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\EditRecipient;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\ListRecipients;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\RestoreAction;
+use Filament\Forms\Components\KeyValue;
 
 use function Pest\Livewire\livewire;
 
@@ -57,4 +59,32 @@ it('deletes and restores a recipient', function () {
         ->callAction(RestoreAction::class);
 
     expect($recipient->fresh()->trashed())->toBeFalse();
+});
+
+it('stores the selected locale code', function () {
+    livewire(CreateRecipient::class)
+        ->fillForm([
+            'name' => 'Spanish Reader',
+            'email' => 'lector@example.com',
+            'locale' => 'es',
+        ])
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    expect(Recipient::firstWhere('email', 'lector@example.com')->locale)->toBe('es');
+});
+
+it('round-trips metadata as key-value pairs', function () {
+    $recipient = Recipient::factory()->create(['locale' => null, 'metadata' => null]);
+
+    livewire(EditRecipient::class, ['record' => $recipient->getRouteKey()])
+        ->assertFormFieldExists('metadata', fn ($field) => $field instanceof KeyValue)
+        ->fillForm(['metadata' => ['plan' => 'paid']])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($recipient->fresh()->metadata)->toBe(['plan' => 'paid']);
+
+    livewire(EditRecipient::class, ['record' => $recipient->getRouteKey()])
+        ->assertSchemaStateSet(['metadata' => ['plan' => 'paid']]);
 });
