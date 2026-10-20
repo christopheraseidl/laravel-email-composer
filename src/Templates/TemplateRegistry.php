@@ -13,6 +13,9 @@ class TemplateRegistry
     /** @var array<int, string> */
     protected array $searchPaths;
 
+    /** @var Collection<string, FileTemplate>|null */
+    protected ?Collection $fileTemplates = null;
+
     /** @param array<int, string>|null $searchPaths */
     public function __construct(?array $searchPaths = null)
     {
@@ -31,18 +34,31 @@ class TemplateRegistry
 
     public function find(string $key): EmailTemplate|FileTemplate|null
     {
-        return $this->all()->get($key);
+        return $this->fileTemplates()->get($key) ?? EmailTemplate::where('key', $key)->first();
+    }
+
+    public function resolve(?int $id, ?string $key): EmailTemplate|FileTemplate|null
+    {
+        if ($id) {
+            return EmailTemplate::find($id);
+        }
+
+        if ($key) {
+            return $this->find($key);
+        }
+
+        return null;
     }
 
     /**
      * An earlier search path wins over a later one on a shared key, so app
-     * templates override the bundled ones.
+     * templates override the bundled ones. Read once per instance.
      *
      * @return Collection<string, FileTemplate> keyed by `key`
      */
-    protected function fileTemplates(): Collection
+    public function fileTemplates(): Collection
     {
-        return collect($this->searchPaths)
+        return $this->fileTemplates ??= collect($this->searchPaths)
             ->filter(fn ($path) => is_dir($path))
             ->reverse()
             ->reduce(fn (Collection $templates, string $path) => $templates->merge($this->pathTemplates($path)), collect());

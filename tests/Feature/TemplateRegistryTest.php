@@ -53,6 +53,77 @@ it('finds a template by key and returns null when not found', function () {
     expect($registry->find('greeting'))->toBeNull();
 });
 
+it('reads template files once per instance', function () {
+    $dir = templateDir([
+        'default.html' => "---\nkey: default\nname: Default\n---\n\n<p>[[ body ]]</p>",
+    ]);
+    $registry = new TemplateRegistry([$dir]);
+
+    expect($registry->fileTemplates()->keys()->all())->toBe(['default']);
+
+    Storage::disk('local')->put('templates/late.html', "---\nkey: late\nname: Late\n---\n\n<p>Late.</p>");
+
+    expect($registry->fileTemplates()->keys()->all())->toBe(['default']);
+    expect($registry->find('late'))->toBeNull();
+});
+
+it('rereads template files after the container clears scoped instances', function () {
+    $dir = templateDir([
+        'default.html' => "---\nkey: default\nname: Default\n---\n\n<p>[[ body ]]</p>",
+    ]);
+    config()->set('email-composer.templates.path', $dir);
+
+    $first = app(TemplateRegistry::class);
+    expect($first->find('late'))->toBeNull();
+
+    Storage::disk('local')->put('templates/late.html', "---\nkey: late\nname: Late\n---\n\n<p>Late.</p>");
+
+    // A queue worker does this before each job.
+    app()->forgetScopedInstances();
+
+    $second = app(TemplateRegistry::class);
+    expect($second)->not->toBe($first);
+    expect($second->find('late'))->toBeInstanceOf(FileTemplate::class);
+});
+
+it('finds a database template when no file has the key', function () {
+    $template = EmailTemplate::factory()->create(['key' => 'welcome']);
+    $dir = templateDir([
+        'default.html' => "---\nkey: default\nname: Default\n---\n\n<p>[[ body ]]</p>",
+    ]);
+
+    $found = (new TemplateRegistry([$dir]))->find('welcome');
+
+    expect($found)->toBeInstanceOf(EmailTemplate::class);
+    expect($found->is($template))->toBeTrue();
+});
+
+it('resolves a template by id', function () {
+    $template = EmailTemplate::factory()->create(['key' => 'welcome']);
+
+    $found = (new TemplateRegistry([]))->resolve($template->id, null);
+
+    expect($found)->toBeInstanceOf(EmailTemplate::class);
+    expect($found->is($template))->toBeTrue();
+});
+
+it('resolves a template by key', function () {
+    $dir = templateDir([
+        'default.html' => "---\nkey: default\nname: Default\n---\n\n<p>[[ body ]]</p>",
+    ]);
+
+    $found = (new TemplateRegistry([$dir]))->resolve(null, 'default');
+
+    expect($found)->toBeInstanceOf(FileTemplate::class);
+    expect($found->key)->toBe('default');
+});
+
+it('resolves to null with neither an id nor a key', function () {
+    EmailTemplate::factory()->create(['key' => 'welcome']);
+
+    expect((new TemplateRegistry([]))->resolve(null, null))->toBeNull();
+});
+
 it('parses front-matter, body, and css from a template file', function () {
     $css = '* {font-weight: bold;}';
     $body = '<p>Body.</p>';
