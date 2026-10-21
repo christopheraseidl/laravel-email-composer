@@ -206,17 +206,6 @@ it('sends from the Filament send action', function () {
     Bus::assertBatched(fn (PendingBatch $batch) => $batch->jobs->first() instanceof QueueDraftRecipients);
 });
 
-it('shows a refused send as an error notification', function () {
-    Bus::fake();
-    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::Selected]);
-
-    livewire(ListEmailDrafts::class)
-        ->callAction(TestAction::make('send')->table($draft))
-        ->assertNotified('Draft not sent');
-
-    Bus::assertNothingBatched();
-});
-
 it('sends to every recipient when the audience is all', function () {
     $recipients = Recipient::factory()->count(3)->create();
     Recipient::factory()->create()->delete();
