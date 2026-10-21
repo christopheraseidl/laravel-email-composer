@@ -24,7 +24,7 @@ function grantAbilities(array $abilities): void
 /**
  * Grant the given abilities, but only over drafts the user authored.
  *
- * The policy holds no ownership rules of its own — it hands the draft to the
+ * The policy holds no ownership rules of its own. It hands the draft to the
  * host application's resolver, which is where ownership is decided.
  *
  * @param  array<int, string>  $abilities

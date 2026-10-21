@@ -70,7 +70,7 @@ class Recipient extends Model
     }
 
     /**
-     * Scope the query to only include unscubscribed recipients.
+     * Scope the query to only include unsubscribed recipients.
      *
      * @param  Builder<self>  $query
      */

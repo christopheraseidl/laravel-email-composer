@@ -44,7 +44,7 @@ class EmailDraftPolicy
     public function update(Authenticatable $user, EmailDraft $draft): bool
     {
         if ($draft->status !== EmailDraftStatus::Draft) {
-            return false; // only drafts in 'draft' status are editable
+            return false;
         }
 
         return EmailComposer::userCan($user, 'update-draft', $draft);

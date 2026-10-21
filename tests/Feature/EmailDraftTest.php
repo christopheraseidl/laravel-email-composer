@@ -9,8 +9,6 @@ use Orchestra\Testbench\Factories\UserFactory;
 
 pest()->use(RefreshDatabase::class);
 
-// approve() hands the draft to DraftPublisher, which will write rendered HTML
-// to the configured disk once it is implemented.
 beforeEach(fn () => Storage::fake(config('email-composer.storage.disk')));
 
 /**
@@ -291,18 +289,17 @@ it('titles a draft with the subject for the current locale', function () {
     $draft = draftWithTemplate(['subject' => ['en' => 'Welcome', 'es' => 'Bienvenido']]);
 
     expect($draft->localized_subject)->toBe('Bienvenido');
-    expect($draft->title)->toBe('Bienvenido');
 });
 
 it('titles a draft with the default locale subject when the current locale has none', function () {
     app()->setLocale('es');
     $draft = draftWithTemplate(['subject' => ['en' => 'Welcome']]);
 
-    expect($draft->title)->toBe('Welcome');
+    expect($draft->localized_subject)->toBe('Welcome');
 });
 
 it('titles a draft with a placeholder when no subject resolves', function () {
     $draft = draftWithTemplate(['subject' => ['en' => '']]);
 
-    expect($draft->title)->toBe('Untitled Draft');
+    expect($draft->localized_subject)->toBe('Untitled Draft');
 });

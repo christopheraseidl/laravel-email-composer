@@ -95,7 +95,6 @@ class TemplateRegistry
 
         $body = trim($doc->body());
 
-        // Pull an optional inline <style> block out as the template's css.
         $css = null;
         if (preg_match('/<style\b[^>]*>(.*?)<\/style>/is', $body, $match)) {
             $css = trim($match[1]);
