@@ -99,8 +99,41 @@ it('refuses a draft that is not approved', function (EmailDraftStatus $status) {
 })->with([
     'draft' => EmailDraftStatus::Draft,
     'under review' => EmailDraftStatus::UnderReview,
+    'already sending' => EmailDraftStatus::Sending,
     'already sent' => EmailDraftStatus::Sent,
 ]);
+
+it('marks the draft sending when it is dispatched', function () {
+    Bus::fake();
+    $draft = approvedDraftWithRecipients(1);
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect($draft->status)->toBe(EmailDraftStatus::Sending)
+        ->and($draft->fresh()->status)->toBe(EmailDraftStatus::Sending);
+});
+
+it('refuses a second dispatch of a draft that is already sending', function () {
+    Bus::fake();
+    $draft = approvedDraftWithRecipients(1);
+    $stale = EmailDraft::find($draft->getKey());
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect(fn () => app(DraftDispatcher::class)->dispatch($stale))
+        ->toThrow(DomainException::class, 'already sending or sent');
+
+    Bus::assertBatchCount(1);
+});
+
+it('ends sent when dispatched on the sync queue', function () {
+    $draft = approvedDraftWithRecipients(1);
+    $this->mock(EmailSenderInterface::class)->shouldReceive('send')->once();
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect($draft->fresh()->status)->toBe(EmailDraftStatus::Sent);
+});
 
 it('refuses a draft with no recipients', function () {
     Bus::fake();

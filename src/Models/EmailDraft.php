@@ -241,16 +241,11 @@ class EmailDraft extends Model
 
     public function markSent(): void
     {
-        $this->assertStatus(EmailDraftStatus::Approved, 'mark as sent');
+        $this->assertStatus(EmailDraftStatus::Sending, 'mark as sent');
         $this->update([
             'status' => EmailDraftStatus::Sent,
             'sent_at' => now(),
         ]);
-    }
-
-    public function send(): void
-    {
-        $this->markSent();
     }
 
     public function returnToDraft(): void
@@ -266,7 +261,7 @@ class EmailDraft extends Model
     {
         if ($this->status !== $expected) {
             throw new \DomainException(
-                "Cannnot {$action} draft #{$this->id}: status is '{$this->status->value}', expected '{$expected->value}'."
+                "Cannot {$action} draft #{$this->id}: status is '{$this->status->value}', expected '{$expected->value}'."
             );
         }
     }

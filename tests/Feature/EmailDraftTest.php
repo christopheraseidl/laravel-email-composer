@@ -226,16 +226,6 @@ it('publishes the rendered locales when approved', function () {
     }
 });
 
-it('sends an approved draft', function () {
-    $draft = EmailDraft::factory()->approved()->create();
-
-    $draft->send();
-
-    expect($draft->fresh())
-        ->status->toBe(EmailDraftStatus::Sent)
-        ->sent_at->not->toBeNull();
-});
-
 it('returns a draft under review to draft', function () {
     $draft = EmailDraft::factory()->underReview()->create();
 
@@ -258,13 +248,14 @@ it('rejects an invalid transition', function (string $state, string $action) {
     expect($call)->toThrow(DomainException::class);
 })->with([
     'approve while in draft' => ['draft', 'approve'],
-    'send while in draft' => ['draft', 'send'],
+    'mark sent while in draft' => ['draft', 'markSent'],
     'return a draft to draft' => ['draft', 'returnToDraft'],
     'submit while under review' => ['underReview', 'submit'],
-    'send while under review' => ['underReview', 'send'],
+    'mark sent while under review' => ['underReview', 'markSent'],
     'submit while approved' => ['approved', 'submit'],
     'return an approved draft to draft' => ['approved', 'returnToDraft'],
-    'send an already sent draft' => ['sent', 'send'],
+    'mark an approved draft sent' => ['approved', 'markSent'],
+    'mark an already sent draft sent' => ['sent', 'markSent'],
     'submit a sent draft' => ['sent', 'submit'],
 ]);
 

@@ -78,6 +78,7 @@ class EmailDraftForm
                         EmailDraftStatus::Draft => Heroicon::OutlinedPencil,
                         EmailDraftStatus::UnderReview => Heroicon::OutlinedEye,
                         EmailDraftStatus::Approved => Heroicon::OutlinedCheckCircle,
+                        EmailDraftStatus::Sending => Heroicon::OutlinedArrowPath,
                         EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
                     }),
             ])

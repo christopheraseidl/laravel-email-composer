@@ -63,6 +63,13 @@ class EmailDraftFactory extends Factory
         ]);
     }
 
+    public function sending(): static
+    {
+        return $this->approved()->state(fn () => [
+            'status' => EmailDraftStatus::Sending,
+        ]);
+    }
+
     public function sent(): static
     {
         return $this->approved()->state(fn () => [
