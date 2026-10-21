@@ -3,7 +3,6 @@
 namespace CSeidl\EmailComposer\Services;
 
 use CSeidl\EmailComposer\EmailComposer;
-use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Jobs\QueueDraftRecipients;
 use CSeidl\EmailComposer\Models\EmailDraft;
@@ -58,14 +57,9 @@ class DraftDispatcher
     /** @return Collection<int, int> */
     protected function audienceIds(EmailDraft $draft): Collection
     {
-        $id = (new Recipient)->getQualifiedKeyName();
+        $query = $draft->audienceQuery()
+            ?? throw new \DomainException("Cannot send draft #{$draft->id}: its recipient list no longer exists.");
 
-        return match ($draft->audience) {
-            EmailAudience::All => Recipient::query()->pluck('id'),
-            EmailAudience::List => ($draft->recipientList
-                ?? throw new \DomainException("Cannot send draft #{$draft->id}: its recipient list no longer exists."))
-                ->recipients()->pluck($id),
-            EmailAudience::Selected => $draft->recipients()->pluck($id),
-        };
+        return $query->pluck((new Recipient)->getQualifiedKeyName());
     }
 }

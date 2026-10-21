@@ -139,6 +139,21 @@ class EmailDraft extends Model
         return null;
     }
 
+    /** @return Builder<Recipient>|BelongsToMany<Recipient, $this>|BelongsToMany<Recipient, RecipientList>|null null when the draft's list no longer exists */
+    public function audienceQuery(): Builder|BelongsToMany|null
+    {
+        return match ($this->audience) {
+            EmailAudience::All => Recipient::query(),
+            EmailAudience::List => $this->recipientList?->recipients(),
+            EmailAudience::Selected => $this->recipients(),
+        };
+    }
+
+    public function hasAudience(): bool
+    {
+        return $this->audienceQuery()?->exists() ?? false;
+    }
+
     public function subjectFor(string $locale): string
     {
         $fallback = EmailComposer::config()->defaultLocale();
@@ -247,6 +262,11 @@ class EmailDraft extends Model
     public function approve(Authenticatable $approver): void
     {
         $this->assertStatus(EmailDraftStatus::UnderReview, 'approve');
+
+        if (! $this->resolveTemplate()) {
+            throw new \DomainException("Draft #{$this->id} has no resolvable template.");
+        }
+
         $this->update([
             'status' => EmailDraftStatus::Approved,
             'approved_at' => now(),
