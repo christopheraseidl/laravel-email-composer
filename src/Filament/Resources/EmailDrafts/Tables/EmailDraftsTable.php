@@ -3,14 +3,15 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables;
 
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
-use CSeidl\EmailComposer\Facades\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
+use CSeidl\EmailComposer\Services\DraftDispatcher;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -77,7 +78,17 @@ class EmailDraftsTable
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->color('success')
                     ->requiresConfirmation()
-                    ->action(fn ($record) => EmailComposer::send($record))
+                    ->action(function ($record) {
+                        try {
+                            app(DraftDispatcher::class)->dispatch($record);
+                        } catch (\DomainException $e) {
+                            Notification::make()
+                                ->danger()
+                                ->title('Draft not sent')
+                                ->body($e->getMessage())
+                                ->send();
+                        }
+                    })
                     ->authorize(fn ($record) => Gate::allows('send', $record)),
             ])
             ->toolbarActions([

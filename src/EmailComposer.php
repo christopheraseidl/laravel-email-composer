@@ -45,6 +45,7 @@ class EmailComposer
         return app(TemplateRegistry::class);
     }
 
+    /** @throws \DomainException see DraftDispatcher::dispatch() */
     public static function send(EmailDraft $draft): Batch
     {
         return app(DraftDispatcher::class)->dispatch($draft);

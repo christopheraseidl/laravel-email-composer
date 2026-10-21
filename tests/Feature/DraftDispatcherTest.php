@@ -1,6 +1,7 @@
 <?php
 
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
+use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Facades\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
@@ -8,6 +9,7 @@ use CSeidl\EmailComposer\Jobs\QueueDraftRecipients;
 use CSeidl\EmailComposer\Jobs\SendEmailJob;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Models\RecipientList;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
 use Filament\Actions\Testing\TestAction;
 use Illuminate\Bus\Batch;
@@ -31,6 +33,34 @@ function approvedDraftWithRecipients(int $count = 3): EmailDraft
     $draft->recipients()->attach(Recipient::factory()->count($count)->create());
 
     return $draft;
+}
+
+/** @return ArrayObject<int, int> ids of the recipients the sender is called for */
+function recordSends(): ArrayObject
+{
+    $sent = new ArrayObject;
+
+    test()->mock(EmailSenderInterface::class)->shouldReceive('send')
+        ->andReturnUsing(function (EmailDraft $draft, Recipient $recipient) use ($sent) {
+            $sent[] = $recipient->id;
+        });
+
+    return $sent;
+}
+
+/**
+ * @param  iterable<int, int|Recipient>  $recipients
+ * @return list<int>
+ */
+function sortedIds(iterable $recipients): array
+{
+    return collect($recipients)->map(fn ($r) => $r instanceof Recipient ? $r->id : $r)->sort()->values()->all();
+}
+
+/** @return list<int> */
+function pivotIds(EmailDraft $draft): array
+{
+    return sortedIds($draft->recipients()->pluck('email_composer_recipients.id'));
 }
 
 it('batches the job that queues the recipients on the configured queue', function () {
@@ -174,4 +204,95 @@ it('sends from the Filament send action', function () {
     livewire(ListEmailDrafts::class)->callAction(TestAction::make('send')->table($draft));
 
     Bus::assertBatched(fn (PendingBatch $batch) => $batch->jobs->first() instanceof QueueDraftRecipients);
+});
+
+it('shows a refused send as an error notification', function () {
+    Bus::fake();
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::Selected]);
+
+    livewire(ListEmailDrafts::class)
+        ->callAction(TestAction::make('send')->table($draft))
+        ->assertNotified('Draft not sent');
+
+    Bus::assertNothingBatched();
+});
+
+it('sends to every recipient when the audience is all', function () {
+    $recipients = Recipient::factory()->count(3)->create();
+    Recipient::factory()->create()->delete();
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::All]);
+    $sent = recordSends();
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect(sortedIds($sent))->toBe(sortedIds($recipients))
+        ->and(pivotIds($draft))->toBe(sortedIds($recipients));
+});
+
+it('sends to the members of the list when the audience is a list', function () {
+    $members = Recipient::factory()->count(2)->create();
+    Recipient::factory()->count(2)->create();
+    $list = RecipientList::factory()->create();
+    $list->recipients()->attach($members);
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::List, 'recipient_list_id' => $list->id]);
+    $sent = recordSends();
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect(sortedIds($sent))->toBe(sortedIds($members))
+        ->and(pivotIds($draft))->toBe(sortedIds($members));
+});
+
+it('sends to the attached recipients when the audience is selected', function () {
+    $chosen = Recipient::factory()->count(2)->create();
+    Recipient::factory()->count(2)->create();
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::Selected]);
+    $draft->recipients()->attach($chosen);
+    $sent = recordSends();
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect(sortedIds($sent))->toBe(sortedIds($chosen))
+        ->and(pivotIds($draft))->toBe(sortedIds($chosen));
+});
+
+it('refuses a list draft whose list was deleted', function (bool $force) {
+    Bus::fake();
+    $list = RecipientList::factory()->create();
+    $list->recipients()->attach(Recipient::factory()->create());
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::List, 'recipient_list_id' => $list->id]);
+
+    $force ? $list->forceDelete() : $list->delete();
+
+    expect(fn () => app(DraftDispatcher::class)->dispatch($draft->fresh()))
+        ->toThrow(DomainException::class, 'recipient list no longer exists');
+
+    Bus::assertNothingBatched();
+    expect($draft->fresh()->status)->toBe(EmailDraftStatus::Approved);
+})->with([
+    'soft deleted' => false,
+    'force deleted' => true,
+]);
+
+it('refuses an all draft when there are no recipients', function () {
+    Bus::fake();
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::All]);
+
+    expect(fn () => app(DraftDispatcher::class)->dispatch($draft))
+        ->toThrow(DomainException::class, 'no recipients');
+
+    Bus::assertNothingBatched();
+});
+
+it('does not send to a recipient added to the list after dispatch', function () {
+    Bus::fake();
+    $member = Recipient::factory()->create();
+    $list = RecipientList::factory()->create();
+    $list->recipients()->attach($member);
+    $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::List, 'recipient_list_id' => $list->id]);
+
+    app(DraftDispatcher::class)->dispatch($draft);
+    $list->recipients()->attach(Recipient::factory()->create());
+
+    expect(pivotIds($draft))->toBe([$member->id]);
 });

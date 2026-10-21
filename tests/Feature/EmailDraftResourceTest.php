@@ -1,12 +1,15 @@
 <?php
 
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
+use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Models\RecipientList;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
 
@@ -177,6 +180,60 @@ it('creates a draft from a database template', function () {
     expect(EmailDraft::sole())
         ->email_template_id->toBe($template->getKey())
         ->template_key->toBeNull();
+});
+
+it('saves each audience', function (EmailAudience $audience) {
+    $list = RecipientList::factory()->create();
+    $recipients = Recipient::factory()->count(2)->create();
+
+    $component = livewire(CreateEmailDraft::class)
+        ->assertSchemaStateSet(['audience' => EmailAudience::All->value])
+        ->assertSchemaComponentHidden('recipient_list_id')
+        ->assertSchemaComponentHidden('recipients')
+        ->fillForm(['template' => 'file:default', 'subject' => 'Hello', 'audience' => $audience->value]);
+
+    foreach (['recipient_list_id' => EmailAudience::List, 'recipients' => EmailAudience::Selected] as $field => $shownFor) {
+        $audience === $shownFor
+            ? $component->assertSchemaComponentVisible($field)
+            : $component->assertSchemaComponentHidden($field);
+    }
+
+    match ($audience) {
+        EmailAudience::All => null,
+        EmailAudience::List => $component->fillForm(['recipient_list_id' => $list->id]),
+        EmailAudience::Selected => $component->fillForm(['recipients' => $recipients->modelKeys()]),
+    };
+
+    $component
+        ->call('create')
+        ->assertHasNoFormErrors();
+
+    $draft = EmailDraft::sole();
+
+    expect($draft->audience)->toBe($audience)
+        ->and($draft->recipient_list_id)->toBe($audience === EmailAudience::List ? $list->id : null)
+        ->and($draft->recipients()->count())->toBe($audience === EmailAudience::Selected ? 2 : 0);
+})->with(EmailAudience::cases());
+
+it('requires a list when the audience is a list', function () {
+    livewire(CreateEmailDraft::class)
+        ->fillForm(['template' => 'file:default', 'subject' => 'Hello', 'audience' => EmailAudience::List->value])
+        ->call('create')
+        ->assertHasFormErrors(['recipient_list_id' => 'required']);
+});
+
+it('clears the list when another audience is picked', function () {
+    $list = RecipientList::factory()->create();
+    $draft = EmailDraft::factory()->create(['audience' => EmailAudience::List, 'recipient_list_id' => $list->id]);
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+        ->fillForm(['audience' => EmailAudience::All->value])
+        ->call('save')
+        ->assertHasNoFormErrors();
+
+    expect($draft->refresh())
+        ->audience->toBe(EmailAudience::All)
+        ->recipient_list_id->toBeNull();
 });
 
 it('selects the file template when editing a draft that uses one', function () {
