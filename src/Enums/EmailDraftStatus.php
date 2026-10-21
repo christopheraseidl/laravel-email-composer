@@ -7,6 +7,7 @@ enum EmailDraftStatus: string
     case Draft = 'draft';
     case UnderReview = 'under_review';
     case Approved = 'approved';
+    case Sending = 'sending';
     case Sent = 'sent';
 
     public function label(): string
@@ -15,6 +16,7 @@ enum EmailDraftStatus: string
             self::Draft => 'Draft',
             self::UnderReview => 'Under Review',
             self::Approved => 'Approved',
+            self::Sending => 'Sending',
             self::Sent => 'Sent',
         };
     }
@@ -25,6 +27,7 @@ enum EmailDraftStatus: string
             self::Draft => 'gray',
             self::UnderReview => 'warning',
             self::Approved => 'info',
+            self::Sending => 'primary',
             self::Sent => 'success',
         };
     }

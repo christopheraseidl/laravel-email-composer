@@ -22,15 +22,23 @@ class DraftDispatcher
             );
         }
 
-        // Sending to nobody would still mark the draft sent.
         if ($draft->recipients()->doesntExist()) {
             throw new \DomainException("Cannot send draft #{$draft->id}: it has no recipients.");
         }
 
-        // A batch pushes its jobs on its own connection and queue, ignoring each job's.
+        $claimed = EmailDraft::whereKey($draft->getKey())
+            ->where('status', EmailDraftStatus::Approved)
+            ->update(['status' => EmailDraftStatus::Sending]);
+
+        if ($claimed === 0) {
+            throw new \DomainException("Cannot send draft #{$draft->id}: it is already sending or sent.");
+        }
+
+        $draft->status = EmailDraftStatus::Sending;
+        $draft->syncOriginalAttribute('status');
+
         return Bus::batch([new QueueDraftRecipients($draft)])
             ->name("email-composer draft #{$draft->id}")
-            // null means the app's default connection, which onConnection() doesn't accept.
             ->when(EmailComposer::config()->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))
             ->onQueue(EmailComposer::config()->queueName())
             ->allowFailures()

@@ -69,12 +69,14 @@ class EmailDraftsTable
                 Action::make('approve')
                     ->icon(Heroicon::OutlinedCheckCircle)
                     ->color('info')
+                    ->requiresConfirmation()
                     ->action(fn ($record) => $record->approve(auth()->user()))
                     ->authorize(fn ($record) => Gate::allows('approve', $record)),
                 ReviewLinkAction::make(),
                 Action::make('send')
                     ->icon(Heroicon::OutlinedPaperAirplane)
                     ->color('success')
+                    ->requiresConfirmation()
                     ->action(fn ($record) => EmailComposer::send($record))
                     ->authorize(fn ($record) => Gate::allows('send', $record)),
             ])

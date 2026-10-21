@@ -93,26 +93,30 @@ it('denies updating a draft that has left draft status', function (string $state
     $draft = draftInState($state, ['author_id' => $author->getKey()]);
 
     expect($author->can('update', $draft))->toBeFalse();
-})->with(['underReview', 'approved', 'sent']);
+})->with(['underReview', 'approved', 'sending', 'sent']);
 
-it('denies deleting a sent draft but allows deleting an approved one', function () {
+it('denies deleting a sending or sent draft but allows deleting an approved one', function () {
     grantAbilitiesToAuthor(['delete-draft']);
 
     $author = UserFactory::new()->create();
+    $sending = draftInState('sending', ['author_id' => $author->getKey()]);
     $sent = draftInState('sent', ['author_id' => $author->getKey()]);
     $approved = draftInState('approved', ['author_id' => $author->getKey()]);
 
+    expect($author->can('delete', $sending))->toBeFalse();
     expect($author->can('delete', $sent))->toBeFalse();
     expect($author->can('delete', $approved))->toBeTrue();
 });
 
-it('denies force deleting a sent draft but allows it otherwise', function () {
+it('denies force deleting a sending or sent draft but allows it otherwise', function () {
     grantAbilitiesToAuthor(['force-delete-draft']);
 
     $author = UserFactory::new()->create();
+    $sending = draftInState('sending', ['author_id' => $author->getKey()]);
     $sent = draftInState('sent', ['author_id' => $author->getKey()]);
     $draft = draftInState('draft', ['author_id' => $author->getKey()]);
 
+    expect($author->can('forceDelete', $sending))->toBeFalse();
     expect($author->can('forceDelete', $sent))->toBeFalse();
     expect($author->can('forceDelete', $draft))->toBeTrue();
 });
@@ -150,7 +154,7 @@ it('gates a transition action on the draft status', function (string $action, st
 
     $user = UserFactory::new()->create();
 
-    foreach (['draft', 'underReview', 'approved', 'sent'] as $state) {
+    foreach (['draft', 'underReview', 'approved', 'sending', 'sent'] as $state) {
         expect($user->can($action, draftInState($state)))->toBe($state === $allowedState);
     }
 })->with([

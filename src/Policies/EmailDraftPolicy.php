@@ -55,8 +55,8 @@ class EmailDraftPolicy
      */
     public function delete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if ($draft->status === EmailDraftStatus::Sent) {
-            return false; // cannot delete a sent draft
+        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent], true)) {
+            return false;
         }
 
         return EmailComposer::userCan($user, 'delete-draft', $draft);
@@ -111,8 +111,8 @@ class EmailDraftPolicy
      */
     public function forceDelete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if ($draft->status === EmailDraftStatus::Sent) {
-            return false; // cannot force delete a sent draft
+        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent], true)) {
+            return false;
         }
 
         return EmailComposer::userCan($user, 'force-delete-draft', $draft);
