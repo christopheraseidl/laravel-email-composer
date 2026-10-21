@@ -46,7 +46,7 @@ it('interpolates tokens and preserves rich-text HTML', function () {
     ]);
 
     // The CSS inliner adds style attributes, so assert on tag + content rather
-    // than an exact match — the point is the markup is preserved, not escaped.
+    // than an exact match. The point is the markup is preserved, not escaped.
     expect($html)
         ->not->toContain('[[ greeting ]]')
         ->toContain('<h1')->toContain('Greetings</h1>')
@@ -60,7 +60,7 @@ it('strips XSS smuggled through an injected value', function () {
     ]);
 
     expect($html)
-        ->toContain('Hi')   // legitimate content survives
+        ->toContain('Hi')
         ->not->toContain('<script')
         ->not->toContain('alert(1)')
         ->not->toContain('onerror');

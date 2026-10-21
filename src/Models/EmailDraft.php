@@ -178,15 +178,7 @@ class EmailDraft extends Model
      */
     public function getLocalizedSubjectAttribute(): string
     {
-        // $this->subject is the current locale's string, not the per-locale
-        // array, so it cannot be read by locale key. subjectFor() already
-        // walks locale then default_locale.
         return $this->subjectFor(app()->getLocale()) ?: 'Untitled Draft';
-    }
-
-    public function getTitleAttribute(): string
-    {
-        return $this->localized_subject;
     }
 
     /** @return array<string, string> placeholder name => value for locale (with fallback) */

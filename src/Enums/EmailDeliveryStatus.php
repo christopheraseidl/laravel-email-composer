@@ -7,7 +7,7 @@ enum EmailDeliveryStatus: string
     case Pending = 'pending';
     case Sent = 'sent';
     case Failed = 'failed';
-    case Skipped = 'skipped'; // Recipient probably unsubscribed near send time
+    case Skipped = 'skipped';
 
     public function label(): string
     {

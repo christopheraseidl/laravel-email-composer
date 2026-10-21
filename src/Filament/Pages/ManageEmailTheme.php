@@ -29,7 +29,7 @@ class ManageEmailTheme extends Page
         $this->content->fill($this->record->only(['css', 'logo_url', 'logo_path', 'logo_alt']));
     }
 
-    // Renders into the default page view's {{ $this->content }} — no blade file needed.
+    // Renders into the default page view's {{ $this->content }}, so no blade file is needed.
     public function content(Schema $schema): Schema
     {
         $readOnly = ! EmailComposer::userCan(Filament::auth()->user(), 'update-theme', $this->record);
