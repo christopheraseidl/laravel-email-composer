@@ -5,6 +5,7 @@ namespace CSeidl\EmailComposer\Models;
 use Carbon\Carbon;
 use CSeidl\EmailComposer\Database\Factories\EmailDraftFactory;
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Services\DraftPublisher;
 use CSeidl\EmailComposer\Templates\FileTemplate;
@@ -30,12 +31,15 @@ use Spatie\Translatable\HasTranslations;
  * @property array<string, string> $subject
  * @property array<string, array<string, string>> $placeholders
  * @property EmailDraftStatus $status
+ * @property EmailAudience $audience
+ * @property int|null $recipient_list_id
  * @property array<string, string>|null $public_files
  * @property Carbon|null $submitted_at
  * @property Carbon|null $approved_at
  * @property int|null $approved_by
  * @property Carbon|null $sent_at
  * @property-read EmailTemplate|null $template
+ * @property-read RecipientList|null $recipientList
  * @property-read Collection<int, DraftFeedback> $feedback
  */
 #[UseFactory(EmailDraftFactory::class)]
@@ -56,11 +60,17 @@ class EmailDraft extends Model
         'subject',
         'placeholders',
         'status',
+        'audience',
+        'recipient_list_id',
         'public_files',
         'submitted_at',
         'approved_at',
         'approved_by',
         'sent_at',
+    ];
+
+    protected $attributes = [
+        'audience' => 'selected',
     ];
 
     /** @var array<int, string> spatie/laravel-translatable */
@@ -70,6 +80,7 @@ class EmailDraft extends Model
     {
         return [
             'status' => EmailDraftStatus::class,
+            'audience' => EmailAudience::class,
             'public_files' => 'array',
             'submitted_at' => 'datetime',
             'approved_at' => 'datetime',
@@ -101,6 +112,12 @@ class EmailDraft extends Model
         return $this->belongsToMany(Recipient::class, 'email_composer_draft_recipient')
             ->withPivot(['delivery_status', 'locale', 'sent_at', 'error', 'attempts'])
             ->withTimestamps();
+    }
+
+    /** @return BelongsTo<RecipientList, $this> */
+    public function recipientList(): BelongsTo
+    {
+        return $this->belongsTo(RecipientList::class, 'recipient_list_id');
     }
 
     /** @return HasMany<DraftFeedback, $this> */

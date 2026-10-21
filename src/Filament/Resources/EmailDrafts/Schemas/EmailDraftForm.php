@@ -3,10 +3,12 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Schemas;
 
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -68,10 +70,31 @@ class EmailDraftForm
                                 ->label(mb_strtoupper($name))
                         )->all();
                     }),
+                Radio::make('audience')
+                    ->options(collect(EmailAudience::cases())->mapWithKeys(
+                        fn ($case) => [$case->value => $case->label()]
+                    ))
+                    ->default(EmailAudience::All->value)
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(function (Get $get, Set $set) {
+                        if (static::audience($get) !== EmailAudience::List) {
+                            $set('recipient_list_id', null);
+                        }
+                    }),
+                Select::make('recipient_list_id')
+                    ->label('Recipient list')
+                    ->relationship('recipientList', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (Get $get) => static::audience($get) === EmailAudience::List)
+                    ->required(fn (Get $get) => static::audience($get) === EmailAudience::List)
+                    ->dehydratedWhenHidden(),
                 Select::make('recipients')
                     ->multiple()
                     ->relationship('recipients', 'email')
-                    ->preload(),
+                    ->searchable(['email', 'name'])
+                    ->visible(fn (Get $get) => static::audience($get) === EmailAudience::Selected),
                 Text::make(fn (?EmailDraft $record) => static::status($record)->label())
                     ->color(fn (?EmailDraft $record) => static::status($record)->color())
                     ->icon(fn (?EmailDraft $record) => match (static::status($record)) {
@@ -85,7 +108,13 @@ class EmailDraftForm
             ->disabled(fn (?EmailDraft $record) => static::status($record) !== EmailDraftStatus::Draft);
     }
 
-    // Status is not a form field; the create page has no record yet.
+    protected static function audience(Get $get): ?EmailAudience
+    {
+        $state = $get('audience');
+
+        return $state instanceof EmailAudience ? $state : EmailAudience::tryFrom((string) $state);
+    }
+
     protected static function status(?EmailDraft $record): EmailDraftStatus
     {
         return $record->status ?? EmailDraftStatus::Draft;

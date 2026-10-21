@@ -12,6 +12,18 @@ use Spatie\LaravelPackageTools\PackageServiceProvider;
 
 class EmailComposerServiceProvider extends PackageServiceProvider
 {
+    /** In dependency order: a table comes after every table it references. */
+    public const MIGRATIONS = [
+        'create_email_composer_recipients_table',
+        'create_email_composer_recipient_lists_table',
+        'create_email_composer_list_recipient_table',
+        'create_email_composer_templates_table',
+        'create_email_composer_theme_table',
+        'create_email_composer_drafts_table',
+        'create_email_composer_draft_recipient_table',
+        'create_email_composer_draft_feedback_table',
+    ];
+
     #[Override]
     public function configurePackage(Package $package): void
     {
@@ -21,16 +33,7 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ->hasViews()
             ->hasTranslations()
             ->hasAssets()
-            ->hasMigrations([
-                'create_email_composer_recipients_table',
-                'create_email_composer_recipient_lists_table',
-                'create_email_composer_list_recipient_table',
-                'create_email_composer_templates_table',
-                'create_email_composer_theme_table',
-                'create_email_composer_drafts_table',
-                'create_email_composer_draft_recipient_table',
-                'create_email_composer_draft_feedback_table',
-            ])
+            ->hasMigrations(self::MIGRATIONS)
             ->hasRoute('web')
             ->hasConsoleCommand(InstallCommand::class);
     }

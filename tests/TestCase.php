@@ -17,7 +17,6 @@ use Filament\Support\SupportServiceProvider;
 use Filament\Tables\TablesServiceProvider;
 use Filament\Widgets\WidgetsServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\File;
 use LaraZeus\SpatieTranslatable\SpatieTranslatableServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
@@ -34,8 +33,8 @@ class TestCase extends Orchestra
 
         $this->loadLaravelMigrations();
 
-        foreach (File::allFiles(__DIR__.'/../database/migrations') as $migration) {
-            (include $migration->getRealPath())->up();
+        foreach (EmailComposerServiceProvider::MIGRATIONS as $migration) {
+            (include __DIR__."/../database/migrations/{$migration}.php.stub")->up();
         }
 
         // Tests that check denial flush this or register a narrower resolver.
