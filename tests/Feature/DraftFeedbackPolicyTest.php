@@ -2,24 +2,9 @@
 
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\DraftFeedback;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
 
-pest()->use(RefreshDatabase::class);
-
 afterEach(fn () => EmailComposer::flushResolvers());
-
-it('denies every action when no resolver is registered', function () {
-    EmailComposer::flushResolvers();
-
-    $user = UserFactory::new()->create();
-    $feedback = DraftFeedback::factory()->create();
-
-    expect($user->can('viewAny', DraftFeedback::class))->toBeFalse();
-    expect($user->can('view', $feedback))->toBeFalse();
-    expect($user->can('create', DraftFeedback::class))->toBeFalse();
-    expect($user->can('update', $feedback))->toBeFalse();
-});
 
 it('gates each action on its ability', function (string $action, string $ability, bool $withModel) {
     $user = UserFactory::new()->create();

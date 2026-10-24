@@ -6,11 +6,8 @@ use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\ListRecipientLi
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
 use Filament\Actions\Testing\TestAction;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Livewire\livewire;
-
-pest()->use(RefreshDatabase::class);
 
 it('lists recipient lists with their recipient counts', function () {
     $list = RecipientList::factory()->hasRecipients(3)->create();

@@ -74,12 +74,8 @@ class TestCase extends Orchestra
             'driver' => 'sqlite',
             'database' => ':memory:',
             'prefix' => '',
-            // SQLite ignores foreign keys unless the pragma is set, and the
-            // connector only sets it when the key is present. Without this,
-            // nullOnDelete/cascadeOnDelete never fire in tests.
             'foreign_key_constraints' => true,
         ]);
-        // Signed URLs are hashed with the app key.
         config()->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
         config()->set('auth.providers.users.model', User::class);
         config()->set('email-composer.locales', ['en', 'es']);

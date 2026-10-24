@@ -2,13 +2,10 @@
 
 use CSeidl\EmailComposer\Filament\Pages\ManageEmailTheme;
 use CSeidl\EmailComposer\Models\EmailTheme;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
 use function Pest\Livewire\livewire;
-
-pest()->use(RefreshDatabase::class);
 
 beforeEach(fn () => Storage::fake('public'));
 

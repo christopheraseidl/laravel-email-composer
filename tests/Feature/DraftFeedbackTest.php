@@ -2,10 +2,7 @@
 
 use CSeidl\EmailComposer\Models\DraftFeedback;
 use CSeidl\EmailComposer\Models\EmailDraft;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
-
-pest()->use(RefreshDatabase::class);
 
 it('persists feedback from an in-app user', function () {
     $user = UserFactory::new()->create();

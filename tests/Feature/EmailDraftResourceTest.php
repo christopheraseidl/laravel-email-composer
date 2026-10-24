@@ -10,12 +10,9 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
 
 use function Pest\Livewire\livewire;
-
-pest()->use(RefreshDatabase::class);
 
 afterEach(fn () => EmailComposer::flushResolvers());
 

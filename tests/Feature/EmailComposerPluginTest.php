@@ -10,12 +10,9 @@ use CSeidl\EmailComposer\Filament\Resources\RecipientLists\RecipientListResource
 use CSeidl\EmailComposer\Filament\Resources\Recipients\RecipientResource;
 use Filament\Facades\Filament;
 use Filament\Panel;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use LaraZeus\SpatieTranslatable\SpatieTranslatablePlugin;
 
 use function Pest\Livewire\livewire;
-
-pest()->use(RefreshDatabase::class);
 
 it('registers the resources and the theme page on the panel', function () {
     $panel = Filament::getPanel('admin');

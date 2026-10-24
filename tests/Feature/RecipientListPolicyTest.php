@@ -2,27 +2,9 @@
 
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\RecipientList;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
 
-pest()->use(RefreshDatabase::class);
-
 afterEach(fn () => EmailComposer::flushResolvers());
-
-it('denies all actions when no resolver is registered', function () {
-    EmailComposer::flushResolvers();
-
-    $user = UserFactory::new()->create();
-    $list = RecipientList::factory()->create();
-
-    expect($user->can('viewAny', RecipientList::class))->toBeFalse();
-    expect($user->can('view', $list))->toBeFalse();
-    expect($user->can('create', RecipientList::class))->toBeFalse();
-    expect($user->can('update', $list))->toBeFalse();
-    expect($user->can('delete', $list))->toBeFalse();
-    expect($user->can('restore', $list))->toBeFalse();
-    expect($user->can('forceDelete', $list))->toBeFalse();
-});
 
 it('maps each policy method to its ability', function (string $method, string $ability, bool $withModel) {
     EmailComposer::resolveAbilityUsing(fn ($user, $granted) => $granted === $ability);

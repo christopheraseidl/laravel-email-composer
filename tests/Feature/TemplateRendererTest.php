@@ -4,10 +4,7 @@ use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Templates\FileTemplate;
 use CSeidl\EmailComposer\Templates\TemplateRenderer;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-
-pest()->use(RefreshDatabase::class);
 
 /**
  * Create a database-backed template, overriding any of the defaults.

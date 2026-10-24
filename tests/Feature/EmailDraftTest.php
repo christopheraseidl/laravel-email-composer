@@ -3,11 +3,8 @@
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\Factories\UserFactory;
-
-pest()->use(RefreshDatabase::class);
 
 beforeEach(fn () => Storage::fake(config('email-composer.storage.disk')));
 
@@ -262,7 +259,7 @@ it('scopes drafts to their author', function () {
     $mine = EmailDraft::factory()->count(2)->create(['author_id' => $user->getKey()]);
     EmailDraft::factory()->create();
 
-    expect(EmailDraft::ownedBy($user->getKey())->pluck('id')->all())
+    expect(EmailDraft::query()->ownedBy($user->getKey())->pluck('id')->all())
         ->toBe($mine->pluck('id')->all());
 });
 
@@ -271,7 +268,7 @@ it('scopes drafts to a status', function () {
     EmailDraft::factory()->create();
     EmailDraft::factory()->sent()->create();
 
-    expect(EmailDraft::inStatus(EmailDraftStatus::UnderReview)->pluck('id')->all())
+    expect(EmailDraft::query()->inStatus(EmailDraftStatus::UnderReview)->pluck('id')->all())
         ->toBe([$underReview->id]);
 });
 

@@ -15,12 +15,9 @@ use Filament\Actions\Testing\TestAction;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\BatchRepository;
 use Illuminate\Bus\PendingBatch;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 
 use function Pest\Livewire\livewire;
-
-pest()->use(RefreshDatabase::class);
 
 beforeEach(function () {
     config()->set('email-composer.queue.connection', 'sync');

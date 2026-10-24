@@ -6,11 +6,8 @@ use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
-
-pest()->use(RefreshDatabase::class);
 
 beforeEach(function () {
     config()->set('email-composer.default_locale', 'en');

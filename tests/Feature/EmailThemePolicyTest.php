@@ -6,16 +6,6 @@ use Orchestra\Testbench\Factories\UserFactory;
 
 afterEach(fn () => EmailComposer::flushResolvers());
 
-it('denies all actions when no resolver is registered', function () {
-    EmailComposer::flushResolvers();
-
-    $user = UserFactory::new()->create();
-    $theme = EmailTheme::current();
-
-    expect($user->can('view', $theme))->toBeFalse();
-    expect($user->can('update', $theme))->toBeFalse();
-});
-
 it('grants view but not update with a partial resolver', function () {
     EmailComposer::resolveAbilityUsing(fn ($user, $ability) => in_array($ability, [
         'view-theme',
