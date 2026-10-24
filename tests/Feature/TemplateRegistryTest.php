@@ -3,10 +3,7 @@
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Templates\FileTemplate;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-
-pest()->use(RefreshDatabase::class);
 
 /** @param  array<string, string>  $files  filename => contents */
 function templateDir(array $files): string

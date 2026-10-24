@@ -3,10 +3,7 @@
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Services\DraftPublisher;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
-
-pest()->use(RefreshDatabase::class);
 
 beforeEach(fn () => Storage::fake(config('email-composer.storage.disk')));
 

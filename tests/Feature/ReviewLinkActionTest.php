@@ -4,11 +4,8 @@ use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
 use CSeidl\EmailComposer\Models\EmailDraft;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Livewire\livewire;
-
-pest()->use(RefreshDatabase::class);
 
 afterEach(fn () => EmailComposer::flushResolvers());
 

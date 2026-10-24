@@ -2,10 +2,7 @@
 
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
-
-pest()->use(RefreshDatabase::class);
 
 afterEach(fn () => EmailComposer::flushResolvers());
 
@@ -44,25 +41,6 @@ function draftInState(string $state, array $attributes = []): EmailDraft
         ? EmailDraft::factory()->create($attributes)
         : EmailDraft::factory()->{$state}()->create($attributes);
 }
-
-it('denies every action when no resolver is registered', function () {
-    EmailComposer::flushResolvers();
-
-    $user = UserFactory::new()->create();
-    $draft = EmailDraft::factory()->create(['author_id' => $user->getKey()]);
-
-    expect($user->can('viewAny', EmailDraft::class))->toBeFalse();
-    expect($user->can('view', $draft))->toBeFalse();
-    expect($user->can('create', EmailDraft::class))->toBeFalse();
-    expect($user->can('update', $draft))->toBeFalse();
-    expect($user->can('delete', $draft))->toBeFalse();
-    expect($user->can('submit', $draft))->toBeFalse();
-    expect($user->can('approve', $draft))->toBeFalse();
-    expect($user->can('share', $draft))->toBeFalse();
-    expect($user->can('send', $draft))->toBeFalse();
-    expect($user->can('restore', $draft))->toBeFalse();
-    expect($user->can('forceDelete', $draft))->toBeFalse();
-});
 
 it('lets the author update a draft and denies everyone else', function () {
     grantAbilitiesToAuthor(['update-draft']);

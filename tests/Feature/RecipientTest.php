@@ -2,10 +2,7 @@
 
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
-
-pest()->use(RefreshDatabase::class);
 
 it('persists name, email, locale, and metadata', function () {
     $recipient = Recipient::create([

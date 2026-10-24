@@ -1,10 +1,7 @@
 <?php
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
-
-pest()->use(RefreshDatabase::class);
 
 function deletePublishedInstallFiles(): void
 {

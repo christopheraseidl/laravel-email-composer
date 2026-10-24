@@ -3,10 +3,7 @@
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
 use Illuminate\Database\QueryException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
-
-pest()->use(RefreshDatabase::class);
 
 it('enforces unique name', function () {
     RecipientList::create(['name' => 'Staff']);

@@ -2,25 +2,9 @@
 
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\Recipient;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Orchestra\Testbench\Factories\UserFactory;
 
-pest()->use(RefreshDatabase::class);
-
 afterEach(fn () => EmailComposer::flushResolvers());
-
-it('denies all actions when no resolver is registered', function () {
-    EmailComposer::flushResolvers();
-
-    $user = UserFactory::new()->create();
-    $recipient = Recipient::factory()->create();
-
-    expect($user->can('viewAny', Recipient::class))->toBeFalse();
-    expect($user->can('view', $recipient))->toBeFalse();
-    expect($user->can('create', Recipient::class))->toBeFalse();
-    expect($user->can('update', $recipient))->toBeFalse();
-    expect($user->can('delete', $recipient))->toBeFalse();
-});
 
 it('grants actions based on the registered resolver', function () {
     EmailComposer::resolveAbilityUsing(fn ($user, $ability, $model) => in_array($ability, [

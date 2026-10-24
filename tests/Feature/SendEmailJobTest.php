@@ -6,12 +6,9 @@ use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\Recipient;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\Factories\UserFactory;
-
-pest()->use(RefreshDatabase::class);
 
 beforeEach(function () {
     Storage::fake(config('email-composer.storage.disk'));

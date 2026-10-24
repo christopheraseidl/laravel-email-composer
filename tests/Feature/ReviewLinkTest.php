@@ -5,9 +5,6 @@ use CSeidl\EmailComposer\Models\DraftFeedback;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Review\ReviewLink;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-pest()->use(RefreshDatabase::class);
 
 /** @param  array<string, mixed>  $attributes */
 function reviewableDraft(array $attributes = []): EmailDraft

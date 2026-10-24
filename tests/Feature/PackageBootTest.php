@@ -1,10 +1,7 @@
 <?php
 
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\File;
-
-pest()->use(RefreshDatabase::class);
 
 it('successfully boots the service provider', function () {
     expect(config('email-composer.default_locale'))->toBe('en');
