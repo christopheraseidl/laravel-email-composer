@@ -25,6 +25,10 @@ class TestCase extends Orchestra
 {
     protected function setUp(): void
     {
+        // Parallel workers that share services.php race to write it on a cold
+        // cache, and Windows refuses the rename.
+        $_SERVER['APP_SERVICES_CACHE'] = 'bootstrap/cache/services-'.(getenv('TEST_TOKEN') ?: '0').'.php';
+
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
