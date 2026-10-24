@@ -22,7 +22,7 @@ php artisan email-composer:install
 
 The install command:
 
-- creates the `job_batches` migration if the table is missing (sending uses job batches),
+- creates the `job_batches` migration if the table is missing,
 - publishes the config and migrations,
 - offers to run the migrations,
 - prints the remaining setup steps.
@@ -38,49 +38,37 @@ php artisan migrate
 
 Optional publish tags:
 
-| Tag | Publishes to | Contents |
-| --- | --- | --- |
-| `email-composer-views` | `resources/views/vendor/email-composer` | Layout, mail footer, review and unsubscribe pages, and `templates/default.html` |
-| `email-composer-assets` | `public/vendor/email-composer` | `css/email-default.css`, the default theme CSS |
-| `email-composer-translations` | `lang/vendor/email-composer` | `en` and `es` strings for the footer and unsubscribe pages |
+- `email-composer-views`: the layout, mail footer, review and unsubscribe pages, and `templates/default.html`, which lands in the default `templates.path` ready to edit
+- `email-composer-assets`: the default theme CSS
+- `email-composer-translations`: `en` and `es` strings
 
-Publishing the views also places the bundled default template in
-`resources/views/vendor/email-composer/templates`, which is the default
-`templates.path`, so it can be edited in place.
-
-The published CSS file is a copy for reference. The theme itself is stored
-in the `email_composer_theme` table, seeded from the package's
-`email-default.css` the first time it is read, and edited in Filament (see
-[Global theme](#global-theme)).
-
-Sending is queued, so a queue worker must be running.
+The published CSS is a reference copy, since the theme lives in the database
+(see [Global theme](#global-theme)).
 
 ## Configuration
 
 `config/email-composer.php`:
 
-| Key | Default | Purpose |
-| --- | --- | --- |
-| `locales` | `['en', 'es']` | Locales offered for drafts, recipients, and the panel language switcher |
-| `default_locale` | `'en'` | Fallback locale for subjects, placeholders, published files, and recipients with no locale |
-| `storage.disk` | `env('EMAIL_COMPOSER_DISK', 'local')` | Disk for published draft HTML. `null` uses the app's default disk |
-| `storage.path` | `'email-composer'` | Directory on that disk. Files go to `{path}/drafts/{hash}/{locale}.html` |
-| `storage.public_disk` | `env('EMAIL_COMPOSER_PUBLIC_DISK', 'public')` | Disk for uploaded logos, under `{path}/logos`. Must serve files by URL |
-| `templates.path` | `resource_path('views/vendor/email-composer/templates')` | Directory scanned for file templates |
-| `queue.connection` | `env('EMAIL_COMPOSER_QUEUE_CONNECTION')` | Queue connection for send batches. `null` uses the app's default |
-| `queue.queue` | `env('EMAIL_COMPOSER_QUEUE_NAME')` | Queue name. `null` uses the connection's default |
-| `bulk.chunk_size` | `100` | Send jobs queued per push when a draft is sent |
-| `unsubscribe.link_ttl_days` | `null` | Days before unsubscribe links expire. `null` never expires |
-| `review.link_ttl_days` | `7` | Days before external review links expire |
-| `filament.navigation_group` | `'Email'` | Navigation group for the resources and theme page. `null` for none |
+- `locales`: locales offered for drafts and recipients (`['en', 'es']`)
+- `default_locale`: the fallback locale (`'en'`)
+- `storage.disk`: disk for approved drafts' HTML (`EMAIL_COMPOSER_DISK`, default `local`)
+- `storage.path`: directory on that disk (`'email-composer'`)
+- `storage.public_disk`: disk for uploaded logos, which must serve files by URL (`EMAIL_COMPOSER_PUBLIC_DISK`, default `public`)
+- `templates.path`: directory for file templates
+- `queue.connection`: queue connection for sending (`EMAIL_COMPOSER_QUEUE_CONNECTION`)
+- `queue.queue`: queue name for sending (`EMAIL_COMPOSER_QUEUE_NAME`)
+- `bulk.chunk_size`: send jobs queued at a time (`100`)
+- `unsubscribe.link_ttl_days`: days before unsubscribe links expire (`null`, never)
+- `review.link_ttl_days`: days before review links expire (`7`)
+- `filament.navigation_group`: panel navigation group (`'Email'`, `null` for none)
 
 Drafts and feedback belong to the model named in
 `auth.providers.users.model`, which must be an Eloquent model.
 
 ## Authorization
 
-Every policy denies until an ability resolver is registered. Register one in
-a service provider's `boot()` method:
+Every policy denies until an ability resolver is registered once, in a
+service provider's `boot()` method:
 
 ```php
 use CSeidl\EmailComposer\EmailComposer;
@@ -90,54 +78,23 @@ EmailComposer::resolveAbilityUsing(
 );
 ```
 
-The resolver receives the authenticated user, the ability name, and the model
-instance when the check concerns one record (`null` otherwise). A guest is
-always denied.
+The resolver receives the authenticated user, the ability name, and the
+record being checked, or `null`. A guest is always denied.
 
 ### Abilities
 
-| Ability | Model passed | Grants |
-| --- | --- | --- |
-| `view-recipients` | no | List recipients |
-| `view-recipient` | `Recipient` | View a recipient |
-| `create-recipients` | no | Create recipients |
-| `update-recipient` | `Recipient` | Edit a recipient |
-| `delete-recipient` | `Recipient` | Delete a recipient |
-| `restore-recipient` | `Recipient` | Restore a recipient |
-| `force-delete-recipient` | `Recipient` | Permanently delete a recipient |
-| `view-recipient-lists` | no | List recipient lists |
-| `view-recipient-list` | `RecipientList` | View a recipient list |
-| `create-recipient-lists` | no | Create recipient lists |
-| `update-recipient-list` | `RecipientList` | Edit a recipient list |
-| `delete-recipient-list` | `RecipientList` | Delete a recipient list |
-| `restore-recipient-list` | `RecipientList` | Restore a deleted recipient list |
-| `force-delete-recipient-list` | `RecipientList` | Permanently delete a recipient list |
-| `view-templates` | no | List templates |
-| `view-template` | `EmailTemplate` | View a template |
-| `create-templates` | no | Create templates |
-| `update-template` | `EmailTemplate` | Edit a template |
-| `delete-template` | `EmailTemplate` | Delete a template |
-| `restore-template` | `EmailTemplate` | Restore a template |
-| `force-delete-template` | `EmailTemplate` | Permanently delete a template |
-| `view-any-draft` | no | List and view every draft |
-| `view-draft` | `EmailDraft` on view, none on list | View a draft, for example only the user's own |
-| `create-draft` | no | Create drafts |
-| `update-draft` | `EmailDraft` | Edit a draft. Only drafts in `draft` status are editable |
-| `submit-draft` | `EmailDraft` | Submit a `draft` for review |
-| `approve-draft` | `EmailDraft` | Approve a draft that is `under_review` |
-| `send-draft` | `EmailDraft` | Send an `approved` draft |
-| `delete-draft` | `EmailDraft` | Delete a draft that is not `sent` |
-| `restore-draft` | `EmailDraft` | Restore a deleted draft |
-| `force-delete-draft` | `EmailDraft` | Permanently delete a draft that is not `sent` |
-| `view-feedback` | `DraftFeedback` on view, none on list | View review feedback |
-| `comment-on-draft` | no | Create feedback |
-| `update-feedback` | `DraftFeedback` | Resolve or reopen feedback |
-| `view-theme` | `EmailTheme` | Open the theme page |
-| `update-theme` | `EmailTheme` | Save the theme |
+- **Recipients:** `view-recipients`, `view-recipient`, `create-recipients`, `update-recipient`, `delete-recipient`, `restore-recipient`, `force-delete-recipient`
+- **Recipient lists:** `view-recipient-lists`, `view-recipient-list`, `create-recipient-lists`, `update-recipient-list`, `delete-recipient-list`, `restore-recipient-list`, `force-delete-recipient-list`
+- **Templates:** `view-templates`, `view-template`, `create-templates`, `update-template`, `delete-template`, `restore-template`, `force-delete-template`
+- **Drafts:** `view-any-draft`, `view-draft`, `create-draft`, `update-draft`, `submit-draft`, `approve-draft`, `share-draft` (get the review link), `send-draft`, `delete-draft`, `restore-draft`, `force-delete-draft`
+- **Feedback:** `view-feedback`, `comment-on-draft`, `update-feedback`
+- **Theme:** `view-theme`, `update-theme`
 
-`view-draft` is also checked without a model to decide whether the draft list
-is visible at all, so a resolver that scopes it to the author should allow the
-model-less call:
+Draft status rules apply on top of the resolver. For example, only a `draft`
+can be edited, and a draft that is `sending` or `sent` cannot be deleted.
+
+A resolver that scopes `view-draft` to the author must allow the model-less
+call, which decides whether the draft list is visible:
 
 ```php
 'view-draft' => $model === null || $model->author_id === $user->id,
@@ -145,13 +102,11 @@ model-less call:
 
 ## Filament plugin
 
-Install the two packages the plugin depends on:
+Install the plugin's dependencies, then register it on a panel:
 
 ```bash
 composer require lara-zeus/spatie-translatable bezhansalleh/filament-language-switch
 ```
-
-Register the plugin on a panel:
 
 ```php
 use CSeidl\EmailComposer\Filament\EmailComposerPlugin;
@@ -167,16 +122,12 @@ public function panel(Panel $panel): Panel
 The plugin adds the Recipients, Recipient Lists, Email Templates, and Email
 Drafts resources and the Manage Email Theme page. It also:
 
-- registers `SpatieTranslatablePlugin` with `locales` as its default locales, unless the panel already registers it,
+- registers `SpatieTranslatablePlugin` with `locales`, unless the panel already registers it,
 - sets the language switcher's locales to `locales`, unless they were configured elsewhere.
-
-Registration throws a `LogicException` if either dependency is missing.
 
 ## Recipient lists
 
-A recipient list is a named group of recipients. A recipient can belong to
-any number of lists. Members are chosen in the Recipient Lists resource or
-from a recipient's form, and the Recipients table filters by list.
+A recipient can belong to any number of named lists, managed in the panel.
 
 ```php
 use CSeidl\EmailComposer\Models\RecipientList;
@@ -187,29 +138,23 @@ $list->recipients()->attach($recipientIds);
 $recipient->lists;   // lists the recipient belongs to
 ```
 
-Deleting a list soft-deletes it and keeps its memberships, so restoring it
-brings them back. Force deleting a list, or deleting a recipient, removes
-the memberships.
+Deleting a list or a recipient soft-deletes it and keeps its memberships.
 
 ## Templates
 
-A template is a body with `[[ name ]]` placeholder tokens, a list of declared
-placeholder names, and optional CSS. Templates come from two sources:
+A template is an HTML body with `[[ name ]]` placeholders and optional CSS.
+Templates come from two sources:
 
 - **Database templates**, created in the Email Templates resource.
-- **File templates**, `.html` files in `templates.path` and in the package's
-  bundled templates directory.
+- **File templates**, `.html` files in `templates.path`.
 
-When keys collide, a file template wins over a database template, and a
-template in `templates.path` wins over a bundled one. Two files with the same
-key in one directory throw a `RuntimeException`.
+A file template wins when keys collide.
 
 ### File template format
 
 YAML front matter, then the HTML body. `key` and `name` are required.
-`placeholders` lists the tokens the draft composer asks for. An optional
-inline `<style>` block becomes the template's CSS and is removed from the
-body.
+`placeholders` lists the tokens the draft form asks for. An inline `<style>`
+block becomes the template's CSS.
 
 ```html
 ---
@@ -231,78 +176,41 @@ placeholders: [heading, body, signoff]
 </div>
 ```
 
-Token names may use letters, digits, and underscores, with optional spaces
-inside the brackets. A token with no value renders as an empty string.
-Values are inserted as HTML, then the whole document is sanitized with
-HTMLPurifier.
-
-The draft form in Filament lists database templates only. To use a file
-template, set the draft's `template_key` in code:
-
-```php
-EmailDraft::create([
-    'template_key' => 'newsletter',
-    'subject' => ['en' => 'October news', 'es' => 'Noticias de octubre'],
-    'placeholders' => ['en' => ['heading' => 'Hello'], 'es' => ['heading' => 'Hola']],
-]);
-```
-
-### Rendering
-
-A draft renders by interpolating its placeholder values into the body,
-wrapping the result in the `email-composer::layout` view, inlining CSS
-(global theme first, then template CSS), and sanitizing the result.
+Token names use letters, digits, and underscores.
 
 ## Global theme
 
-The Manage Email Theme page edits one CSS stylesheet applied to every email
-before the template's own CSS. Users with `view-theme` see it read-only, and
-`update-theme` is required to save. The first read seeds it from the
-package's `email-default.css`.
+The Manage Email Theme page edits the stylesheet and logo used by every
+email. Theme and template CSS are trusted and skip HTMLPurifier.
 
 ```php
 use CSeidl\EmailComposer\Models\EmailTheme;
 
 EmailTheme::current()->css;
-```
-
-The page also sets a logo shown above every email: either an absolute
-`logo_url`, or an image uploaded to `storage.public_disk` (stored in
-`logo_path`). The alt text falls back to `app.name`:
-
-```php
 EmailTheme::current()->update(['logo_url' => $url]);
 ```
 
 ## Drafts
 
-A draft moves through four statuses:
+A draft moves through these statuses, each with a matching panel action:
 
-| Status | Entered by | Effect |
-| --- | --- | --- |
-| `draft` | creation | Editable |
-| `under_review` | Submit action, `$draft->submit()` | Read-only, open to review links |
-| `approved` | Approve action, `$draft->approve($user)` | Renders and stores one HTML file per locale |
-| `sent` | Send action, `EmailComposer::send($draft)` | Set when every recipient job has run |
+1. `draft`: editable
+2. `under_review`: read-only and open to review links (`$draft->submit()`)
+3. `approved`: one HTML file stored per locale (`$draft->approve($user)`)
+4. `sending`: recipient jobs queued (`EmailComposer::send($draft)`)
+5. `sent`: every recipient job has run
 
 `$draft->returnToDraft()` moves an `under_review` draft back to `draft`.
 
-### Translations and the language switcher
-
-`subject` and `placeholders` are translatable. On the draft pages, the
-locale switcher in the page header selects which locale's subject and
-placeholder values the form shows and saves. The form opens in the panel's
-active language, chosen with the language switcher, when that language is
-in `locales`.
-
-A value missing in one locale falls back to `default_locale`, then to any
-locale that has it. On approval, a file is published for each locale that
-has a subject or placeholder values, plus `default_locale`.
+`subject` and `placeholders` are translatable. Edit each locale with the
+locale switcher on the draft page. Missing values fall back to
+`default_locale`.
 
 ### Review links
 
 External reviewers can read an `under_review` draft and leave feedback
-without an account through a signed link:
+through a signed link, without an account. The panel's Review link action
+produces the URL. In code:
 
 ```php
 use CSeidl\EmailComposer\Review\ReviewLink;
@@ -311,57 +219,36 @@ $url = ReviewLink::for($draft);          // expires after review.link_ttl_days
 $url = ReviewLink::for($draft, 'es');    // opens in Spanish
 ```
 
-The page offers a link per locale and a feedback form. Feedback appears in
-the draft's Feedback tab, where it can be resolved. The link returns 404
-once the draft leaves `under_review`.
+Feedback appears in the draft's Feedback tab.
 
 ### Sending
 
-`EmailComposer::send($draft)` queues one job per recipient in a job batch,
-`bulk.chunk_size` at a time, and returns the `Batch`. It throws a `DomainException` if the draft is not
-`approved` or has no recipients.
+A draft's `audience` is one of:
 
-Each job:
+- `all`: every recipient that is not deleted,
+- `list`: the members of `recipient_list_id`,
+- `selected`: the recipients chosen on the draft.
 
-- skips recipients who have unsubscribed and marks them `skipped`,
-- sends in the recipient's locale if the draft was published in it, otherwise in `default_locale`,
-- retries 3 times, 30 seconds apart, then marks the recipient `failed` with the error.
-
-Delivery status, locale, attempts, and errors are stored on the
-`email_composer_draft_recipient` pivot. Sending goes through
-`EmailSenderInterface`, bound to `MailableSender`. Rebind it to send another
-way.
+Sending queues one job per recipient. Delivery status is stored per
+recipient on the `email_composer_draft_recipient` table.
 
 ## View in browser and unsubscribe
 
-Every sent email ends with a footer that has two signed links.
+Every sent email ends with a footer that has two signed links:
 
-**View in browser** serves the HTML published for that draft and locale on
-approval, falling back to `default_locale`. The link does not expire.
-Published files are stored under a folder named by an HMAC of the draft ID
-and `APP_KEY`, so they cannot be found by counting draft IDs on a public
-disk. Changing `APP_KEY` moves future publishes to new folders.
+- **View in browser** shows the published HTML for the recipient's locale.
+- **Unsubscribe** opens a confirmation page. Confirming sets
+  `unsubscribed_at`, and later sends skip the recipient.
 
-**Unsubscribe** opens a confirmation page in the recipient's locale. On
-confirmation it sets `unsubscribed_at`, keeping the first time if it is
-already set. Later sends skip the recipient. The link expires after
-`unsubscribe.link_ttl_days`, or never when that is `null`.
-
-The routes are `email-composer.view-in-browser`,
-`email-composer.unsubscribe.show`, and `email-composer.unsubscribe.store`,
-all under the `web` and `signed` middleware.
+Each email also carries `List-Unsubscribe` and `List-Unsubscribe-Post`
+headers, so mail clients can unsubscribe in one click. The unsubscribe POST
+route is exempt from CSRF verification so those requests succeed.
 
 ## Troubleshooting
 
 **Every Filament page returns 403, or the resources do not appear in the
-navigation.** No ability resolver is registered, so every policy denies.
-Register one with `EmailComposer::resolveAbilityUsing()` (see
+navigation.** No ability resolver is registered (see
 [Authorization](#authorization)).
-
-**`@media` rules have no effect.** HTMLPurifier removes the document's
-`<style>` block, so only CSS that can be inlined onto elements survives.
-Media queries, pseudo-classes such as `:hover`, and the mobile rules at the
-end of the default theme are dropped. Write layouts that work without them.
 
 **`RecipientFactory::new()` builds the wrong model on Laravel 12.** The
 package's factories name their model with the `#[UseModel]` attribute, which
@@ -375,9 +262,13 @@ RecipientFactory::new()->create(); // Laravel 13 only
 
 On Laravel 12, PHPStan also reports `UseModel` as an unknown class.
 
-**Signed links return 403.** The URL was changed after signing, or it
-expired. Behind a proxy, configure trusted proxies so the scheme and host
-match the signed URL.
+**"The email has already been taken" for a recipient that is not listed.** A
+deleted recipient holds the address, so restore it from the Recipients
+table's trashed filter.
+
+**Signed links return 403.** The link expired or was altered, or a proxy in
+front of the app changes the scheme or host it sees. Trust the proxy
+(`$middleware->trustProxies(at: '*')`) and set `APP_URL` to the public URL.
 
 ## Testing
 
