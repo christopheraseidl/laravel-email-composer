@@ -2,9 +2,13 @@
 
 namespace CSeidl\EmailComposer;
 
+use CSeidl\EmailComposer\Commands\ImportRecipientsCommand;
 use CSeidl\EmailComposer\Commands\InstallCommand;
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
+use CSeidl\EmailComposer\Contracts\ImportNotifierInterface;
+use CSeidl\EmailComposer\Filament\Notifications\FilamentImportNotifier;
 use CSeidl\EmailComposer\Mail\MailableSender;
+use CSeidl\EmailComposer\Notifications\NullImportNotifier;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Override;
 use Spatie\LaravelPackageTools\Package;
@@ -35,13 +39,16 @@ class EmailComposerServiceProvider extends PackageServiceProvider
             ->hasAssets()
             ->hasMigrations(self::MIGRATIONS)
             ->hasRoute('web')
-            ->hasConsoleCommand(InstallCommand::class);
+            ->hasCommands([InstallCommand::class, ImportRecipientsCommand::class]);
     }
 
     #[Override]
     public function packageRegistered(): void
     {
         $this->app->bind(EmailSenderInterface::class, MailableSender::class);
+        $this->app->bind(ImportNotifierInterface::class, class_exists('Filament\Notifications\Notification')
+            ? FilamentImportNotifier::class
+            : NullImportNotifier::class);
         $this->app->scoped(TemplateRegistry::class, fn () => new TemplateRegistry);
 
         parent::packageRegistered();

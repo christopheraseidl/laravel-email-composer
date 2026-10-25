@@ -5,7 +5,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\Finder\SplFileInfo;
 
 /** @return list<class-string> */
 function classesIn(string $directory, string $namespace): array
@@ -37,10 +39,6 @@ arch('statuses are enums')
 arch('jobs are queued')
     ->expect('CSeidl\EmailComposer\Jobs')
     ->toImplement(ShouldQueue::class);
-
-arch('models do not depend on Filament')
-    ->expect('CSeidl\EmailComposer\Models')
-    ->not->toUse('Filament');
 
 arch('models declare their factory')
     ->expect('CSeidl\EmailComposer\Models')
@@ -77,3 +75,22 @@ it('delegates every policy method to EmailComposer::userCan', function (Reflecti
 
     expect($source)->toContain('EmailComposer::userCan(');
 })->with(policyMethods());
+
+arch('actions are invokable')
+    ->expect('CSeidl\EmailComposer\Actions')
+    ->classes()
+    ->toBeInvokable();
+
+arch('data classes are readonly')
+    ->expect('CSeidl\EmailComposer\Data')
+    ->toBeReadonly();
+
+// arch()->not->toUse('Filament') misses Filament's other packages, such as Filament\Notifications.
+it('uses Filament only in src/Filament', function () {
+    $files = collect(File::allFiles(__DIR__.'/../src'))
+        ->reject(fn (SplFileInfo $file) => str_starts_with($file->getRelativePath(), 'Filament'))
+        ->filter(fn (SplFileInfo $file) => str_contains($file->getContents(), 'use Filament\\'))
+        ->map(fn (SplFileInfo $file) => $file->getRelativePathname());
+
+    expect($files->values()->all())->toBe([]);
+});

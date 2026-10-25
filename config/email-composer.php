@@ -33,6 +33,15 @@ return [
         'chunk_size' => 100,
     ],
 
+    // Largest CSV the panel's recipient import accepts, in kilobytes. PHP's
+    // upload_max_filesize and post_max_size, and Livewire's temporary upload
+    // rules (12 MB by default), must allow it too.
+    'import' => [
+        'max_file_size' => 10240,
+        // Rows per queued job. Keep each job well inside the worker's timeout.
+        'rows_per_part' => 2000,
+    ],
+
     // Unsubscribe URL is signed and expires after this many days.
     // null = no expiry.
     'unsubscribe' => [
