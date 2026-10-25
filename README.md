@@ -308,6 +308,32 @@ composer test
 composer analyse
 ```
 
+## Workbench app
+
+A Filament panel with seeded data, for manual testing.
+
+Once per clone:
+
+- Copy `workbench/.env.example` to `workbench/.env`.
+- Set `APP_KEY` in it to the output of `vendor/bin/testbench key:generate --show`.
+- To send mail, fill in the `MAIL_*` keys.
+
+```bash
+composer run serve                # builds, then serves http://127.0.0.1:8000/admin
+vendor/bin/testbench queue:work   # second terminal, sends mail and runs imports
+```
+
+- Log in as `test@example.com` / `password`.
+- `composer run serve` wipes the database and seeds it again. `vendor/bin/testbench serve` keeps the data.
+
+After a change:
+
+- **Package code, views, routes, translations or config:** reload the page, and restart `queue:work`.
+- **Migrations, seeders or factories:** run `composer run build`, which wipes the database and seeds it again.
+- **`composer install`, `update` or `dump-autoload`:** run `composer run build`. These delete the Workbench database and uploaded files.
+- **`workbench/.env`:** run `vendor/bin/testbench package:sync-skeleton`, then restart the server and `queue:work`.
+- **`testbench.yaml.dist` or a local `testbench.yaml`:** restart the server and `queue:work`.
+
 ## Changelog
 
 See [CHANGELOG](CHANGELOG.md).

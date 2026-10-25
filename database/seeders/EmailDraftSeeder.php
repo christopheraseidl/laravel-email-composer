@@ -34,15 +34,13 @@ class EmailDraftSeeder extends Seeder
         );
 
         // 1 sent
-        $factory->sent()->create()->each(
-            fn ($d) => $d->recipients()->attach(
-                $recipients->random(10)->pluck('id'),
-                [
-                    'delivery_status' => EmailDraftStatus::Sent,
-                    'sent_at' => now()->subMinutes(20),
-                    'attempts' => 1,
-                ]
-            )
+        $factory->sent()->create()->recipients()->attach(
+            $recipients->random(10)->pluck('id'),
+            [
+                'delivery_status' => EmailDraftStatus::Sent,
+                'sent_at' => now()->subMinutes(20),
+                'attempts' => 1,
+            ]
         );
     }
 }
