@@ -12,7 +12,7 @@ it('successfully boots the service provider', function () {
 it('publishes the bundled views to the folder the templates are read from', function () {
     $paths = ServiceProvider::pathsToPublish(EmailComposerServiceProvider::class, 'email-composer-views');
 
-    expect(array_values($paths))->toBe([resource_path('views/vendor/email-composer')])
+    expect(array_values($paths))->toBe([base_path('resources/views/vendor/email-composer')])
         ->and(config('email-composer.templates.path'))->toBe(resource_path('views/vendor/email-composer/templates'));
 });
 
