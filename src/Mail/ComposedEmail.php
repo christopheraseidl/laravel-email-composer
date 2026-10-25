@@ -22,12 +22,15 @@ class ComposedEmail extends Mailable
         string $locale,
     ) {
         $this->locale($locale);
-        $this->unsubscribeUrl = UnsubscribeLink::for($recipient);
+        // A test recipient is not stored, so it has nothing to unsubscribe.
+        $this->unsubscribeUrl = $recipient->isTest() ? '#' : UnsubscribeLink::for($recipient);
     }
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->draft->subjectFor($this->locale));
+        $subject = $this->draft->subjectFor($this->locale);
+
+        return new Envelope(subject: $this->recipient->isTest() ? "[Test] {$subject}" : $subject);
     }
 
     public function content(): Content
@@ -42,6 +45,10 @@ class ComposedEmail extends Mailable
 
     public function headers(): Headers
     {
+        if ($this->recipient->isTest()) {
+            return new Headers;
+        }
+
         return new Headers(text: [
             'List-Unsubscribe' => "<{$this->unsubscribeUrl}>",
             'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',

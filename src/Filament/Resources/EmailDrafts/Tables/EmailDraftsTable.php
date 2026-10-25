@@ -5,6 +5,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\PreviewDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\SendTestAction;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
 use Filament\Actions\Action;
@@ -65,6 +66,7 @@ class EmailDraftsTable
             ->recordActions([
                 EditAction::make(),
                 PreviewDraftAction::make(),
+                SendTestAction::make(),
                 Action::make('submit')
                     ->icon(Heroicon::OutlinedPaperClip)
                     ->color('warning')

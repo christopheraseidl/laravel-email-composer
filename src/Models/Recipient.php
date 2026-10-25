@@ -41,6 +41,26 @@ class Recipient extends Model
         'unsubscribed_at' => 'datetime',
     ];
 
+    /** Set by forTestSend(); never stored. */
+    protected bool $test = false;
+
+    /**
+     * An unsaved recipient for a test send. Mail to it carries no
+     * unsubscribe link and a "[Test] " subject prefix.
+     */
+    public static function forTestSend(string $email, string $locale): self
+    {
+        $recipient = new self(['name' => $email, 'email' => $email, 'locale' => $locale]);
+        $recipient->test = true;
+
+        return $recipient;
+    }
+
+    public function isTest(): bool
+    {
+        return $this->test;
+    }
+
     /** @return BelongsToMany<RecipientList, $this> */
     public function lists(): BelongsToMany
     {
