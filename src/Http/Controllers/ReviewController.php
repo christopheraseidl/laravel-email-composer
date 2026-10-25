@@ -18,9 +18,7 @@ class ReviewController
         $this->ensureUnderReview($draft);
 
         $locales = EmailComposer::config()->locales();
-        $locale = in_array($request->query('locale'), $locales, true)
-            ? $request->query('locale')
-            : EmailComposer::config()->defaultLocale();
+        $locale = EmailComposer::config()->localeOrDefault($request->query('locale'));
 
         $expires = Carbon::createFromTimestamp((int) $request->query('expires'));
         $localeLinks = collect($locales)->mapWithKeys(fn (string $code) => [

@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables;
 
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\PreviewDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
@@ -63,8 +64,9 @@ class EmailDraftsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                PreviewDraftAction::make(),
                 Action::make('submit')
-                    ->icon(Heroicon::OutlinedEye)
+                    ->icon(Heroicon::OutlinedPaperClip)
                     ->color('warning')
                     ->action(fn ($record) => $record->submit())
                     ->authorize(fn ($record) => Gate::allows('submit', $record)),
