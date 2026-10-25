@@ -33,9 +33,7 @@ class UnsubscribeController
 
     protected function useRecipientLocale(Recipient $recipient): void
     {
-        $locale = $recipient->locale !== null && in_array($recipient->locale, EmailComposer::config()->locales(), true)
-            ? $recipient->locale
-            : EmailComposer::config()->defaultLocale();
+        $locale = EmailComposer::config()->localeOrDefault($recipient->locale);
 
         App::setLocale($locale);
     }

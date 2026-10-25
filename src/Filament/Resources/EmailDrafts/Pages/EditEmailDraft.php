@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages;
 
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\PreviewDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use Filament\Actions\Action;
@@ -46,6 +47,8 @@ class EditEmailDraft extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            PreviewDraftAction::make()
+                ->modalDescription('Shows the last saved version. Save first to preview unsaved changes.'),
             ReviewLinkAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),

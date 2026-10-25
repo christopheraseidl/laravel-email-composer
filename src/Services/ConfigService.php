@@ -21,6 +21,14 @@ class ConfigService
         return config()->array('email-composer.locales', [$this->defaultLocale()]);
     }
 
+    /** The given locale when it is configured, otherwise the default. */
+    public function localeOrDefault(mixed $locale): string
+    {
+        return is_string($locale) && in_array($locale, $this->locales(), true)
+            ? $locale
+            : $this->defaultLocale();
+    }
+
     /** null means the app's default disk. */
     public function storageDisk(): ?string
     {
