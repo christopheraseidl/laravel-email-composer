@@ -1,6 +1,6 @@
 <?php
 
-namespace Database\Seeders;
+namespace CSeidl\EmailComposer\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
