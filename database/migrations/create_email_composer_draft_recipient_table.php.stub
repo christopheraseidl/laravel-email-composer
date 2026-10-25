@@ -22,7 +22,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('attempts')->default(0);
             $table->timestamps();
 
-            $table->unique(['email_draft_id', 'recipient_id']);
+            // The generated name exceeds MySQL's 64-character limit.
+            $table->unique(['email_draft_id', 'recipient_id'], 'email_composer_draft_recipient_unique');
             $table->index('delivery_status');
         });
     }

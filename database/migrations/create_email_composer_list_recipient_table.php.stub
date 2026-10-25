@@ -17,7 +17,8 @@ return new class extends Migration
             $table->foreignId('recipient_id')->constrained('email_composer_recipients')->cascadeOnDelete();
             $table->timestamps();
 
-            $table->unique(['recipient_list_id', 'recipient_id']);
+            // The generated name exceeds MySQL's 64-character limit.
+            $table->unique(['recipient_list_id', 'recipient_id'], 'email_composer_list_recipient_unique');
         });
     }
 
