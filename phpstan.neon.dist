@@ -2,9 +2,15 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    level: 5
+    level: 8
     paths:
         - src
         - config
         - database
     tmpDir: build/phpstan
+    # The workbench User model's columns, such as email, come from testbench's users table.
+    databaseMigrationsPath:
+        - vendor/orchestra/testbench-core/laravel/migrations
+    ignoreErrors:
+        - message: "#^Called 'env' outside of the config directory which returns null when the config is cached, use 'config'.$#"
+          path: *config/*.php

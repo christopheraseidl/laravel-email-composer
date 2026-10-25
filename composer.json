@@ -1,57 +1,85 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "christopheraseidl/laravel-email-composer",
+    "description": "A simple Laravel package to compose email drafts and send to recipients.",
     "keywords": [
-        ":vendor_name",
+        "christopheraseidl",
         "laravel",
-        ":package_slug"
+        "laravel-email-composer"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/christopheraseidl/laravel-email-composer",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Chris Seidl",
+            "email": "christopheraseidl@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.4",
+        "ezyang/htmlpurifier": "^4.19",
+        "illuminate/contracts": "^12.4||^13.0",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^11.0||^12.0||^13.0"
+        "spatie/laravel-translatable": "^6.11",
+        "spatie/yaml-front-matter": "^2.1"
     },
     "require-dev": {
+        "bezhansalleh/filament-language-switch": "^4.0",
+        "filament/filament": "^5.10",
+        "lara-zeus/spatie-translatable": "^2.0",
+        "larastan/larastan": "^3.0",
         "laravel/pint": "^1.14",
         "nunomaduro/collision": "^8.8",
-        "larastan/larastan": "^3.0",
-        "orchestra/testbench": "^11.0.0||^10.0.0||^9.0.0",
-        "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-arch": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0",
+        "orchestra/testbench": "^10.0||^11.0",
+        "pestphp/pest": "^4.0||^5.0",
+        "pestphp/pest-plugin-arch": "^4.0||^5.0",
+        "pestphp/pest-plugin-laravel": "^4.0||^5.0",
+        "pestphp/pest-plugin-livewire": "^4.0||^5.0",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan-deprecation-rules": "^2.0",
-        "phpstan/phpstan-phpunit": "^2.0",
-        "spatie/laravel-ray": "^1.35"
+        "phpstan/phpstan-phpunit": "^2.0"
+    },
+    "suggest": {
+        "bezhansalleh/filament-language-switch": "Required by EmailComposerPlugin for the panel language switcher.",
+        "filament/filament": "Admin panel for recipients, templates, drafts and the theme (^5.10).",
+        "lara-zeus/spatie-translatable": "Required by EmailComposerPlugin for translated drafts."
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "CSeidl\\EmailComposer\\": "src/",
+            "CSeidl\\EmailComposer\\Database\\Factories\\": "database/factories/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
-            "Workbench\\App\\": "workbench/app/"
+            "CSeidl\\EmailComposer\\Database\\Seeders\\": "database/seeders/",
+            "CSeidl\\EmailComposer\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
         }
     },
     "scripts": {
-        "post-autoload-dump": "@composer run prepare",
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
+        "test": "vendor/bin/pest --parallel",
         "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve --ansi"
+        ],
+        "lint": [
+            "@php vendor/bin/pint --ansi",
+            "@php vendor/bin/phpstan analyse --verbose --ansi"
+        ]
     },
     "config": {
         "sort-packages": true,
@@ -63,13 +91,13 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "CSeidl\\EmailComposer\\EmailComposerServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "EmailComposer": "CSeidl\\EmailComposer\\Facades\\EmailComposer"
             }
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
