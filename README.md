@@ -22,7 +22,8 @@ php artisan email-composer:install
 
 The install command:
 
-- creates the `job_batches` migration if the table is missing,
+- creates the `job_batches` migration if the table is missing, and the
+  `notifications` migration when Filament is installed,
 - publishes the config and migrations,
 - offers to run the migrations,
 - prints the remaining setup steps.
@@ -58,6 +59,8 @@ The published CSS is a reference copy, since the theme lives in the database
 - `queue.connection`: queue connection for sending (`EMAIL_COMPOSER_QUEUE_CONNECTION`)
 - `queue.queue`: queue name for sending (`EMAIL_COMPOSER_QUEUE_NAME`)
 - `bulk.chunk_size`: send jobs queued at a time (`100`)
+- `import.max_file_size`: largest CSV the panel accepts, in KB (`10240`)
+- `import.rows_per_part`: rows per queued import job (`2000`)
 - `unsubscribe.link_ttl_days`: days before unsubscribe links expire (`null`, never)
 - `review.link_ttl_days`: days before review links expire (`7`)
 - `filament.navigation_group`: panel navigation group (`'Email'`, `null` for none)
@@ -83,7 +86,7 @@ record being checked, or `null`. A guest is always denied.
 
 ### Abilities
 
-- **Recipients:** `view-recipients`, `view-recipient`, `create-recipients`, `update-recipient`, `delete-recipient`, `restore-recipient`, `force-delete-recipient`
+- **Recipients:** `view-recipients`, `view-recipient`, `create-recipients`, `import-recipients`, `update-recipient`, `delete-recipient`, `restore-recipient`, `force-delete-recipient`
 - **Recipient lists:** `view-recipient-lists`, `view-recipient-list`, `create-recipient-lists`, `update-recipient-list`, `delete-recipient-list`, `restore-recipient-list`, `force-delete-recipient-list`
 - **Templates:** `view-templates`, `view-template`, `create-templates`, `update-template`, `delete-template`, `restore-template`, `force-delete-template`
 - **Drafts:** `view-any-draft`, `view-draft`, `create-draft`, `update-draft`, `submit-draft`, `approve-draft`, `share-draft` (get the review link), `send-draft`, `delete-draft`, `restore-draft`, `force-delete-draft`
@@ -139,6 +142,34 @@ $recipient->lists;   // lists the recipient belongs to
 ```
 
 Deleting a list or a recipient soft-deletes it and keeps its memberships.
+
+## Importing recipients
+
+A CSV needs a header row with an `email` column. `name` and `locale` are
+optional, and other columns go into `metadata`. Files must be UTF-8 or
+Windows-1252.
+
+```bash
+php artisan email-composer:import-recipients recipients.csv --list=Staff
+```
+
+The panel's Import action queues the import instead. It needs:
+
+- `->databaseNotifications()` on the panel, to show the result,
+- `Notifiable` on the user model,
+- a cache store shared by all queue workers.
+
+Without Filament, store the upload on `storage.disk` and dispatch the job,
+which deletes the upload when done:
+
+```php
+use CSeidl\EmailComposer\Jobs\ImportRecipientsJob;
+
+ImportRecipientsJob::dispatch($user, $path, $listId);
+```
+
+Bind `CSeidl\EmailComposer\Contracts\ImportNotifierInterface` to report the
+result. Without Filament or a binding of your own, nothing is reported.
 
 ## Templates
 

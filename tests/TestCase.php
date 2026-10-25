@@ -21,6 +21,8 @@ use LaraZeus\SpatieTranslatable\SpatieTranslatableServiceProvider;
 use Livewire\LivewireServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
+use function Orchestra\Testbench\default_migration_path;
+
 class TestCase extends Orchestra
 {
     protected function setUp(): void
@@ -36,6 +38,7 @@ class TestCase extends Orchestra
         );
 
         $this->loadLaravelMigrations();
+        $this->loadMigrationsFrom(default_migration_path('notifications'));
 
         foreach (EmailComposerServiceProvider::MIGRATIONS as $migration) {
             (include __DIR__."/../database/migrations/{$migration}.php.stub")->up();

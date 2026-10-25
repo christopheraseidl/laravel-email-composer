@@ -59,6 +59,23 @@ class ConfigService
         return max(1, (int) config('email-composer.bulk.chunk_size', 100));
     }
 
+    /** In kilobytes. */
+    public function importMaxFileSize(): int
+    {
+        return max(1, (int) config('email-composer.import.max_file_size', 10240));
+    }
+
+    public function importRowsPerPart(): int
+    {
+        return max(1, (int) config('email-composer.import.rows_per_part', 2000));
+    }
+
+    /** Where queued imports' uploads wait, on the storage disk. */
+    public function importsPath(): string
+    {
+        return $this->storagePath().'/imports';
+    }
+
     /** null means unsubscribe links never expire. */
     public function unsubscribeLinkTtlDays(): ?int
     {

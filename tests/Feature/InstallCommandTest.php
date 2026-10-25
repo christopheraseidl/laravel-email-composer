@@ -8,6 +8,7 @@ function deletePublishedInstallFiles(): void
     File::delete(config_path('email-composer.php'));
     File::delete(File::glob(database_path('migrations/*_create_email_composer_*_table.php')));
     File::delete(File::glob(database_path('migrations/*_create_job_batches_table.php')));
+    File::delete(File::glob(database_path('migrations/*_create_notifications_table.php')));
 }
 
 it('publishes the config and migrations, and the migrate prompt can be declined', function () {
@@ -55,12 +56,29 @@ it('generates the job_batches migration when the table is missing', function () 
     }
 });
 
+it('generates the notifications migration when the table is missing', function () {
+    Schema::drop('notifications');
+
+    try {
+        $this->artisan('email-composer:install')
+            ->expectsConfirmation('Would you like to run the migrations now?', 'no')
+            ->expectsOutputToContain('job_batches table already exists')
+            ->expectsOutputToContain('created notifications migration')
+            ->assertSuccessful();
+
+        expect(File::glob(database_path('migrations/*_create_notifications_table.php')))->toHaveCount(1);
+    } finally {
+        deletePublishedInstallFiles();
+    }
+});
+
 it('prints the ability resolver and plugin next steps', function () {
     try {
         $this->artisan('email-composer:install')
             ->expectsConfirmation('Would you like to run the migrations now?', 'no')
             ->expectsOutputToContain('resolveAbilityUsing')
             ->expectsOutputToContain('->plugin(EmailComposerPlugin::make())')
+            ->expectsOutputToContain('->databaseNotifications()')
             ->doesntExpectOutputToContain('composer require')
             ->assertSuccessful();
     } finally {

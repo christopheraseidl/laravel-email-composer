@@ -30,6 +30,8 @@ it('returns the configured value', function (string $method, string $key, mixed 
     ['queueConnection', 'queue.connection', 'redis'],
     ['queueName', 'queue.queue', 'mail'],
     ['bulkChunkSize', 'bulk.chunk_size', 50],
+    ['importMaxFileSize', 'import.max_file_size', 2048],
+    ['importRowsPerPart', 'import.rows_per_part', 500],
     ['unsubscribeLinkTtlDays', 'unsubscribe.link_ttl_days', 30],
     ['reviewLinkTtlDays', 'review.link_ttl_days', 3],
     ['navigationGroup', 'filament.navigation_group', 'Mail'],
@@ -49,10 +51,18 @@ it('falls back when the key is unset', function (string $method, string $key, mi
     ['queueConnection', 'queue.connection', null],
     ['queueName', 'queue.queue', null],
     ['bulkChunkSize', 'bulk.chunk_size', 100],
+    ['importMaxFileSize', 'import.max_file_size', 10240],
+    ['importRowsPerPart', 'import.rows_per_part', 2000],
     ['unsubscribeLinkTtlDays', 'unsubscribe.link_ttl_days', null],
     ['reviewLinkTtlDays', 'review.link_ttl_days', 7],
     ['navigationGroup', 'filament.navigation_group', 'Email'],
 ]);
+
+it('keeps import uploads under the storage path', function () {
+    config(['email-composer.storage.path' => 'mail']);
+
+    expect(EmailComposer::config()->importsPath())->toBe('mail/imports');
+});
 
 it('returns the host user model', function () {
     expect(EmailComposer::config()->userModel())->toBe(User::class);

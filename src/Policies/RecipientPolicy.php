@@ -33,6 +33,14 @@ class RecipientPolicy
     }
 
     /**
+     * Determine whether the user can import models from a CSV.
+     */
+    public function import(Authenticatable $user): bool
+    {
+        return EmailComposer::userCan($user, 'import-recipients');
+    }
+
+    /**
      * Determine whether the user can update the model.
      */
     public function update(Authenticatable $user, Recipient $recipient): bool
