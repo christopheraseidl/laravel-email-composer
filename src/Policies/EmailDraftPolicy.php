@@ -90,6 +90,15 @@ class EmailDraftPolicy
     }
 
     /**
+     * Determine whether the user can send the draft to test addresses.
+     */
+    public function sendTest(Authenticatable $user, EmailDraft $draft): bool
+    {
+        return EmailComposer::userCan($user, 'test-draft', $draft)
+            && $draft->status !== EmailDraftStatus::Sent;
+    }
+
+    /**
      * Determine whether the user can send the draft.
      */
     public function send(Authenticatable $user, EmailDraft $draft): bool

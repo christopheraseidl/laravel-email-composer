@@ -165,3 +165,30 @@ it('sends the composed email to the recipient', function () {
         && $mail->recipient->is($recipient)
         && $mail->locale === 'es');
 });
+
+it('marks only a recipient built for a test send as a test', function () {
+    expect(Recipient::forTestSend('tester@example.com', 'es'))
+        ->isTest()->toBeTrue()
+        ->exists->toBeFalse()
+        ->name->toBe('tester@example.com')
+        ->email->toBe('tester@example.com')
+        ->locale->toBe('es')
+        ->and(Recipient::factory()->create()->isTest())->toBeFalse()
+        ->and((new Recipient(['email' => 'unsaved@example.com']))->isTest())->toBeFalse();
+});
+
+it('prefixes the subject of a test email', function () {
+    $mail = new ComposedEmail(composedDraft(), Recipient::forTestSend('tester@example.com', 'es'), 'es');
+
+    $mail->assertHasSubject('[Test] Novedades de primavera');
+});
+
+it('gives a test email a placeholder unsubscribe link and no list-unsubscribe headers', function () {
+    $mail = new ComposedEmail(composedDraft(), Recipient::forTestSend('tester@example.com', 'en'), 'en');
+
+    expect($mail->headers()->text)->toBe([])
+        ->and($mail->render())
+        ->toContain('href="#"')
+        ->toContain('tester@example.com')
+        ->not->toContain('unsubscribe/');
+});

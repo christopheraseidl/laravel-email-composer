@@ -142,6 +142,18 @@ it('gates a transition action on the draft status', function (string $action, st
     'send' => ['send', 'send-draft', 'approved'],
 ]);
 
+it('allows sending a test of a draft in any status but sent', function (string $state) {
+    grantAbilities(['test-draft']);
+
+    expect(UserFactory::new()->create()->can('sendTest', draftInState($state)))->toBe($state !== 'sent');
+})->with(['draft', 'underReview', 'approved', 'sending', 'sent']);
+
+it('denies sending a test without the test-draft ability', function () {
+    grantAbilities(['view-any-draft', 'send-draft']);
+
+    expect(UserFactory::new()->create()->can('sendTest', draftInState('draft')))->toBeFalse();
+});
+
 it('forwards the draft to the resolver for per-model abilities', function () {
     $captured = [];
     EmailComposer::resolveAbilityUsing(function ($user, $ability, $model) use (&$captured) {
@@ -159,6 +171,7 @@ it('forwards the draft to the resolver for per-model abilities', function () {
     $user->can('approve', $draft);
     $user->can('share', $draft);
     $user->can('send', $draft);
+    $user->can('sendTest', $draft);
     $user->can('restore', $draft);
     $user->can('forceDelete', $draft);
 
@@ -168,6 +181,7 @@ it('forwards the draft to the resolver for per-model abilities', function () {
     expect($captured['approve-draft'])->toBe($draft);
     expect($captured['share-draft'])->toBe($draft);
     expect($captured['send-draft'])->toBe($draft);
+    expect($captured['test-draft'])->toBe($draft);
     expect($captured['restore-draft'])->toBe($draft);
     expect($captured['force-delete-draft'])->toBe($draft);
 });

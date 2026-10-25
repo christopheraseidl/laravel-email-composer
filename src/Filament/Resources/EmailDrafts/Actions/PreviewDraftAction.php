@@ -3,17 +3,18 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\Concerns\HasLocaleSelect;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\View;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
-use Livewire\Component;
 
 class PreviewDraftAction
 {
+    use HasLocaleSelect;
+
     public static function make(): Action
     {
         return Action::make('preview')
@@ -22,27 +23,12 @@ class PreviewDraftAction
             ->color('gray')
             ->authorize(fn (EmailDraft $record) => Gate::allows('view', $record))
             ->schema([
-                Select::make('locale')
-                    ->options(array_combine(
-                        EmailComposer::config()->locales(),
-                        EmailComposer::config()->locales(),
-                    ))
-                    ->default(fn (Component $livewire) => static::initialLocale($livewire))
-                    ->selectablePlaceholder(false)
-                    ->live(),
+                static::localeSelect()->live(),
                 View::make('email-composer::filament.preview')
                     ->viewData(fn (EmailDraft $record, Get $get) => static::preview($record, $get('locale'))),
             ])
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Close');
-    }
-
-    /** Pages using the Translatable concern carry the locale the user switched to. */
-    protected static function initialLocale(Component $livewire): string
-    {
-        $locale = property_exists($livewire, 'activeLocale') ? $livewire->activeLocale : null;
-
-        return EmailComposer::config()->localeOrDefault($locale);
     }
 
     /** @return array{subject: string, html: ?string, error: ?string} */
