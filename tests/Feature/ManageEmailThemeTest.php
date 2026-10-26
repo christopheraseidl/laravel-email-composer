@@ -2,6 +2,9 @@
 
 use CSeidl\EmailComposer\Filament\Pages\ManageEmailTheme;
 use CSeidl\EmailComposer\Models\EmailTheme;
+use Filament\Actions\Action;
+use Filament\Actions\Testing\TestAction;
+use Filament\Forms\Components\FileUpload;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
@@ -34,7 +37,7 @@ it('uploads a logo to the public disk and clears the logo url', function () {
     EmailTheme::current()->update(['logo_url' => 'https://example.com/old.png']);
 
     livewire(ManageEmailTheme::class)
-        ->fillForm(['logo_url' => null, 'logo_path' => UploadedFile::fake()->image('logo.png')], 'content')
+        ->fillForm(['logo_url' => null, 'logo_path' => UploadedFile::fake()->image('logo.png')])
         ->call('save')
         ->assertHasNoErrors();
 
@@ -50,7 +53,7 @@ it('deletes the uploaded logo when a url replaces it', function () {
     EmailTheme::current()->update(['logo_path' => 'email-composer/logos/old.png']);
 
     livewire(ManageEmailTheme::class)
-        ->fillForm(['logo_path' => null, 'logo_url' => 'https://example.com/logo.png'], 'content')
+        ->fillForm(['logo_path' => null, 'logo_url' => 'https://example.com/logo.png'])
         ->call('save')
         ->assertHasNoErrors();
 
@@ -59,3 +62,28 @@ it('deletes the uploaded logo when a url replaces it', function () {
         ->logo_url->toBe('https://example.com/logo.png');
     Storage::disk('public')->assertMissing('email-composer/logos/old.png');
 });
+
+it('submits the form to save', function () {
+    livewire(ManageEmailTheme::class)
+        ->assertSeeHtml('wire:submit="save"');
+});
+
+it('submits the form from the save action', function () {
+    livewire(ManageEmailTheme::class)
+        ->assertActionExists(
+            TestAction::make('save')->schemaComponent('form-actions', schema: 'content'),
+            fn (Action $action): bool => $action->canSubmitForm() && $action->getFormToSubmit() === 'save',
+        );
+});
+
+it('uploads the logo with the public disk visibility', function (?string $diskVisibility, string $expected) {
+    config(['filesystems.disks.public.visibility' => $diskVisibility]);
+
+    $upload = livewire(ManageEmailTheme::class)->instance()->form->getFlatFields()['logo_path'];
+
+    expect($upload)->toBeInstanceOf(FileUpload::class)
+        ->and($upload->getVisibility())->toBe($expected);
+})->with([
+    ['public', 'public'],
+    [null, 'private'],
+]);

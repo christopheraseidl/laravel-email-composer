@@ -64,6 +64,18 @@ it('keeps import uploads under the storage path', function () {
     expect(EmailComposer::config()->importsPath())->toBe('mail/imports');
 });
 
+it('reports the public disk visibility', function (?string $diskVisibility, string $expected) {
+    config([
+        'email-composer.storage.public_disk' => 's3',
+        'filesystems.disks.s3.visibility' => $diskVisibility,
+    ]);
+
+    expect(EmailComposer::config()->publicDiskVisibility())->toBe($expected);
+})->with([
+    ['public', 'public'],
+    [null, 'private'],
+]);
+
 it('returns the host user model', function () {
     expect(EmailComposer::config()->userModel())->toBe(User::class);
 });

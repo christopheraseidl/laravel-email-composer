@@ -45,6 +45,15 @@ class ConfigService
         return config()->string('email-composer.storage.public_disk', 'public');
     }
 
+    /**
+     * 'public' only when the disk is configured that way. Uploading with 'public' sends a
+     * public-read ACL, which R2 and S3 buckets with ACLs disabled refuse.
+     */
+    public function publicDiskVisibility(): string
+    {
+        return config("filesystems.disks.{$this->publicDisk()}.visibility") === 'public' ? 'public' : 'private';
+    }
+
     public function templatesPath(): ?string
     {
         return $this->stringOrNull('email-composer.templates.path');
