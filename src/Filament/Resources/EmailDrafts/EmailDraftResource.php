@@ -7,6 +7,7 @@ use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\RelationManagers\DeliveriesRelationManager;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\RelationManagers\FeedbackRelationManager;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Schemas\EmailDraftForm;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables\EmailDraftsTable;
@@ -43,6 +44,7 @@ class EmailDraftResource extends Resource
     {
         return [
             FeedbackRelationManager::class,
+            DeliveriesRelationManager::class,
         ];
     }
 
