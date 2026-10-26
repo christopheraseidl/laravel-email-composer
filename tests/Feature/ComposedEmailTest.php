@@ -115,6 +115,33 @@ it('puts the footer before </body> when the body has one', function () {
     expect(strpos($html, e(UnsubscribeLink::for($recipient))))->toBeLessThan(strpos($html, '</body>'));
 });
 
+it('puts the footer in the layout footer cell', function () {
+    $draft = composedDraft();
+    $recipient = Recipient::factory()->create();
+
+    $html = (new ComposedEmail($draft, $recipient, 'en'))->render();
+
+    expect($html)
+        ->not->toContain(ComposedEmail::FOOTER_MARKER)
+        ->toMatch('/<td class="email-footer"[^>]*><div class="email-footer"/')
+        ->and(substr_count($html, e(UnsubscribeLink::for($recipient))))->toBe(1);
+});
+
+it('prefers the footer marker over </body>', function () {
+    $draft = composedDraft();
+    composedDisk()->put(
+        $draft->public_files['en'],
+        '<html><body><td>'.ComposedEmail::FOOTER_MARKER.'</td><p>After</p></body></html>',
+    );
+
+    $html = (new ComposedEmail($draft, Recipient::factory()->create(), 'en'))->render();
+
+    expect($html)
+        ->toStartWith('<html><body><td><div class="email-footer"')
+        ->toEndWith('</td><p>After</p></body></html>')
+        ->and(substr_count($html, 'class="email-footer"'))->toBe(1);
+});
+
 it('translates the footer into the email locale', function () {
     $mail = new ComposedEmail(composedDraft(), Recipient::factory()->create(), 'es');
 

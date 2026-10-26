@@ -1,5 +1,6 @@
 <?php
 
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Pages\ManageEmailTheme;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use Filament\Actions\Action;
@@ -87,3 +88,35 @@ it('uploads the logo with the public disk visibility', function (?string $diskVi
     ['public', 'public'],
     [null, 'private'],
 ]);
+
+it('restores the default css and refills the form', function () {
+    EmailTheme::current()->update(['css' => 'body {color: red;}', 'logo_url' => 'https://example.com/logo.png']);
+
+    livewire(ManageEmailTheme::class)
+        ->assertSchemaStateSet(['css' => 'body {color: red;}'])
+        ->callAction('restoreDefault')
+        ->assertNotified(__('email-composer::theme.notifications.default_restored'))
+        ->assertSchemaStateSet(['css' => EmailTheme::defaultCss(), 'logo_url' => 'https://example.com/logo.png']);
+
+    expect(EmailTheme::current()->refresh())
+        ->css->toBe(EmailTheme::defaultCss())
+        ->logo_url->toBe('https://example.com/logo.png');
+});
+
+it('asks for confirmation before restoring the default css', function () {
+    livewire(ManageEmailTheme::class)
+        ->assertActionExists('restoreDefault', fn (Action $action): bool => $action->isConfirmationRequired());
+});
+
+it('refuses to restore the default css to a user who cannot update the theme', function () {
+    EmailTheme::current()->update(['css' => 'body {color: red;}']);
+    EmailComposer::resolveAbilityUsing(fn ($user, string $ability) => $ability !== 'update-theme');
+
+    livewire(ManageEmailTheme::class)
+        ->assertActionHidden('restoreDefault')
+        // Bypass the test helper, which refuses a hidden action, as a crafted request would.
+        ->call('mountAction', 'restoreDefault')
+        ->call('callMountedAction');
+
+    expect(EmailTheme::current()->refresh()->css)->toBe('body {color: red;}');
+});

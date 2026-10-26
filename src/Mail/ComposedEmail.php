@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\Storage;
 
 class ComposedEmail extends Mailable
 {
+    /** Where the layout wants the footer. */
+    public const FOOTER_MARKER = '<!-- email-composer:footer -->';
+
     protected string $unsubscribeUrl;
 
     public function __construct(
@@ -62,6 +65,10 @@ class ComposedEmail extends Mailable
             'unsubscribeUrl' => $this->unsubscribeUrl,
             'viewInBrowserUrl' => $this->draft->viewInBrowserUrl($this->locale),
         ])->render();
+
+        if (str_contains($html, self::FOOTER_MARKER)) {
+            return str_replace(self::FOOTER_MARKER, $footer, $html);
+        }
 
         // str_ireplace returns the input unchanged when there is no </body>.
         if (stripos($html, '</body>') === false) {
