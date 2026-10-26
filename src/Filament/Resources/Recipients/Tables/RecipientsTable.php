@@ -21,19 +21,24 @@ class RecipientsTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label(__('email-composer::recipients.columns.name'))
                     ->searchable(),
                 TextColumn::make('email')
-                    ->label('Email address')
+                    ->label(__('email-composer::recipients.columns.email'))
                     ->searchable(),
-                TextColumn::make('locale'),
+                TextColumn::make('locale')
+                    ->label(__('email-composer::recipients.columns.locale')),
                 TextColumn::make('unsubscribed_at')
+                    ->label(__('email-composer::recipients.columns.unsubscribed_at'))
                     ->dateTime()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('email-composer::recipients.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('email-composer::recipients.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -41,16 +46,17 @@ class RecipientsTable
             ->filters([
                 TrashedFilter::make(),
                 TernaryFilter::make('unsubscribed_at')
-                    ->label('Subscription')
-                    ->placeholder('All')
-                    ->trueLabel('Unsubscribed')
-                    ->falseLabel('Subscribed')
+                    ->label(__('email-composer::recipients.filters.subscription.label'))
+                    ->placeholder(__('email-composer::recipients.filters.subscription.all'))
+                    ->trueLabel(__('email-composer::recipients.filters.subscription.unsubscribed'))
+                    ->falseLabel(__('email-composer::recipients.filters.subscription.subscribed'))
                     ->queries(
                         true: fn (Builder $query) => $query->whereNotNull('unsubscribed_at'),
                         false: fn (Builder $query) => $query->whereNull('unsubscribed_at'),
                         blank: fn (Builder $query) => $query,
                     ),
                 SelectFilter::make('lists')
+                    ->label(__('email-composer::recipients.filters.lists'))
                     ->relationship('lists', 'name')
                     ->preload(),
             ])

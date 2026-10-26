@@ -18,6 +18,7 @@ class EmailTemplateForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label(__('email-composer::templates.fields.name'))
                     ->required()
                     ->live()
                     ->afterStateUpdated(function (Get $get, Set $set, ?string $operation, ?string $old, ?string $state, ?Model $record) {
@@ -32,16 +33,21 @@ class EmailTemplateForm
                         $set('key', Str::slug($state ?? ''));
                     }),
                 TextInput::make('key')
+                    ->label(__('email-composer::templates.fields.key'))
                     ->required()
                     ->maxLength(255)
                     ->unique(),
                 Textarea::make('body')
+                    ->label(__('email-composer::templates.fields.body'))
                     ->required()
                     ->autosize()
-                    ->helperText('Use [[ placeholder_name ]] tokens where draft content should be inserted. Declare every placeholder you use in the Placeholders field below.'),
+                    ->helperText(__('email-composer::templates.helpers.body')),
                 TagsInput::make('placeholders')
-                    ->placeholder('Add a placeholder name (e.g. greeting)')->helperText('The list of [[ placeholder_name ]] tokens used in the body. The draft composer will render one input per placeholder, per locale.'),
+                    ->label(__('email-composer::templates.fields.placeholders'))
+                    ->placeholder(__('email-composer::templates.helpers.placeholders_example'))
+                    ->helperText(__('email-composer::templates.helpers.placeholders')),
                 Textarea::make('css')
+                    ->label(__('email-composer::templates.fields.css'))
                     ->autosize(),
             ]);
     }

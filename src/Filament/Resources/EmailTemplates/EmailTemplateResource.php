@@ -44,6 +44,16 @@ class EmailTemplateResource extends Resource
         ];
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('email-composer::templates.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('email-composer::templates.plural_label');
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return EmailComposer::config()->navigationGroup();

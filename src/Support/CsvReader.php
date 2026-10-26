@@ -40,7 +40,7 @@ class CsvReader
         }
 
         if ($header === null && $required !== []) {
-            throw new \DomainException("The file has no {$required[0]} column.");
+            throw new \DomainException(__('email-composer::import.notifications.missing_column', ['column' => $required[0]]));
         }
     }
 
@@ -56,7 +56,7 @@ class CsvReader
 
         foreach ($required as $column) {
             if (! in_array($column, $header, true)) {
-                throw new \DomainException("The file has no {$column} column.");
+                throw new \DomainException(__('email-composer::import.notifications.missing_column', ['column' => $column]));
             }
         }
 

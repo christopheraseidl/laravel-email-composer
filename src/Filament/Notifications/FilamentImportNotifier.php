@@ -20,18 +20,23 @@ class FilamentImportNotifier implements ImportNotifierInterface
     public function finished(Authenticatable $user, ImportResult $result, int $failedParts, int $parts): void
     {
         $rejected = count($result->rejected);
-        $lines = ["Created {$result->created}, updated {$result->updated}, skipped {$result->skipped}, rejected {$rejected}."];
+        $lines = [__('email-composer::import.notifications.totals', [
+            'created' => $result->created,
+            'updated' => $result->updated,
+            'skipped' => $result->skipped,
+            'rejected' => $rejected,
+        ])];
 
         if ($failedParts > 0) {
-            $lines[] = "{$failedParts} of {$parts} parts failed. Some of their rows may be imported.";
+            $lines[] = __('email-composer::import.notifications.parts_failed', ['failed' => $failedParts, 'parts' => $parts]);
         }
 
         foreach (array_slice($result->rejected, 0, self::REJECTED_SHOWN, true) as $line => $reason) {
-            $lines[] = "Line {$line}: {$reason}";
+            $lines[] = __('email-composer::import.notifications.rejected_line', ['line' => $line, 'reason' => $reason]);
         }
 
         Notification::make()
-            ->title($failedParts > 0 ? 'Import partly failed' : 'Recipients imported')
+            ->title(__($failedParts > 0 ? 'email-composer::import.notifications.partly_failed' : 'email-composer::import.notifications.imported'))
             ->body(implode('<br>', array_map(e(...), $lines)))
             ->status(match (true) {
                 $failedParts > 0 => 'danger',
@@ -45,7 +50,7 @@ class FilamentImportNotifier implements ImportNotifierInterface
     public function failed(Authenticatable $user, string $reason): void
     {
         Notification::make()
-            ->title('Import failed')
+            ->title(__('email-composer::import.notifications.failed'))
             ->body($reason)
             ->danger()
             ->sendToDatabase($user);

@@ -10,6 +10,7 @@ use Illuminate\Contracts\Queue\ShouldBeEncrypted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Traits\Localizable;
 
 /**
  * Imports one part split off by ImportRecipientsJob and caches its counts
@@ -18,6 +19,7 @@ use Illuminate\Support\Facades\Cache;
 class ImportRecipientsPartJob implements ShouldBeEncrypted, ShouldQueue
 {
     use Batchable;
+    use Localizable;
     use Queueable;
 
     /** A retry would import the part again and misreport the counts. */
@@ -31,6 +33,7 @@ class ImportRecipientsPartJob implements ShouldBeEncrypted, ShouldQueue
         public int $part,
         public string $rows,
         public ?int $listId = null,
+        public ?string $locale = null,
     ) {}
 
     public function handle(ImportRecipients $import): void
@@ -39,14 +42,17 @@ class ImportRecipientsPartJob implements ShouldBeEncrypted, ShouldQueue
             return;
         }
 
-        $list = $this->listId === null ? null : (RecipientList::find($this->listId)
-            ?? throw new \DomainException('The recipient list no longer exists.'));
+        // Rejection reasons are cached as text, so they take the importing user's locale.
+        $this->withLocale($this->locale ?? app()->getLocale(), function () use ($import) {
+            $list = $this->listId === null ? null : (RecipientList::find($this->listId)
+                ?? throw new \DomainException(__('email-composer::import.notifications.missing_list')));
 
-        Cache::put(
-            ImportRecipientsJob::resultKey($this->importId, $this->part),
-            $import($this->rows(), $list)->toArray(),
-            ImportRecipientsJob::RESULT_TTL,
-        );
+            Cache::put(
+                ImportRecipientsJob::resultKey($this->importId, $this->part),
+                $import($this->rows(), $list)->toArray(),
+                ImportRecipientsJob::RESULT_TTL,
+            );
+        });
     }
 
     /** @return Generator<int, array<string, string>> line number to cells by column */

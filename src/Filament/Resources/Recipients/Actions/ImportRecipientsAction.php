@@ -19,17 +19,16 @@ class ImportRecipientsAction
     public static function make(): Action
     {
         return Action::make('import')
-            ->label('Import')
+            ->label(__('email-composer::import.actions.import'))
             ->icon(Heroicon::OutlinedArrowUpTray)
             ->color('gray')
             ->authorize(fn () => Gate::allows('import', Recipient::class))
             ->schema([
                 FileUpload::make('file')
-                    ->label('CSV file')
-                    ->helperText(fn () => sprintf(
-                        'A header row with an email column, and optionally name, locale and any metadata columns. Up to %s KB.',
-                        number_format(EmailComposer::config()->importMaxFileSize()),
-                    ))
+                    ->label(__('email-composer::import.fields.file'))
+                    ->helperText(fn () => __('email-composer::import.helpers.file', [
+                        'size' => number_format(EmailComposer::config()->importMaxFileSize()),
+                    ]))
                     ->acceptedFileTypes(['text/csv', 'text/plain'])
                     ->maxSize(fn () => EmailComposer::config()->importMaxFileSize())
                     // Browsers on Windows with Excel installed report .csv as application/vnd.ms-excel.
@@ -40,7 +39,7 @@ class ImportRecipientsAction
                     ->visibility('private')
                     ->required(),
                 Select::make('list')
-                    ->label('Add to list')
+                    ->label(__('email-composer::import.fields.list'))
                     ->options(fn () => RecipientList::query()->orderBy('name')->pluck('name', 'id'))
                     ->searchable(),
             ])
@@ -52,8 +51,8 @@ class ImportRecipientsAction
                 );
 
                 Notification::make()
-                    ->title('Import queued')
-                    ->body('You will get a notification when it finishes.')
+                    ->title(__('email-composer::import.notifications.queued.title'))
+                    ->body(__('email-composer::import.notifications.queued.body'))
                     ->success()
                     ->send();
             });
