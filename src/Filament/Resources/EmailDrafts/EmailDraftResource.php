@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts;
 
 use BackedEnum;
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
@@ -22,11 +23,14 @@ use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
 class EmailDraftResource extends Resource
 {
+    use HasEmailComposerNavigation;
     use Translatable;
 
     protected static ?string $model = EmailDraft::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'localized_subject';
 
@@ -55,11 +59,6 @@ class EmailDraftResource extends Resource
             'create' => CreateEmailDraft::route('/create'),
             'edit' => EditEmailDraft::route('/{record}/edit'),
         ];
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return EmailComposer::config()->navigationGroup();
     }
 
     /** @return array<int, string> */

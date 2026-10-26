@@ -3,7 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailTemplates;
 
 use BackedEnum;
-use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\CreateEmailTemplate;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\EditEmailTemplate;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\ListEmailTemplates;
@@ -19,9 +19,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EmailTemplateResource extends Resource
 {
+    use HasEmailComposerNavigation;
+
     protected static ?string $model = EmailTemplate::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentText;
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -52,11 +56,6 @@ class EmailTemplateResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('email-composer::templates.plural_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return EmailComposer::config()->navigationGroup();
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder

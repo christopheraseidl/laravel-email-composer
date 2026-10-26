@@ -2,7 +2,9 @@
 
 namespace CSeidl\EmailComposer\Filament\Pages;
 
+use BackedEnum;
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -16,11 +18,18 @@ use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 
 /** @property-read Schema $form */
 class ManageEmailTheme extends Page
 {
+    use HasEmailComposerNavigation;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedSwatch;
+
+    protected static ?int $navigationSort = 5;
+
     /** @var array<string, mixed>|null */
     public ?array $data = [];
 
@@ -137,11 +146,6 @@ class ManageEmailTheme extends Page
     public static function getNavigationLabel(): string
     {
         return __('email-composer::theme.navigation_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return EmailComposer::config()->navigationGroup();
     }
 
     public static function canAccess(): bool

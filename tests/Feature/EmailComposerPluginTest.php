@@ -10,9 +10,19 @@ use CSeidl\EmailComposer\Filament\Resources\RecipientLists\RecipientListResource
 use CSeidl\EmailComposer\Filament\Resources\Recipients\RecipientResource;
 use Filament\Facades\Filament;
 use Filament\Panel;
+use Filament\Support\Icons\Heroicon;
 use LaraZeus\SpatieTranslatable\SpatieTranslatablePlugin;
 
 use function Pest\Livewire\livewire;
+
+dataset('navigation items', [
+    'drafts' => [EmailDraftResource::class, Heroicon::OutlinedEnvelope, 1],
+    'templates' => [EmailTemplateResource::class, Heroicon::OutlinedDocumentText, 2],
+    'recipients' => [RecipientResource::class, Heroicon::OutlinedUser, 3],
+    'recipient lists' => [RecipientListResource::class, Heroicon::OutlinedUserGroup, 4],
+    'theme' => [ManageEmailTheme::class, Heroicon::OutlinedSwatch, 5],
+]);
+
 
 it('registers the resources and the theme page on the panel', function () {
     $panel = Filament::getPanel('admin');
@@ -27,17 +37,23 @@ it('registers the resources and the theme page on the panel', function () {
         ->and($panel->getPages())->toContain(ManageEmailTheme::class);
 });
 
-it('puts the resources and the theme page in the configured navigation group', function (string $class) {
-    config(['email-composer.filament.navigation_group' => 'Mail']);
+it('puts each item in the configured navigation group without an icon', function (string $class) {
+    config()->set('email-composer.filament.navigation_group', 'Mail');
 
-    expect($class::getNavigationGroup())->toBe('Mail');
-})->with([
-    RecipientResource::class,
-    RecipientListResource::class,
-    EmailTemplateResource::class,
-    EmailDraftResource::class,
-    ManageEmailTheme::class,
-]);
+    expect($class::getNavigationGroup())->toBe('Mail')
+        ->and($class::getNavigationIcon())->toBeNull();
+})->with('navigation items');
+
+it('gives each item its own icon when there is no navigation group', function (string $class, Heroicon $icon) {
+    config()->set('email-composer.filament.navigation_group', null);
+
+    expect($class::getNavigationGroup())->toBeNull()
+        ->and($class::getNavigationIcon())->toBe($icon);
+})->with('navigation items');
+
+it('orders the navigation items', function (string $class, Heroicon $icon, int $sort) {
+    expect($class::getNavigationSort())->toBe($sort);
+})->with('navigation items');
 
 it('registers spatie-translatable with the package locales', function () {
     $plugin = Filament::getPanel('admin')->getPlugin('spatie-translatable');
