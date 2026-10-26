@@ -1,5 +1,6 @@
 <?php
 
+use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Templates\FileTemplate;
@@ -93,7 +94,7 @@ it('lets template CSS override the theme', function () {
         ->not->toMatch('/style="[^"]*font-size: 16px;/')
         ->toMatch('/<div style="[^"]*font-size: 12px;/')
         // A theme rule the template does not touch still applies.
-        ->toContain('#2b2b2b');
+        ->toContain('#3f3f46');
 });
 
 it('sanitizes a script payload smuggled through CSS', function () {
@@ -110,8 +111,45 @@ it('sanitizes a script payload smuggled through CSS', function () {
 
 it('keeps the default theme media queries in the head', function () {
     expect(renderTemplate(template()))
-        ->toContain('<html lang="en">')
+        ->toContain('<html lang="en"')
         ->toMatch('/<head>.*<style>.*@media.*<\/style>.*<\/head>/s');
+});
+
+it('declares light and dark support in the head', function () {
+    expect(renderTemplate(template()))
+        ->toContain('<meta name="color-scheme" content="light dark">')
+        ->toContain('<meta name="supported-color-schemes" content="light dark">');
+});
+
+it('wraps the body in the email layout tables', function () {
+    $html = renderTemplate(template(), ['greeting' => 'Hi']);
+
+    expect($html)
+        ->toMatch('/<body class="email-body"/')
+        ->toMatch('/<table role="presentation" class="email-wrapper" width="100%"/')
+        ->toMatch('/<!--\[if mso\]>\s*<table role="presentation" width="600"/')
+        ->toMatch('/<table role="presentation" class="email-container"/')
+        ->toMatch('/<td class="email-content"[^>]*>\s*<div[^>]*>Hi<\/div>/')
+        ->toMatch('/<td class="email-footer"[^>]*>'.preg_quote(ComposedEmail::FOOTER_MARKER, '/').'<\/td>/');
+});
+
+it('ships dark mode rules for every client in the default theme', function () {
+    $css = EmailTheme::defaultCss();
+
+    expect($css)
+        ->toContain(':root {')
+        ->toContain('color-scheme: light dark;')
+        ->toContain('@media (prefers-color-scheme: dark)')
+        ->toContain('[data-ogsc] h1')
+        ->toContain('[data-ogsb] .email-container')
+        // Many clients drop CSS variables.
+        ->not->toContain('var(');
+});
+
+it('keeps the dark mode rules out of the inlined styles', function () {
+    expect(renderTemplate(template()))
+        ->toMatch('/<style>.*#09090b.*<\/style>/s')
+        ->not->toMatch('/style="[^"]*#09090b/');
 });
 
 it('renders a FileTemplate, not just a database template', function () {
@@ -131,12 +169,13 @@ it('renders the theme logo when set', function () {
     EmailTheme::current()->update(['logo_url' => 'https://example.com/logo.png', 'logo_alt' => 'Acme']);
 
     expect(renderTemplate(template()))
-        ->toContain('src="https://example.com/logo.png"')
-        ->toContain('alt="Acme"');
+        ->toMatch('/<td class="email-header" align="center"[^>]*>\s*<img src="https:\/\/example.com\/logo.png" alt="Acme" width="160"/');
 });
 
 it('renders no logo when the theme has none', function () {
-    expect(renderTemplate(template()))->not->toContain('<img');
+    expect(renderTemplate(template()))
+        ->not->toContain('<img')
+        ->not->toContain('class="email-header"');
 });
 
 it('falls back to the app name for the logo alt text', function () {

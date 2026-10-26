@@ -32,6 +32,29 @@ class ManageEmailTheme extends Page
         $this->form->fill($this->record->only(['css', 'logo_url', 'logo_path', 'logo_alt']));
     }
 
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('save')
+                ->label(__('email-composer::theme.actions.save'))
+                ->authorize(fn (): bool => EmailComposer::userCan(Filament::auth()->user(), 'update-theme', $this->record))
+                ->action(fn () => $this->save()),
+            Action::make('restoreDefault')
+                ->label(__('email-composer::theme.actions.restore_default'))
+                ->color('gray')
+                ->requiresConfirmation()
+                ->modalHeading(__('email-composer::theme.restore_default.heading'))
+                ->modalDescription(__('email-composer::theme.restore_default.description'))
+                ->authorize(fn (): bool => EmailComposer::userCan(Filament::auth()->user(), 'update-theme', $this->record))
+                ->action(function (): void {
+                    $this->record->update(['css' => EmailTheme::defaultCss()]);
+                    $this->form->fill($this->record->only(['css', 'logo_url', 'logo_path', 'logo_alt']));
+
+                    Notification::make()->success()->title(__('email-composer::theme.notifications.default_restored'))->send();
+                }),
+        ];
+    }
+
     public function content(Schema $schema): Schema
     {
         return $schema
