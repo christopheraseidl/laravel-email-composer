@@ -23,7 +23,6 @@ dataset('navigation items', [
     'theme' => [ManageEmailTheme::class, Heroicon::OutlinedSwatch, 5],
 ]);
 
-
 it('registers the resources and the theme page on the panel', function () {
     $panel = Filament::getPanel('admin');
 
