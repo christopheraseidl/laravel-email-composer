@@ -11,11 +11,14 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\EmbeddedSchema;
+use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Storage;
 
-/** @property-read Schema $content */
+/** @property-read Schema $form */
 class ManageEmailTheme extends Page
 {
     /** @var array<string, mixed>|null */
@@ -26,17 +29,30 @@ class ManageEmailTheme extends Page
     public function mount(): void
     {
         $this->record = EmailTheme::current();
-        $this->content->fill($this->record->only(['css', 'logo_url', 'logo_path', 'logo_alt']));
+        $this->form->fill($this->record->only(['css', 'logo_url', 'logo_path', 'logo_alt']));
     }
 
-    // Renders into the default page view's {{ $this->content }}, so no blade file is needed.
     public function content(Schema $schema): Schema
+    {
+        return $schema
+            ->components([
+                Form::make([EmbeddedSchema::make('form')])
+                    ->id('form')
+                    ->livewireSubmitHandler('save')
+                    ->footer([
+                        Actions::make([
+                            Action::make('save')->label('Save')->submit('save')->keyBindings(['mod+s']),
+                        ])->key('form-actions'),
+                    ]),
+            ]);
+    }
+
+    public function form(Schema $schema): Schema
     {
         $readOnly = ! EmailComposer::userCan(Filament::auth()->user(), 'update-theme', $this->record);
 
         return $schema
             ->components([
-                // One logo source at a time: each field hides while the other is filled.
                 TextInput::make('logo_url')
                     ->label('Logo URL')
                     ->url()
@@ -49,7 +65,7 @@ class ManageEmailTheme extends Page
                     ->image()
                     ->disk(EmailComposer::config()->publicDisk())
                     ->directory(EmailComposer::config()->storagePath().'/logos')
-                    ->visibility('public')
+                    ->visibility(EmailComposer::config()->publicDiskVisibility())
                     ->helperText('Remove the upload to enter a URL instead.')
                     ->live()
                     ->hidden(fn (Get $get): bool => filled($get('logo_url')))
@@ -76,8 +92,7 @@ class ManageEmailTheme extends Page
             403,
         );
 
-        // Hidden fields are left out of the state, so the unused logo source is cleared.
-        $state = [...$this->content->getState()];
+        $state = [...$this->form->getState()];
         $state['logo_url'] ??= null;
         $state['logo_path'] ??= null;
 
@@ -99,12 +114,5 @@ class ManageEmailTheme extends Page
     public static function canAccess(): bool
     {
         return EmailComposer::userCan(Filament::auth()->user(), 'view-theme', EmailTheme::current());
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('save')->label('Save')->submit('save'),
-        ];
     }
 }
