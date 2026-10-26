@@ -44,6 +44,16 @@ class RecipientListResource extends Resource
         ];
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('email-composer::recipient_lists.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('email-composer::recipient_lists.plural_label');
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return EmailComposer::config()->navigationGroup();

@@ -18,10 +18,13 @@ class EmailTemplatesTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label(__('email-composer::templates.columns.name'))
                     ->searchable(),
                 TextColumn::make('key')
+                    ->label(__('email-composer::templates.columns.key'))
                     ->searchable(),
                 TextColumn::make('updated_at')
+                    ->label(__('email-composer::templates.columns.updated_at'))
                     ->dateTime()
                     ->sortable(),
             ])

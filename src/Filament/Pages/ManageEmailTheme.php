@@ -41,7 +41,7 @@ class ManageEmailTheme extends Page
                     ->livewireSubmitHandler('save')
                     ->footer([
                         Actions::make([
-                            Action::make('save')->label('Save')->submit('save')->keyBindings(['mod+s']),
+                            Action::make('save')->label(__('email-composer::theme.actions.save'))->submit('save')->keyBindings(['mod+s']),
                         ])->key('form-actions'),
                     ]),
             ]);
@@ -54,27 +54,27 @@ class ManageEmailTheme extends Page
         return $schema
             ->components([
                 TextInput::make('logo_url')
-                    ->label('Logo URL')
+                    ->label(__('email-composer::theme.fields.logo_url'))
                     ->url()
-                    ->helperText('An absolute URL. Email clients cannot load relative paths. Clear it to upload a file instead.')
+                    ->helperText(__('email-composer::theme.helpers.logo_url'))
                     ->live(onBlur: true)
                     ->hidden(fn (Get $get): bool => filled($get('logo_path')))
                     ->disabled($readOnly),
                 FileUpload::make('logo_path')
-                    ->label('Logo upload')
+                    ->label(__('email-composer::theme.fields.logo_path'))
                     ->image()
                     ->disk(EmailComposer::config()->publicDisk())
                     ->directory(EmailComposer::config()->storagePath().'/logos')
                     ->visibility(EmailComposer::config()->publicDiskVisibility())
-                    ->helperText('Remove the upload to enter a URL instead.')
+                    ->helperText(__('email-composer::theme.helpers.logo_path'))
                     ->live()
                     ->hidden(fn (Get $get): bool => filled($get('logo_url')))
                     ->disabled($readOnly),
                 TextInput::make('logo_alt')
-                    ->label('Logo alt text')
+                    ->label(__('email-composer::theme.fields.logo_alt'))
                     ->disabled($readOnly),
                 Textarea::make('css')
-                    ->label('CSS')
+                    ->label(__('email-composer::theme.fields.css'))
                     ->required()
                     ->autosize()
                     ->rows(20)
@@ -103,7 +103,17 @@ class ManageEmailTheme extends Page
             Storage::disk(EmailComposer::config()->publicDisk())->delete($previousPath);
         }
 
-        Notification::make()->success()->title('Saved')->send();
+        Notification::make()->success()->title(__('email-composer::theme.notifications.saved'))->send();
+    }
+
+    public function getTitle(): string
+    {
+        return __('email-composer::theme.title');
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return __('email-composer::theme.navigation_label');
     }
 
     public static function getNavigationGroup(): ?string

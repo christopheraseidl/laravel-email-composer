@@ -20,17 +20,20 @@ class RecipientListsTable
         return $table
             ->columns([
                 TextColumn::make('name')
+                    ->label(__('email-composer::recipient_lists.columns.name'))
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('recipients_count')
-                    ->label('Recipients')
+                    ->label(__('email-composer::recipient_lists.columns.recipients_count'))
                     ->counts('recipients')
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label(__('email-composer::recipient_lists.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label(__('email-composer::recipient_lists.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

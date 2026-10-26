@@ -58,6 +58,17 @@ it('falls back when the key is unset', function (string $method, string $key, mi
     ['navigationGroup', 'filament.navigation_group', 'Email'],
 ]);
 
+it('translates the navigation group', function (?string $group, ?string $expected) {
+    app()->setLocale('es');
+    config(['email-composer.filament.navigation_group' => $group]);
+
+    expect(EmailComposer::config()->navigationGroup())->toBe($expected);
+})->with([
+    'the default key' => ['email-composer::navigation.group', 'Correo'],
+    'a plain string' => ['Mail', 'Mail'],
+    'null' => [null, null],
+]);
+
 it('keeps import uploads under the storage path', function () {
     config(['email-composer.storage.path' => 'mail']);
 

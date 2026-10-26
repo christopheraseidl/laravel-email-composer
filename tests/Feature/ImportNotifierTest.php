@@ -39,6 +39,28 @@ it('reports the totals to the bound notifier', function () {
     dispatch_sync(new ImportRecipientsJob(auth()->user(), 'upload.csv'));
 });
 
+it('notifies in the locale the import was dispatched in', function (string $csv, array $expected) {
+    Storage::disk('local')->put('upload.csv', $csv);
+
+    app()->setLocale('es');
+    $job = new ImportRecipientsJob(auth()->user(), 'upload.csv');
+    app()->setLocale('en');
+
+    dispatch_sync($job);
+
+    expect(auth()->user()->notifications()->sole()->data)->toMatchArray($expected)
+        ->and(app()->getLocale())->toBe('en');
+})->with([
+    'finished' => ["email\nada@example.com\n", [
+        'title' => 'Destinatarios importados',
+        'body' => 'Creados: 1, actualizados: 0, omitidos: 0, rechazados: 0.',
+    ]],
+    'failed' => ["name\nAda\n", [
+        'title' => 'Importación fallida',
+        'body' => 'El archivo no tiene una columna email.',
+    ]],
+]);
+
 it('reports why an import stopped to the bound notifier', function () {
     $this->mock(ImportNotifierInterface::class)->shouldReceive('failed')->once()->withArgs(
         fn (Authenticatable $user, string $reason) => $user->is(auth()->user()) && $reason === 'The file has no email column.',

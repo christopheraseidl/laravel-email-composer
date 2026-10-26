@@ -106,10 +106,21 @@ class ConfigService
         return (int) config('email-composer.review.link_ttl_days', 7);
     }
 
-    /** null means the Filament pages appear outside any navigation group. */
+    /**
+     * A translation key or a plain string, passed through __(). null means
+     * the Filament pages appear outside any navigation group.
+     */
     public function navigationGroup(): ?string
     {
-        return $this->stringOrNull('email-composer.filament.navigation_group', 'Email');
+        $group = $this->stringOrNull('email-composer.filament.navigation_group', 'email-composer::navigation.group');
+
+        if ($group === null) {
+            return null;
+        }
+
+        $translated = __($group);
+
+        return is_string($translated) ? $translated : $group;
     }
 
     /**

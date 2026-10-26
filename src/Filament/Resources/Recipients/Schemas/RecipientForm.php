@@ -18,21 +18,26 @@ class RecipientForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label(__('email-composer::recipients.fields.name'))
                     ->required(),
                 TextInput::make('email')
-                    ->label('Email address')
+                    ->label(__('email-composer::recipients.fields.email'))
                     ->email()
                     ->unique()
                     ->required(),
                 Select::make('locale')
+                    ->label(__('email-composer::recipients.fields.locale'))
                     ->options(array_combine($locales, $locales)),
                 Select::make('lists')
+                    ->label(__('email-composer::recipients.fields.lists'))
                     ->multiple()
                     ->relationship('lists', 'name')
                     ->preload(),
                 KeyValue::make('metadata')
+                    ->label(__('email-composer::recipients.fields.metadata'))
                     ->columnSpanFull(),
-                DateTimePicker::make('unsubscribed_at'),
+                DateTimePicker::make('unsubscribed_at')
+                    ->label(__('email-composer::recipients.fields.unsubscribed_at')),
             ]);
     }
 }

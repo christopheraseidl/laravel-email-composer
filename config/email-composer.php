@@ -53,9 +53,9 @@ return [
         'link_ttl_days' => 7,
     ],
 
-    // Navigation group the Filament resources and theme page appear under.
-    // null = no group.
+    // Navigation group the Filament resources and theme page appear under:
+    // a translation key or a plain string. null = no group.
     'filament' => [
-        'navigation_group' => 'Email',
+        'navigation_group' => 'email-composer::navigation.group',
     ],
 ];

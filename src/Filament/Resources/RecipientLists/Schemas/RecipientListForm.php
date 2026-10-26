@@ -13,9 +13,11 @@ class RecipientListForm
         return $schema
             ->components([
                 TextInput::make('name')
+                    ->label(__('email-composer::recipient_lists.fields.name'))
                     ->unique()
                     ->required(),
                 Select::make('recipients')
+                    ->label(__('email-composer::recipient_lists.fields.recipients'))
                     ->multiple()
                     ->relationship('recipients', 'email')
                     ->searchable()

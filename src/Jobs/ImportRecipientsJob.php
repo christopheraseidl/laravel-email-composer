@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Jobs;
 
+use Closure;
 use CSeidl\EmailComposer\Contracts\ImportNotifierInterface;
 use CSeidl\EmailComposer\Data\ImportResult;
 use CSeidl\EmailComposer\EmailComposer;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Localizable;
 use Throwable;
 
 /**
@@ -49,6 +51,9 @@ class ImportRecipientsJob implements ShouldQueue
     /** An id rather than the model, so a user deleted before the job runs does not fail it. */
     public mixed $userId;
 
+    /** The dispatching request's locale, which the notifications use. */
+    public string $locale;
+
     /**
      * @param  string  $path  the upload, on the configured storage disk
      */
@@ -59,12 +64,18 @@ class ImportRecipientsJob implements ShouldQueue
     ) {
         $this->userId = $user->getAuthIdentifier();
         $this->importId = (string) Str::uuid();
+        $this->locale = app()->getLocale();
 
         $this->onConnection(EmailComposer::config()->queueConnection())
             ->onQueue(EmailComposer::config()->queueName());
     }
 
     public function handle(CsvReader $reader, ImportNotifierInterface $notifier): void
+    {
+        static::inLocale($this->locale, fn () => $this->import($reader, $notifier));
+    }
+
+    protected function import(CsvReader $reader, ImportNotifierInterface $notifier): void
     {
         $this->pruneStaleUploads();
 
@@ -73,7 +84,7 @@ class ImportRecipientsJob implements ShouldQueue
 
         try {
             if ($this->listId !== null && ! RecipientList::whereKey($this->listId)->exists()) {
-                throw new \DomainException('The recipient list no longer exists.');
+                throw new \DomainException(__('email-composer::import.notifications.missing_list'));
             }
 
             $this->copyToLocal($local);
@@ -106,16 +117,17 @@ class ImportRecipientsJob implements ShouldQueue
         $importId = $this->importId;
         $userId = $this->userId;
         $count = count($parts);
+        $locale = $this->locale;
 
         Bus::batch(array_map(
-            fn (int $part) => new ImportRecipientsPartJob($importId, $part, $parts[$part], $this->listId),
+            fn (int $part) => new ImportRecipientsPartJob($importId, $part, $parts[$part], $this->listId, $locale),
             array_keys($parts),
         ))
             ->name('email-composer: import recipients')
             ->allowFailures()
             ->when(EmailComposer::config()->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))
             ->onQueue(EmailComposer::config()->queueName())
-            ->finally(static fn (Batch $batch) => static::notifyTotals($importId, $userId, $count, $batch->failedJobs))
+            ->finally(static fn (Batch $batch) => static::notifyTotals($importId, $userId, $count, $batch->failedJobs, $locale))
             ->dispatch();
     }
 
@@ -129,15 +141,15 @@ class ImportRecipientsJob implements ShouldQueue
         $user = static::user($this->userId);
 
         if ($user !== null) {
-            app(ImportNotifierInterface::class)
-                ->failed($user, 'The import stopped with an error before any rows were imported.');
+            static::inLocale($this->locale, fn () => app(ImportNotifierInterface::class)
+                ->failed($user, __('email-composer::import.notifications.stopped')));
         }
     }
 
     /**
      * Total the parts' cached results and notify the user, if they still exist.
      */
-    public static function notifyTotals(string $importId, mixed $userId, int $parts, int $failed): void
+    public static function notifyTotals(string $importId, mixed $userId, int $parts, int $failed, string $locale): void
     {
         $result = ImportResult::combine(...array_map(
             fn (int $part) => ImportResult::fromArray((array) Cache::pull(static::resultKey($importId, $part), [])),
@@ -147,7 +159,7 @@ class ImportRecipientsJob implements ShouldQueue
         $user = static::user($userId);
 
         if ($user !== null) {
-            app(ImportNotifierInterface::class)->finished($user, $result, $failed, $parts);
+            static::inLocale($locale, fn () => app(ImportNotifierInterface::class)->finished($user, $result, $failed, $parts));
         }
     }
 
@@ -238,6 +250,20 @@ class ImportRecipientsJob implements ShouldQueue
         $user = EmailComposer::config()->userModel()::query()->whereKey($userId)->first();
 
         return $user instanceof Authenticatable ? $user : null;
+    }
+
+    /**
+     * Run the callback in the importing user's locale. Static, since the
+     * batch callback holds no job, so it takes Localizable from a bare object.
+     *
+     * @param  Closure(): mixed  $callback
+     */
+    protected static function inLocale(string $locale, Closure $callback): void
+    {
+        (new class
+        {
+            use Localizable;
+        })->withLocale($locale, $callback);
     }
 
     protected function disk(): Filesystem
