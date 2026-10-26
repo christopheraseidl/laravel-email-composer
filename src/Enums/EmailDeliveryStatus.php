@@ -24,7 +24,7 @@ enum EmailDeliveryStatus: string
         return match ($this) {
             self::Pending => 'gray',
             self::Sent => 'success',
-            self::Failed => 'error',
+            self::Failed => 'danger',
             self::Skipped => 'info',
         };
     }

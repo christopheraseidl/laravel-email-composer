@@ -2,10 +2,12 @@
 
 namespace CSeidl\EmailComposer\Database\Seeders;
 
-use CSeidl\EmailComposer\Enums\EmailDraftStatus;
+use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Collection;
 
 class EmailDraftSeeder extends Seeder
 {
@@ -33,14 +35,45 @@ class EmailDraftSeeder extends Seeder
             fn ($d) => $d->recipients()->attach($recipients->random(7)->pluck('id'))
         );
 
-        // 1 sent
-        $factory->sent()->create()->recipients()->attach(
-            $recipients->random(10)->pluck('id'),
-            [
-                'delivery_status' => EmailDraftStatus::Sent,
+        // 1 sent: most delivered, two failed, one unsubscribed before the send,
+        // and one deleted after it
+        $sent = $factory->sent()->create();
+        $picked = $recipients->shuffle();
+        $this->attachDeliveries($sent, $picked->take(7), EmailDeliveryStatus::Sent);
+        $this->attachDeliveries($sent, $picked->slice(7, 2), EmailDeliveryStatus::Failed);
+        $this->attachDeliveries($sent, Recipient::unsubscribed()->take(1)->get(), EmailDeliveryStatus::Skipped);
+
+        $deleted = Recipient::factory()->create();
+        $this->attachDeliveries($sent, collect([$deleted]), EmailDeliveryStatus::Sent);
+        $deleted->delete();
+
+        // 1 sending: half delivered, half still queued
+        $sending = $factory->sending()->create();
+        $picked = $recipients->random(6);
+        $this->attachDeliveries($sending, $picked->take(3), EmailDeliveryStatus::Sent);
+        $this->attachDeliveries($sending, $picked->slice(3), EmailDeliveryStatus::Pending);
+    }
+
+    /**
+     * Attach recipients with the pivot values SendEmailJob leaves for the status.
+     *
+     * @param  Collection<int, Recipient>  $recipients
+     */
+    protected function attachDeliveries(EmailDraft $draft, Collection $recipients, EmailDeliveryStatus $status): void
+    {
+        $recipients->each(fn (Recipient $recipient) => $draft->recipients()->attach($recipient->id, match ($status) {
+            EmailDeliveryStatus::Sent => [
+                'delivery_status' => $status->value,
+                'locale' => EmailComposer::config()->localeOrDefault($recipient->locale),
                 'sent_at' => now()->subMinutes(20),
                 'attempts' => 1,
-            ]
-        );
+            ],
+            EmailDeliveryStatus::Failed => [
+                'delivery_status' => $status->value,
+                'error' => 'Expected response code "250" but got code "550", with message "550 5.1.1 Mailbox unavailable".',
+                'attempts' => 3,
+            ],
+            default => ['delivery_status' => $status->value],
+        }));
     }
 }
