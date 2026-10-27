@@ -49,6 +49,7 @@ class EmailTemplateForm
                 Textarea::make('css')
                     ->label(__('email-composer::templates.fields.css'))
                     ->autosize(),
-            ]);
+            ])
+            ->columns(1);
     }
 }
