@@ -52,7 +52,7 @@ The published CSS is a reference copy, since the theme lives in the database
 
 - `locales`: locales offered for drafts and recipients (`['en', 'es']`)
 - `default_locale`: the fallback locale (`'en'`)
-- `storage.disk`: disk for approved drafts' HTML (`EMAIL_COMPOSER_DISK`, default `local`)
+- `storage.disk`: disk for approved drafts' HTML, stored as `.txt` because some providers delete `.html` files automatically (`EMAIL_COMPOSER_DISK`, default `local`)
 - `storage.path`: directory on that disk (`'email-composer'`)
 - `storage.public_disk`: disk for uploaded logos, which must serve files by URL (`EMAIL_COMPOSER_PUBLIC_DISK`, default `public`)
 - `templates.path`: directory for file templates

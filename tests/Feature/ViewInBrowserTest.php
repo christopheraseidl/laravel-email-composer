@@ -31,7 +31,7 @@ function publishedDraft(bool $published = true): EmailDraft
     return $draft;
 }
 
-it('serves the stored HTML for each published locale', function (string $locale, string $greeting) {
+it('serves the stored file as HTML for each published locale', function (string $locale, string $greeting) {
     $draft = publishedDraft();
 
     $this->get($draft->viewInBrowserUrl($locale))
@@ -60,6 +60,27 @@ it('falls back to the default locale file when the requested locale has none', f
         ->assertOk()
         ->assertSee('Hello there')
         ->assertDontSee('Hola a todos');
+});
+
+it('renders the draft again when its stored file is gone', function () {
+    $draft = publishedDraft();
+    Storage::disk(config('email-composer.storage.disk'))->delete($draft->fresh()->publicFileFor('es'));
+
+    $this->get($draft->viewInBrowserUrl('es'))
+        ->assertOk()
+        ->assertHeader('Content-Type', 'text/html; charset=UTF-8')
+        ->assertSee('Hola a todos');
+});
+
+it('serves a file published before drafts were stored as .txt', function () {
+    $draft = publishedDraft();
+    $legacy = str_replace('.txt', '.html', $draft->fresh()->publicFileFor('en'));
+    Storage::disk(config('email-composer.storage.disk'))->put($legacy, '<p>Legacy body</p>');
+    $draft->forceFill(['public_files' => ['en' => $legacy]])->save();
+
+    $this->get($draft->viewInBrowserUrl('en'))
+        ->assertOk()
+        ->assertSee('Legacy body');
 });
 
 it('refuses a tampered link', function () {

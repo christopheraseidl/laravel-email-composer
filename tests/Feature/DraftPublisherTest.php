@@ -37,9 +37,9 @@ it('writes one file per content locale plus the default', function () {
 
     $base = 'email-composer/drafts/'.expectedFolder($draft);
     expect($paths)->toBe([
-        'es' => "{$base}/es.html",
-        'fr' => "{$base}/fr.html",
-        'en' => "{$base}/en.html",
+        'es' => "{$base}/es.txt",
+        'fr' => "{$base}/fr.txt",
+        'en' => "{$base}/en.txt",
     ]);
 
     $disk = Storage::disk(config('email-composer.storage.disk'));
@@ -47,6 +47,14 @@ it('writes one file per content locale plus the default', function () {
         $disk->assertExists($path);
     }
     expect($disk->allFiles($base))->toHaveCount(3);
+});
+
+it('writes the files private', function () {
+    $draft = publishableDraft();
+
+    $path = app(DraftPublisher::class)->publish($draft)['en'];
+
+    expect(Storage::disk(config('email-composer.storage.disk'))->getVisibility($path))->toBe('private');
 });
 
 it('saves the locale to path map on the draft', function () {
@@ -86,7 +94,7 @@ it('trims slashes from the configured storage path', function () {
 
     $paths = app(DraftPublisher::class)->publish($draft);
 
-    expect($paths)->toBe(['en' => 'custom/root/drafts/'.expectedFolder($draft).'/en.html']);
+    expect($paths)->toBe(['en' => 'custom/root/drafts/'.expectedFolder($draft).'/en.txt']);
 });
 
 it('stores each draft under a folder that does not reveal its id', function () {
@@ -139,7 +147,7 @@ it('deletes files from locales the draft no longer has', function () {
     $publisher = app(DraftPublisher::class);
     $publisher->publish($draft);
 
-    $draft->forceFill(['public_files' => ['en' => 'email-composer/drafts/'.expectedFolder($draft).'/en.html']])->save();
+    $draft->forceFill(['public_files' => ['en' => 'email-composer/drafts/'.expectedFolder($draft).'/en.txt']])->save();
 
     $publisher->unpublish($draft);
 
