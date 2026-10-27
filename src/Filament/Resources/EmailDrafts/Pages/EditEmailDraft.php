@@ -48,6 +48,14 @@ class EditEmailDraft extends EditRecord
             ->visible(fn () => static::getResource()::canEdit($this->getRecord()));
     }
 
+    // With nothing to save, Cancel has nothing to cancel.
+    #[Override]
+    protected function getCancelFormAction(): Action
+    {
+        return parent::getCancelFormAction()
+            ->visible(fn () => static::getResource()::canEdit($this->getRecord()));
+    }
+
     #[Override]
     protected function getHeaderActions(): array
     {

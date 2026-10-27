@@ -25,6 +25,19 @@ class EmailDraftForm
     {
         return $schema
             ->components([
+                TextInput::make('status')
+                    ->label(__('email-composer::drafts.fields.status'))
+                    ->readOnly()
+                    ->dehydrated(false)
+                    ->formatStateUsing(fn (?EmailDraft $record) => static::status($record)->label())
+                    ->prefixIconColor(fn (?EmailDraft $record) => static::status($record)->color())
+                    ->prefixIcon(fn (?EmailDraft $record) => match (static::status($record)) {
+                        EmailDraftStatus::Draft => Heroicon::OutlinedPencil,
+                        EmailDraftStatus::UnderReview => Heroicon::OutlinedEye,
+                        EmailDraftStatus::Approved => Heroicon::OutlinedCheckCircle,
+                        EmailDraftStatus::Sending => Heroicon::OutlinedArrowPath,
+                        EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
+                    }),
                 Select::make('template')
                     ->required()
                     ->live()
@@ -95,16 +108,8 @@ class EmailDraftForm
                     ->relationship('recipients', 'email')
                     ->searchable(['email', 'name'])
                     ->visible(fn (Get $get) => static::audience($get) === EmailAudience::Selected),
-                Text::make(fn (?EmailDraft $record) => static::status($record)->label())
-                    ->color(fn (?EmailDraft $record) => static::status($record)->color())
-                    ->icon(fn (?EmailDraft $record) => match (static::status($record)) {
-                        EmailDraftStatus::Draft => Heroicon::OutlinedPencil,
-                        EmailDraftStatus::UnderReview => Heroicon::OutlinedEye,
-                        EmailDraftStatus::Approved => Heroicon::OutlinedCheckCircle,
-                        EmailDraftStatus::Sending => Heroicon::OutlinedArrowPath,
-                        EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
-                    }),
             ])
+            ->columns(1)
             ->disabled(fn (?EmailDraft $record) => static::status($record) !== EmailDraftStatus::Draft);
     }
 

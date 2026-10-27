@@ -15,6 +15,7 @@ return [
         'locale' => 'Locale',
         'review_link' => 'Review link',
         'send_to' => 'Send to',
+        'status' => 'Status',
     ],
     'placeholders' => [
         'send_to' => 'Add an email address',

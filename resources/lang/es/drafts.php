@@ -15,6 +15,7 @@ return [
         'locale' => 'Idioma',
         'review_link' => 'Enlace de revisión',
         'send_to' => 'Enviar a',
+        'status' => 'Estado',
     ],
     'placeholders' => [
         'send_to' => 'Añade una dirección de correo',

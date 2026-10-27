@@ -34,10 +34,10 @@ class RecipientForm
                     ->relationship('lists', 'name')
                     ->preload(),
                 KeyValue::make('metadata')
-                    ->label(__('email-composer::recipients.fields.metadata'))
-                    ->columnSpanFull(),
+                    ->label(__('email-composer::recipients.fields.metadata')),
                 DateTimePicker::make('unsubscribed_at')
                     ->label(__('email-composer::recipients.fields.unsubscribed_at')),
-            ]);
+            ])
+            ->columns(1);
     }
 }

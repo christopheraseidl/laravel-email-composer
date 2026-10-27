@@ -21,8 +21,8 @@ class RecipientListForm
                     ->multiple()
                     ->relationship('recipients', 'email')
                     ->searchable()
-                    ->preload()
-                    ->columnSpanFull(),
-            ]);
+                    ->preload(),
+            ])
+            ->columns(1);
     }
 }
