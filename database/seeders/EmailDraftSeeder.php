@@ -3,9 +3,11 @@
 namespace CSeidl\EmailComposer\Database\Seeders;
 
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Models\RecipientList;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
@@ -34,6 +36,12 @@ class EmailDraftSeeder extends Seeder
         $factory->count(2)->approved()->create()->each(
             fn ($d) => $d->recipients()->attach($recipients->random(7)->pluck('id'))
         );
+
+        // 1 approved for the Newsletter list, so no recipients attached
+        $factory->approved()->create([
+            'audience' => EmailAudience::List,
+            'recipient_list_id' => RecipientList::where('name', 'Newsletter')->value('id'),
+        ]);
 
         // 1 sent: most delivered, two failed, one unsubscribed before the send,
         // and one deleted after it
