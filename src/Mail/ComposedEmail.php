@@ -42,8 +42,17 @@ class ComposedEmail extends Mailable
         $path = $this->draft->publicFileFor($this->locale);
         $body = ($path && $disk->exists($path) ? $disk->get($path) : null)
             ?? $this->draft->renderFor($this->locale);
+        $viewInBrowserUrl = $this->draft->viewInBrowserUrl($this->locale);
 
-        return new Content(htmlString: $this->appendFooter($body));
+        $text = (new HtmlToText)->convert($body)."\n\n"
+            .__('email-composer::mail.view_in_browser', [], $this->locale).": {$viewInBrowserUrl}\n"
+            .__('email-composer::mail.unsubscribe', [], $this->locale).": {$this->unsubscribeUrl}";
+
+        return new Content(
+            htmlString: $this->appendFooter($body, $viewInBrowserUrl),
+            text: 'email-composer::mail.text',
+            with: ['text' => $text],
+        );
     }
 
     public function headers(): Headers
@@ -58,12 +67,12 @@ class ComposedEmail extends Mailable
         ]);
     }
 
-    protected function appendFooter(string $html): string
+    protected function appendFooter(string $html, string $viewInBrowserUrl): string
     {
         $footer = view('email-composer::mail.footer', [
             'recipient' => $this->recipient,
             'unsubscribeUrl' => $this->unsubscribeUrl,
-            'viewInBrowserUrl' => $this->draft->viewInBrowserUrl($this->locale),
+            'viewInBrowserUrl' => $viewInBrowserUrl,
         ])->render();
 
         if (str_contains($html, self::FOOTER_MARKER)) {
