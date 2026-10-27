@@ -11,6 +11,7 @@ use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\Factories\UserFactory;
+use Symfony\Component\Mime\Email;
 
 beforeEach(function () {
     Storage::fake(config('email-composer.storage.disk'));
@@ -41,6 +42,11 @@ function composedDraft(bool $published = true): EmailDraft
 function composedDisk(): Filesystem
 {
     return Storage::disk(config('email-composer.storage.disk'));
+}
+
+function composedText(ComposedEmail $mail): string
+{
+    return (fn () => $this->renderForAssertions()[1])->call($mail);
 }
 
 it('takes the subject from the draft in the given locale', function (string $locale, string $subject) {
@@ -218,4 +224,62 @@ it('gives a test email a placeholder unsubscribe link and no list-unsubscribe he
         ->toContain('href="#"')
         ->toContain('tester@example.com')
         ->not->toContain('unsubscribe/');
+});
+
+it('adds a plain-text part built from the body without the footer', function () {
+    $draft = composedDraft();
+    $recipient = Recipient::factory()->create();
+    composedDisk()->put(
+        $draft->public_files['en'],
+        '<html><head><style>p { color: red; }</style></head><body>'
+            .'<h1>Spring</h1><p>Read <a href="https://example.com/news">the news</a> &amp; more.</p>'
+            .ComposedEmail::FOOTER_MARKER.'</body></html>',
+    );
+
+    $text = composedText(new ComposedEmail($draft, $recipient, 'en'));
+
+    expect(trim($text))->toBe(
+        "Spring\n\nRead the news (https://example.com/news) & more.\n\n"
+            .'View this email in your browser: '.$draft->viewInBrowserUrl('en')."\n"
+            .'Unsubscribe: '.UnsubscribeLink::for($recipient)
+    )
+        ->not->toMatch('/<[a-z\/!]/i')
+        ->not->toContain('color: red')
+        ->not->toMatch('/&[a-z#0-9]+;/i');
+});
+
+it('sends both a text/plain and a text/html part', function () {
+    config()->set('mail.default', 'array');
+    $draft = composedDraft();
+    $recipient = Recipient::factory()->create();
+
+    /** @var Email $email */
+    $email = Mail::to($recipient->email)
+        ->send(new ComposedEmail($draft, $recipient, 'en'))
+        ->getOriginalMessage();
+    $types = array_map(
+        fn ($part) => $part->getMediaType().'/'.$part->getMediaSubtype(),
+        $email->getBody()->getParts(),
+    );
+
+    expect($types)->toBe(['text/plain', 'text/html'])
+        ->and($email->getTextBody())
+        ->toContain('Hello there')
+        ->toContain('Unsubscribe: '.UnsubscribeLink::for($recipient))
+        ->and($email->getHtmlBody())
+        ->toContain('Hello there')
+        ->toContain('class="email-footer"');
+});
+
+it('translates the plain-text links into the email locale', function () {
+    $mail = new ComposedEmail(composedDraft(), Recipient::factory()->create(), 'es');
+
+    $mail->assertSeeInOrderInText(['Hola a todos', 'Ver este correo en el navegador: ', 'Darse de baja: '])
+        ->assertDontSeeInText('Unsubscribe');
+});
+
+it('gives a test email a placeholder unsubscribe link in the plain-text part', function () {
+    $mail = new ComposedEmail(composedDraft(), Recipient::forTestSend('tester@example.com', 'en'), 'en');
+
+    expect(trim(composedText($mail)))->toEndWith("\nUnsubscribe: #");
 });
