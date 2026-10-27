@@ -61,7 +61,7 @@ class EditEmailDraft extends EditRecord
     {
         return [
             PreviewDraftAction::make()
-                ->modalDescription('Shows the last saved version. Save first to preview unsaved changes.'),
+                ->modalDescription(__('email-composer::drafts.helpers.preview')),
             SendTestAction::make(),
             ReviewLinkAction::make(),
             SubmitDraftAction::make(),

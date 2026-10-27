@@ -42,7 +42,7 @@ it('previews the saved draft in the edit page active locale', function () {
         ->set('activeLocale', 'es')
         ->mountAction('preview')
         ->assertSet('mountedActions.0.data.locale', 'es')
-        ->assertMountedActionModalSee(['Shows the last saved version', 'Hola amigos']);
+        ->assertMountedActionModalSee([__('email-composer::drafts.helpers.preview'), 'Hola amigos']);
 });
 
 it('renders the email escaped into a sandboxed iframe', function () {

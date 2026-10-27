@@ -24,32 +24,35 @@ class EmailDraftsTable
         return $table
             ->columns([
                 TextColumn::make('subject')
+                    ->label(__('email-composer::drafts.columns.subject'))
                     ->wrap()
                     ->description(fn (EmailDraft $record): Htmlable => new HtmlString(Blade::render(
                         '<x-filament::badge :color="$color">{{ $label }}</x-filament::badge>',
                         ['color' => $record->status->color(), 'label' => $record->status->label()],
                     )), position: 'above'),
                 TextColumn::make('author_id')
-                    ->label('Author')
+                    ->label(__('email-composer::drafts.columns.author'))
                     ->formatStateUsing(function ($record): string {
                         if (! $record->author) {
-                            return 'N/A';
+                            return __('email-composer::drafts.columns.no_author');
                         }
 
                         $name = $record->author->name ?? '';
                         $email = $record->author->email ? " <{$record->author->email}>" : '';
                         $label = $name.$email;
 
-                        return $label !== '' ? $label : "Author #{$record->author_id}";
+                        return $label !== '' ? $label : __('email-composer::drafts.columns.author_fallback', ['id' => $record->author_id]);
                     })
                     ->sortable()
                     ->visibleFrom('md'),
                 TextColumn::make('created_at')
+                    ->label(__('email-composer::drafts.columns.created_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->visibleFrom('md'),
                 TextColumn::make('updated_at')
+                    ->label(__('email-composer::drafts.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true)
@@ -58,6 +61,7 @@ class EmailDraftsTable
             ->filters([
                 TrashedFilter::make(),
                 SelectFilter::make('status')
+                    ->label(__('email-composer::drafts.filters.status'))
                     ->options(collect(EmailDraftStatus::cases())->mapWithKeys(
                         fn ($case) => [$case->value => $case->label()]
                     )),
