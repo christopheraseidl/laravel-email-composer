@@ -55,7 +55,7 @@ it('writes the files private', function () {
     $path = app(DraftPublisher::class)->publish($draft)['en'];
 
     expect(Storage::disk(config('email-composer.storage.disk'))->getVisibility($path))->toBe('private');
-});
+})->skipOnWindows(); // Visibility is read from Unix permissions, which Windows lacks.
 
 it('saves the locale to path map on the draft', function () {
     $draft = publishableDraft();
