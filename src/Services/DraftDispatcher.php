@@ -21,15 +21,17 @@ class DraftDispatcher
     public function dispatch(EmailDraft $draft): Batch
     {
         if ($draft->status !== EmailDraftStatus::Approved) {
-            throw new \DomainException(
-                "Cannot send draft #{$draft->id}: status is '{$draft->status->value}', expected 'approved'."
-            );
+            throw new \DomainException(__('email-composer::drafts.notifications.cannot_send', [
+                'id' => $draft->id,
+                'status' => $draft->status->label(),
+                'expected' => EmailDraftStatus::Approved->label(),
+            ]));
         }
 
         $recipientIds = $this->audienceIds($draft);
 
         if ($recipientIds->isEmpty()) {
-            throw new \DomainException("Cannot send draft #{$draft->id}: it has no recipients.");
+            throw new \DomainException(__('email-composer::drafts.notifications.no_recipients', ['id' => $draft->id]));
         }
 
         $claimed = EmailDraft::whereKey($draft->getKey())
@@ -37,7 +39,7 @@ class DraftDispatcher
             ->update(['status' => EmailDraftStatus::Sending]);
 
         if ($claimed === 0) {
-            throw new \DomainException("Cannot send draft #{$draft->id}: it is already sending or sent.");
+            throw new \DomainException(__('email-composer::drafts.notifications.already_sending', ['id' => $draft->id]));
         }
 
         $draft->status = EmailDraftStatus::Sending;
@@ -58,7 +60,7 @@ class DraftDispatcher
     protected function audienceIds(EmailDraft $draft): Collection
     {
         $query = $draft->audienceQuery()
-            ?? throw new \DomainException("Cannot send draft #{$draft->id}: its recipient list no longer exists.");
+            ?? throw new \DomainException(__('email-composer::drafts.notifications.list_missing', ['id' => $draft->id]));
 
         return $query->pluck((new Recipient)->getQualifiedKeyName());
     }

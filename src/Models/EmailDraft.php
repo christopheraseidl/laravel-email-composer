@@ -216,7 +216,7 @@ class EmailDraft extends Model
         $template = $this->resolveTemplate();
 
         if (! $template) {
-            throw new \DomainException("Draft #{$this->id} has no resolvable template.");
+            throw new \DomainException(__('email-composer::drafts.notifications.no_template', ['id' => $this->id]));
         }
 
         return app(TemplateRenderer::class)->render($template, $this->placeholderValues($locale), $locale);
@@ -244,7 +244,7 @@ class EmailDraft extends Model
 
     public function submit(): void
     {
-        $this->assertStatus(EmailDraftStatus::Draft, 'submit');
+        $this->assertStatus(EmailDraftStatus::Draft, 'cannot_submit');
         $this->update([
             'status' => EmailDraftStatus::UnderReview,
             'submitted_at' => now(),
@@ -253,10 +253,10 @@ class EmailDraft extends Model
 
     public function approve(Authenticatable $approver): void
     {
-        $this->assertStatus(EmailDraftStatus::UnderReview, 'approve');
+        $this->assertStatus(EmailDraftStatus::UnderReview, 'cannot_approve');
 
         if (! $this->resolveTemplate()) {
-            throw new \DomainException("Draft #{$this->id} has no resolvable template.");
+            throw new \DomainException(__('email-composer::drafts.notifications.no_template', ['id' => $this->id]));
         }
 
         $this->update([
@@ -270,7 +270,7 @@ class EmailDraft extends Model
 
     public function markSent(): void
     {
-        $this->assertStatus(EmailDraftStatus::Sending, 'mark as sent');
+        $this->assertStatus(EmailDraftStatus::Sending, 'cannot_mark_sent');
         $this->update([
             'status' => EmailDraftStatus::Sent,
             'sent_at' => now(),
@@ -280,9 +280,10 @@ class EmailDraft extends Model
     public function returnToDraft(): void
     {
         if (! $this->canReturnToDraft()) {
-            throw new \DomainException(
-                "Cannot return draft #{$this->id} to draft: status is '{$this->status->value}'."
-            );
+            throw new \DomainException(__('email-composer::drafts.notifications.cannot_return', [
+                'id' => $this->id,
+                'status' => $this->status->label(),
+            ]));
         }
 
         $this->update([
@@ -306,12 +307,15 @@ class EmailDraft extends Model
         ], true);
     }
 
-    protected function assertStatus(EmailDraftStatus $expected, string $action): void
+    /** @param  string  $message  a key in the drafts notifications group */
+    protected function assertStatus(EmailDraftStatus $expected, string $message): void
     {
         if ($this->status !== $expected) {
-            throw new \DomainException(
-                "Cannot {$action} draft #{$this->id}: status is '{$this->status->value}', expected '{$expected->value}'."
-            );
+            throw new \DomainException(__("email-composer::drafts.notifications.{$message}", [
+                'id' => $this->id,
+                'status' => $this->status->label(),
+                'expected' => $expected->label(),
+            ]));
         }
     }
 

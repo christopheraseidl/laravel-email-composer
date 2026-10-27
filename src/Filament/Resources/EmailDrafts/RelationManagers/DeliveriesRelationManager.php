@@ -16,7 +16,10 @@ class DeliveriesRelationManager extends RelationManager
 {
     protected static string $relationship = 'recipients';
 
-    protected static ?string $title = 'Deliveries';
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        return __('email-composer::drafts.deliveries.title');
+    }
 
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
@@ -31,28 +34,31 @@ class DeliveriesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modelLabel(__('email-composer::drafts.deliveries.label'))
+            ->pluralModelLabel(__('email-composer::drafts.deliveries.plural_label'))
             ->columns([
-                TextColumn::make('email'),
+                TextColumn::make('email')
+                    ->label(__('email-composer::drafts.deliveries.columns.email')),
                 TextColumn::make('pivot.locale')
-                    ->label('Locale'),
+                    ->label(__('email-composer::drafts.deliveries.columns.locale')),
                 TextColumn::make('pivot.delivery_status')
-                    ->label('Status')
+                    ->label(__('email-composer::drafts.deliveries.columns.status'))
                     ->badge()
                     ->formatStateUsing(fn (string $state) => EmailDeliveryStatus::from($state)->label())
                     ->color(fn (string $state) => EmailDeliveryStatus::from($state)->color()),
                 TextColumn::make('pivot.attempts')
-                    ->label('Attempts'),
+                    ->label(__('email-composer::drafts.deliveries.columns.attempts')),
                 TextColumn::make('pivot.sent_at')
-                    ->label('Sent at')
+                    ->label(__('email-composer::drafts.deliveries.columns.sent_at'))
                     ->dateTime(),
                 TextColumn::make('pivot.error')
-                    ->label('Error')
+                    ->label(__('email-composer::drafts.deliveries.columns.error'))
                     ->wrap()
                     ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('delivery_status')
-                    ->label('Status')
+                    ->label(__('email-composer::drafts.deliveries.filters.status'))
                     ->attribute('email_composer_draft_recipient.delivery_status')
                     ->options(collect(EmailDeliveryStatus::cases())->mapWithKeys(
                         fn ($case) => [$case->value => $case->label()]
