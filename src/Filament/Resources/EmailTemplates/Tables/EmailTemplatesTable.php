@@ -4,7 +4,6 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
@@ -22,17 +21,16 @@ class EmailTemplatesTable
                     ->searchable(),
                 TextColumn::make('key')
                     ->label(__('email-composer::templates.columns.key'))
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('updated_at')
                     ->label(__('email-composer::templates.columns.updated_at'))
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
             ])
             ->filters([
                 TrashedFilter::make(),
-            ])
-            ->recordActions([
-                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

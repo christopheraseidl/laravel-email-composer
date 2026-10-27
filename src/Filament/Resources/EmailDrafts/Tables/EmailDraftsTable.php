@@ -13,6 +13,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 
 class EmailDraftsTable
 {
@@ -20,7 +23,12 @@ class EmailDraftsTable
     {
         return $table
             ->columns([
-                TextColumn::make('subject'),
+                TextColumn::make('subject')
+                    ->wrap()
+                    ->description(fn (EmailDraft $record): Htmlable => new HtmlString(Blade::render(
+                        '<x-filament::badge :color="$color">{{ $label }}</x-filament::badge>',
+                        ['color' => $record->status->color(), 'label' => $record->status->label()],
+                    )), position: 'above'),
                 TextColumn::make('author_id')
                     ->label('Author')
                     ->formatStateUsing(function ($record): string {
@@ -34,19 +42,18 @@ class EmailDraftsTable
 
                         return $label !== '' ? $label : "Author #{$record->author_id}";
                     })
-                    ->sortable(),
-                TextColumn::make('status')
-                    ->formatStateUsing(fn ($record) => $record->status->label())
-                    ->badge()
-                    ->color(fn ($record) => $record->status->color()),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
                 TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
             ])
             ->filters([
                 TrashedFilter::make(),

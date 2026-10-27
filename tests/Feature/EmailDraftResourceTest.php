@@ -35,13 +35,6 @@ it('filters drafts by status', function () {
         ->assertCountTableRecords(1);
 });
 
-it('renders the status column with its label', function () {
-    $draft = EmailDraft::factory()->underReview()->create();
-
-    livewire(ListEmailDrafts::class)
-        ->assertTableColumnFormattedStateSet('status', EmailDraftStatus::UnderReview->label(), $draft);
-});
-
 it('shows the submit action only where the policy allows it', function () {
     EmailComposer::resolveAbilityUsing(fn ($user, $ability) => in_array($ability, ['view-any-draft', 'submit-draft'], true));
 
