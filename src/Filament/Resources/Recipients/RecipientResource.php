@@ -3,7 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\Recipients;
 
 use BackedEnum;
-use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\CreateRecipient;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\EditRecipient;
 use CSeidl\EmailComposer\Filament\Resources\Recipients\Pages\ListRecipients;
@@ -19,9 +19,13 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class RecipientResource extends Resource
 {
+    use HasEmailComposerNavigation;
+
     protected static ?string $model = Recipient::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -52,11 +56,6 @@ class RecipientResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return __('email-composer::recipients.plural_label');
-    }
-
-    public static function getNavigationGroup(): ?string
-    {
-        return EmailComposer::config()->navigationGroup();
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
