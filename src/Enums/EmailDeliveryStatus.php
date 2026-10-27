@@ -11,12 +11,7 @@ enum EmailDeliveryStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Pending => 'Pending',
-            self::Sent => 'Sent',
-            self::Failed => 'Failed',
-            self::Skipped => 'Skipped',
-        };
+        return __('email-composer::drafts.delivery_status.'.$this->value);
     }
 
     public function color(): string

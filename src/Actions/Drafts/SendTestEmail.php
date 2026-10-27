@@ -30,8 +30,8 @@ class SendTestEmail
                 'emails' => ['required', 'array', 'between:1,'.self::MAX_EMAILS],
                 'emails.*' => ['email'],
             ],
-            ['emails.*.email' => ':input is not a valid email address.'],
-            ['emails' => 'addresses'],
+            ['emails.*.email' => __('email-composer::drafts.notifications.invalid_email')],
+            ['emails' => __('email-composer::drafts.notifications.addresses')],
         );
 
         if ($validator->fails()) {

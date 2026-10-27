@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review: {{ $subject }}</title>
+    <title>{{ __('email-composer::review.title', ['subject' => $subject], $locale) }}</title>
     <style>
         body { font-family: system-ui, sans-serif; max-width: 48rem; margin: 2rem auto; padding: 0 1rem; color: #1f2937; }
         iframe { width: 100%; height: 36rem; border: 1px solid #d1d5db; }
@@ -38,19 +38,19 @@
     <form method="POST" action="{{ $action }}">
         @csrf
 
-        <label for="reviewer_name">Name</label>
+        <label for="reviewer_name">{{ __('email-composer::review.fields.name', [], $locale) }}</label>
         <input id="reviewer_name" name="reviewer_name" value="{{ old('reviewer_name') }}" required>
         @error('reviewer_name') <p class="error">{{ $message }}</p> @enderror
 
-        <label for="reviewer_email">Email</label>
+        <label for="reviewer_email">{{ __('email-composer::review.fields.email', [], $locale) }}</label>
         <input id="reviewer_email" name="reviewer_email" type="email" value="{{ old('reviewer_email') }}" required>
         @error('reviewer_email') <p class="error">{{ $message }}</p> @enderror
 
-        <label for="comment">Comment</label>
+        <label for="comment">{{ __('email-composer::review.fields.comment', [], $locale) }}</label>
         <textarea id="comment" name="comment" rows="6" required>{{ old('comment') }}</textarea>
         @error('comment') <p class="error">{{ $message }}</p> @enderror
 
-        <button type="submit">Send feedback</button>
+        <button type="submit">{{ __('email-composer::review.actions.submit', [], $locale) }}</button>
     </form>
 </body>
 </html>

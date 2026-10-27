@@ -49,8 +49,10 @@ class ReviewController
 
         $draft->feedback()->create($validated);
 
+        $locale = EmailComposer::config()->localeOrDefault($request->query('locale'));
+
         return redirect()->to($request->fullUrl())
-            ->with('status', 'Thank you, your feedback has been sent.');
+            ->with('status', __('email-composer::review.notifications.thank_you', [], $locale));
     }
 
     protected function ensureUnderReview(EmailDraft $draft): void
