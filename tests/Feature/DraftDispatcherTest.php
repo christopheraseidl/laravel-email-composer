@@ -4,14 +4,13 @@ use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Facades\EmailComposer;
-use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Jobs\QueueDraftRecipients;
 use CSeidl\EmailComposer\Jobs\SendEmailJob;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
-use Filament\Actions\Testing\TestAction;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\BatchRepository;
 use Illuminate\Bus\PendingBatch;
@@ -198,7 +197,7 @@ it('sends from the Filament send action', function () {
     Bus::fake();
     $draft = approvedDraftWithRecipients(2);
 
-    livewire(ListEmailDrafts::class)->callAction(TestAction::make('send')->table($draft));
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])->callAction('send');
 
     Bus::assertBatched(fn (PendingBatch $batch) => $batch->jobs->first() instanceof QueueDraftRecipients);
 });

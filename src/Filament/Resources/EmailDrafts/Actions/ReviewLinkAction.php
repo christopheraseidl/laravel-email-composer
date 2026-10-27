@@ -11,22 +11,21 @@ use Illuminate\Support\Facades\Gate;
 
 class ReviewLinkAction
 {
-    /** Shared by the drafts table and the edit page header. */
     public static function make(): Action
     {
         return Action::make('reviewLink')
-            ->label('Review link')
+            ->label(__('email-composer::drafts.actions.review_link'))
             ->icon(Heroicon::OutlinedLink)
             ->color('gray')
             ->authorize(fn (EmailDraft $record) => Gate::allows('share', $record))
             ->fillForm(fn (EmailDraft $record) => ['url' => ReviewLink::for($record)])
             ->schema([
                 TextInput::make('url')
-                    ->label('Review link')
+                    ->label(__('email-composer::drafts.fields.review_link'))
                     ->readOnly()
                     ->copyable(),
             ])
             ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Close');
+            ->modalCancelActionLabel(__('email-composer::drafts.actions.close'));
     }
 }

@@ -81,6 +81,15 @@ class EmailDraftPolicy
     }
 
     /**
+     * Determine whether the user can return the draft to draft.
+     */
+    public function returnToDraft(Authenticatable $user, EmailDraft $draft): bool
+    {
+        return EmailComposer::userCan($user, 'approve-draft', $draft)
+            && $draft->canReturnToDraft();
+    }
+
+    /**
      * Determine whether the user can share the draft's review link.
      */
     public function share(Authenticatable $user, EmailDraft $draft): bool

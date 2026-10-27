@@ -142,6 +142,19 @@ it('gates a transition action on the draft status', function (string $action, st
     'send' => ['send', 'send-draft', 'approved'],
 ]);
 
+it('allows returning a draft to draft in any status but draft, sending or sent', function (string $state) {
+    grantAbilities(['approve-draft']);
+
+    expect(UserFactory::new()->create()->can('returnToDraft', draftInState($state)))
+        ->toBe(! in_array($state, ['draft', 'sending', 'sent'], true));
+})->with(['draft', 'underReview', 'approved', 'sending', 'sent']);
+
+it('denies returning a draft to draft without the approve-draft ability', function () {
+    grantAbilities(['view-any-draft', 'update-draft']);
+
+    expect(UserFactory::new()->create()->can('returnToDraft', draftInState('underReview')))->toBeFalse();
+});
+
 it('allows sending a test of a draft in any status but sent', function (string $state) {
     grantAbilities(['test-draft']);
 
@@ -169,6 +182,7 @@ it('forwards the draft to the resolver for per-model abilities', function () {
     $user->can('delete', $draft);
     $user->can('submit', $draft);
     $user->can('approve', $draft);
+    $user->can('returnToDraft', $draft);
     $user->can('share', $draft);
     $user->can('send', $draft);
     $user->can('sendTest', $draft);

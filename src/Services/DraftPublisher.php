@@ -17,12 +17,11 @@ class DraftPublisher
     public function publish(EmailDraft $draft): array
     {
         $disk = Storage::disk(EmailComposer::config()->storageDisk());
-        $base = trim(EmailComposer::config()->storagePath(), '/');
-        $folder = $this->folderFor($draft);
+        $directory = $this->directoryFor($draft);
 
         $paths = [];
         foreach ($this->localesFor($draft) as $locale) {
-            $path = "{$base}/drafts/{$folder}/{$locale}.html";
+            $path = "{$directory}/{$locale}.html";
             $disk->put($path, $draft->renderFor($locale));
             $paths[$locale] = $path;
         }
@@ -30,6 +29,23 @@ class DraftPublisher
         $draft->forceFill(['public_files' => $paths])->save();
 
         return $paths;
+    }
+
+    /**
+     * Delete the draft's public HTML files and clear them from the draft.
+     */
+    public function unpublish(EmailDraft $draft): void
+    {
+        Storage::disk(EmailComposer::config()->storageDisk())->deleteDirectory($this->directoryFor($draft));
+
+        $draft->forceFill(['public_files' => null])->save();
+    }
+
+    protected function directoryFor(EmailDraft $draft): string
+    {
+        $base = trim(EmailComposer::config()->storagePath(), '/');
+
+        return "{$base}/drafts/{$this->folderFor($draft)}";
     }
 
     /**

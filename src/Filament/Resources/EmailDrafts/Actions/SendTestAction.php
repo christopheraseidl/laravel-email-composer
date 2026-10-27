@@ -16,22 +16,21 @@ class SendTestAction
 {
     use HasLocaleSelect;
 
-    /** Shared by the drafts table and the edit page header. */
     public static function make(): Action
     {
         return Action::make('sendTest')
-            ->label('Send test')
+            ->label(__('email-composer::drafts.actions.send_test'))
             ->icon(Heroicon::OutlinedBeaker)
             ->color('gray')
             ->authorize(fn (EmailDraft $record) => Gate::allows('sendTest', $record))
             ->schema([
                 TagsInput::make('emails')
-                    ->label('Send to')
-                    ->placeholder('Add an email address')
+                    ->label(__('email-composer::drafts.fields.send_to'))
+                    ->placeholder(__('email-composer::drafts.placeholders.send_to'))
                     ->default(fn () => array_filter([auth()->user()?->email])),
                 static::localeSelect(),
             ])
-            ->modalSubmitActionLabel('Send')
+            ->modalSubmitActionLabel(__('email-composer::drafts.actions.send'))
             ->action(function (EmailDraft $record, array $data) {
                 $emails = $data['emails'] ?? [];
 
@@ -40,7 +39,7 @@ class SendTestAction
                 } catch (\DomainException $e) {
                     Notification::make()
                         ->danger()
-                        ->title('Test email not sent')
+                        ->title(__('email-composer::drafts.notifications.test_not_sent'))
                         ->body($e->getMessage())
                         ->send();
 
@@ -49,8 +48,8 @@ class SendTestAction
 
                 Notification::make()
                     ->success()
-                    ->title('Test email sent')
-                    ->body('Sent to '.implode(', ', $emails).'.')
+                    ->title(__('email-composer::drafts.notifications.test_sent'))
+                    ->body(__('email-composer::drafts.notifications.test_sent_body', ['emails' => implode(', ', $emails)]))
                     ->send();
             });
     }
