@@ -19,9 +19,12 @@ class ViewInBrowserController
         abort_if($path === null, 404);
 
         $disk = Storage::disk(EmailComposer::config()->storageDisk());
-        abort_unless($disk->exists($path), 404);
+        $html = ($disk->exists($path) ? $disk->get($path) : null)
+            ?? rescue(fn () => $draft->renderFor(EmailComposer::config()->localeOrDefault($locale)), null, false);
 
-        return response($disk->get($path), 200, [
+        abort_if($html === null, 404);
+
+        return response($html, 200, [
             'Content-Type' => 'text/html; charset=UTF-8',
             'X-Content-Type-Options' => 'nosniff',
             'X-Robots-Tag' => 'noindex',

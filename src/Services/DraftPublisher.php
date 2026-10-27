@@ -9,8 +9,9 @@ use Illuminate\Support\Facades\Storage;
 class DraftPublisher
 {
     /**
-     * Render the draft once per locale and store each as a public HTML file.
-     * Returns the { locale: storage-relative path } map (also saved on the draft).
+     * Render the draft once per locale and store each as private text. Only the
+     * app reads these, never by URL. Returns the
+     * { locale: storage-relative path } map (also saved on the draft).
      *
      * @return array<string, string>
      */
@@ -21,8 +22,11 @@ class DraftPublisher
 
         $paths = [];
         foreach ($this->localesFor($draft) as $locale) {
-            $path = "{$directory}/{$locale}.html";
-            $disk->put($path, $draft->renderFor($locale));
+            $path = "{$directory}/{$locale}.txt";
+            $disk->put($path, $draft->renderFor($locale), [
+                'visibility' => 'private',
+                'ContentType' => 'text/plain; charset=UTF-8',
+            ]);
             $paths[$locale] = $path;
         }
 
@@ -32,7 +36,7 @@ class DraftPublisher
     }
 
     /**
-     * Delete the draft's public HTML files and clear them from the draft.
+     * Delete the draft's published files and clear them from the draft.
      */
     public function unpublish(EmailDraft $draft): void
     {
