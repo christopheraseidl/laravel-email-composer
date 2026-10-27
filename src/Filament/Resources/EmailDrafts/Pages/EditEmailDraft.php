@@ -2,9 +2,13 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages;
 
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ApproveDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\PreviewDraftAction;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReturnToDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\SendDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\SendTestAction;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\SubmitDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -52,6 +56,10 @@ class EditEmailDraft extends EditRecord
                 ->modalDescription('Shows the last saved version. Save first to preview unsaved changes.'),
             SendTestAction::make(),
             ReviewLinkAction::make(),
+            SubmitDraftAction::make(),
+            ApproveDraftAction::make(),
+            ReturnToDraftAction::make(),
+            SendDraftAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

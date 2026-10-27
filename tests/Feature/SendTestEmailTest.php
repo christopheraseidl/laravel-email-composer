@@ -3,11 +3,9 @@
 use CSeidl\EmailComposer\Actions\Drafts\SendTestEmail;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
-use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
 use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
-use Filament\Actions\Testing\TestAction;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Mail;
 
@@ -56,17 +54,16 @@ it('shows the send test action only on drafts the user may test', function () {
     $draft = EmailDraft::factory()->approved()->create();
     $sent = EmailDraft::factory()->sent()->create();
 
-    livewire(ListEmailDrafts::class)
-        ->assertActionVisible(TestAction::make('sendTest')->table($draft))
-        ->assertActionHidden(TestAction::make('sendTest')->table($sent));
-
-    livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
         ->assertActionVisible('sendTest');
+
+    livewire(EditEmailDraft::class, ['record' => $sent->getRouteKey()])
+        ->assertActionHidden('sendTest');
 
     EmailComposer::resolveAbilityUsing(fn ($user, $ability) => $ability !== 'test-draft');
 
-    livewire(ListEmailDrafts::class)
-        ->assertActionHidden(TestAction::make('sendTest')->table($draft));
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertActionHidden('sendTest');
 });
 
 it('defaults to the current user and the edit page active locale', function () {
@@ -82,8 +79,8 @@ it('defaults to the current user and the edit page active locale', function () {
 it('sends from the panel and lists the addresses', function () {
     $draft = EmailDraft::factory()->create();
 
-    livewire(ListEmailDrafts::class)
-        ->callAction(TestAction::make('sendTest')->table($draft), data: [
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->callAction('sendTest', data: [
             'emails' => ['ada@example.com', 'grace@example.com'],
             'locale' => 'es',
         ])
@@ -99,8 +96,8 @@ it('sends from the panel and lists the addresses', function () {
 it('shows rejected addresses as an error notification', function () {
     $draft = EmailDraft::factory()->create();
 
-    livewire(ListEmailDrafts::class)
-        ->callAction(TestAction::make('sendTest')->table($draft), data: ['emails' => ['not-an-email']])
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->callAction('sendTest', data: ['emails' => ['not-an-email']])
         ->assertNotified(Notification::make()
             ->danger()
             ->title('Test email not sent')

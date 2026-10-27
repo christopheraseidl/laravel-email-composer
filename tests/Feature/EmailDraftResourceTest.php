@@ -10,6 +10,8 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Mail;
 use Orchestra\Testbench\Factories\UserFactory;
 
 use function Pest\Livewire\livewire;
@@ -49,9 +51,122 @@ it('shows the submit action only where the policy allows it', function () {
     $draft = EmailDraft::factory()->create(['author_id' => $author->getKey()]);
     $sent = EmailDraft::factory()->sent()->create(['author_id' => $author->getKey()]);
 
-    livewire(ListEmailDrafts::class)
-        ->assertTableActionVisible('submit', $draft)
-        ->assertTableActionHidden('submit', $sent);
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertActionVisible('submit');
+
+    livewire(EditEmailDraft::class, ['record' => $sent->getRouteKey()])
+        ->assertActionHidden('submit');
+});
+
+it('links each row to the edit page', function () {
+    $draft = EmailDraft::factory()->create();
+
+    expect(livewire(ListEmailDrafts::class)->instance()->getTable()->getRecordUrl($draft))
+        ->toBe(EditEmailDraft::getUrl(['record' => $draft]));
+});
+
+it('links a row only when the user can view the draft', function () {
+    $hidden = EmailDraft::factory()->create();
+    $shown = EmailDraft::factory()->create();
+
+    EmailComposer::resolveAbilityUsing(
+        fn ($user, $ability, $model) => $ability === 'view-draft' && ! $model?->is($hidden)
+    );
+
+    $table = livewire(ListEmailDrafts::class)->instance()->getTable();
+
+    expect($table->getRecordUrl($hidden))->toBeNull()
+        ->and($table->getRecordUrl($shown))->toBe(EditEmailDraft::getUrl(['record' => $shown]));
+});
+
+it('shows return to draft on any draft that has left draft status but is not sending or sent', function (string $state, bool $visible) {
+    $draft = $state === 'draft'
+        ? EmailDraft::factory()->create()
+        : EmailDraft::factory()->{$state}()->create();
+
+    $component = livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()]);
+
+    $visible
+        ? $component->assertActionVisible('returnToDraft')
+        : $component->assertActionHidden('returnToDraft');
+})->with([
+    'draft' => ['draft', false],
+    'under review' => ['underReview', true],
+    'approved' => ['approved', true],
+    'sending' => ['sending', false],
+    'sent' => ['sent', false],
+]);
+
+it('hides return to draft without the approve-draft ability', function () {
+    EmailComposer::resolveAbilityUsing(fn ($user, $ability) => $ability !== 'approve-draft');
+
+    $draft = EmailDraft::factory()->underReview()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertActionHidden('returnToDraft');
+});
+
+it('reopens the form after returning a draft to draft', function (string $state) {
+    $draft = EmailDraft::factory()->{$state}()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertFormFieldDisabled('subject')
+        ->callAction('returnToDraft')
+        ->assertNoRedirect()
+        ->assertFormFieldEnabled('subject')
+        ->assertActionHidden('returnToDraft')
+        ->assertActionVisible('submit');
+
+    expect($draft->fresh())
+        ->status->toBe(EmailDraftStatus::Draft)
+        ->submitted_at->toBeNull();
+})->with(['underReview', 'approved']);
+
+it('locks the form after submitting a draft', function () {
+    $draft = EmailDraft::factory()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertFormFieldEnabled('subject')
+        ->callAction('submit')
+        ->assertNoRedirect()
+        ->assertFormFieldDisabled('subject')
+        ->assertActionHidden('submit')
+        ->assertActionVisible('returnToDraft');
+
+    expect($draft->fresh()->status)->toBe(EmailDraftStatus::UnderReview);
+});
+
+it('labels the draft actions in the panel language', function (string $state, string $action, string $label) {
+    app()->setLocale('es');
+
+    $draft = $state === 'draft'
+        ? EmailDraft::factory()->create()
+        : EmailDraft::factory()->{$state}()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertActionHasLabel($action, $label);
+})->with([
+    ['draft', 'preview', 'Vista previa'],
+    ['draft', 'sendTest', 'Enviar prueba'],
+    ['underReview', 'reviewLink', 'Enlace de revisión'],
+    ['draft', 'submit', 'Enviar a revisión'],
+    ['underReview', 'approve', 'Aprobar'],
+    ['underReview', 'returnToDraft', 'Devolver a borrador'],
+    ['approved', 'send', 'Enviar'],
+]);
+
+it('shows the send test notification in the panel language', function () {
+    Mail::fake();
+    app()->setLocale('es');
+
+    $draft = EmailDraft::factory()->create();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->callAction('sendTest', data: ['emails' => ['ada@example.com'], 'locale' => 'en'])
+        ->assertNotified(Notification::make()
+            ->success()
+            ->title('Correo de prueba enviado')
+            ->body('Enviado a ada@example.com.'));
 });
 
 it('renders the create form with no status in state', function () {

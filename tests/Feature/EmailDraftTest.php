@@ -231,6 +231,31 @@ it('returns a draft under review to draft', function () {
         ->submitted_at->toBeNull();
 });
 
+it('returns an approved draft to draft and clears the approval', function () {
+    $draft = EmailDraft::factory()->approved()->create();
+
+    $draft->returnToDraft();
+
+    expect($draft->fresh())
+        ->status->toBe(EmailDraftStatus::Draft)
+        ->submitted_at->toBeNull()
+        ->approved_at->toBeNull()
+        ->approved_by->toBeNull();
+});
+
+it('unpublishes an approved draft returned to draft', function () {
+    $draft = EmailDraft::factory()->underReview()->create();
+    $draft->approve(UserFactory::new()->create());
+    $paths = $draft->fresh()->public_files;
+
+    $draft->fresh()->returnToDraft();
+
+    foreach ($paths as $path) {
+        Storage::disk(config('email-composer.storage.disk'))->assertMissing($path);
+    }
+    expect($draft->fresh()->public_files)->toBeNull();
+});
+
 it('rejects an invalid transition', function (string $state, string $action) {
     $draft = $state === 'draft'
         ? EmailDraft::factory()->create()
@@ -248,7 +273,8 @@ it('rejects an invalid transition', function (string $state, string $action) {
     'submit while under review' => ['underReview', 'submit'],
     'mark sent while under review' => ['underReview', 'markSent'],
     'submit while approved' => ['approved', 'submit'],
-    'return an approved draft to draft' => ['approved', 'returnToDraft'],
+    'return a sending draft to draft' => ['sending', 'returnToDraft'],
+    'return a sent draft to draft' => ['sent', 'returnToDraft'],
     'mark an approved draft sent' => ['approved', 'markSent'],
     'mark an already sent draft sent' => ['sent', 'markSent'],
     'submit a sent draft' => ['sent', 'submit'],

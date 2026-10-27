@@ -113,3 +113,43 @@ it('overwrites the same files when a draft is published again', function () {
     expect(Storage::disk(config('email-composer.storage.disk'))->allFiles('email-composer/drafts'))
         ->toHaveCount(count($paths));
 });
+
+it('deletes the published files and clears them from the draft', function () {
+    $draft = publishableDraft(['subject' => ['en' => 'Welcome', 'es' => 'Bienvenido']]);
+    $other = publishableDraft();
+    $publisher = app(DraftPublisher::class);
+
+    $paths = $publisher->publish($draft);
+    $otherPaths = $publisher->publish($other);
+
+    $publisher->unpublish($draft);
+
+    $disk = Storage::disk(config('email-composer.storage.disk'));
+    foreach ($paths as $path) {
+        $disk->assertMissing($path);
+    }
+    foreach ($otherPaths as $path) {
+        $disk->assertExists($path);
+    }
+    expect($draft->fresh()->public_files)->toBeNull();
+});
+
+it('deletes files from locales the draft no longer has', function () {
+    $draft = publishableDraft(['subject' => ['en' => 'Welcome', 'es' => 'Bienvenido']]);
+    $publisher = app(DraftPublisher::class);
+    $publisher->publish($draft);
+
+    $draft->forceFill(['public_files' => ['en' => 'email-composer/drafts/'.expectedFolder($draft).'/en.html']])->save();
+
+    $publisher->unpublish($draft);
+
+    expect(Storage::disk(config('email-composer.storage.disk'))->allFiles('email-composer/drafts'))->toBeEmpty();
+});
+
+it('unpublishes a draft that was never published', function () {
+    $draft = publishableDraft();
+
+    app(DraftPublisher::class)->unpublish($draft);
+
+    expect($draft->fresh()->public_files)->toBeNull();
+});

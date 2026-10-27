@@ -11,6 +11,7 @@ trait HasLocaleSelect
     protected static function localeSelect(): Select
     {
         return Select::make('locale')
+            ->label(__('email-composer::drafts.fields.locale'))
             ->options(array_combine(
                 EmailComposer::config()->locales(),
                 EmailComposer::config()->locales(),

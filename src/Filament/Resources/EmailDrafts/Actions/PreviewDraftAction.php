@@ -18,7 +18,7 @@ class PreviewDraftAction
     public static function make(): Action
     {
         return Action::make('preview')
-            ->label('Preview')
+            ->label(__('email-composer::drafts.actions.preview'))
             ->icon(Heroicon::OutlinedEye)
             ->color('gray')
             ->authorize(fn (EmailDraft $record) => Gate::allows('view', $record))
@@ -28,7 +28,7 @@ class PreviewDraftAction
                     ->viewData(fn (EmailDraft $record, Get $get) => static::preview($record, $get('locale'))),
             ])
             ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Close');
+            ->modalCancelActionLabel(__('email-composer::drafts.actions.close'));
     }
 
     /** @return array{subject: string, html: ?string, error: ?string} */

@@ -279,11 +279,31 @@ class EmailDraft extends Model
 
     public function returnToDraft(): void
     {
-        $this->assertStatus(EmailDraftStatus::UnderReview, 'return to draft');
+        if (! $this->canReturnToDraft()) {
+            throw new \DomainException(
+                "Cannot return draft #{$this->id} to draft: status is '{$this->status->value}'."
+            );
+        }
+
         $this->update([
             'status' => EmailDraftStatus::Draft,
             'submitted_at' => null,
+            'approved_at' => null,
+            'approved_by' => null,
         ]);
+
+        app(DraftPublisher::class)->unpublish($this);
+    }
+
+    // Excludes the statuses that cannot return rather than listing the ones
+    // that can, so statuses added later are returnable by default.
+    public function canReturnToDraft(): bool
+    {
+        return ! in_array($this->status, [
+            EmailDraftStatus::Draft,
+            EmailDraftStatus::Sending,
+            EmailDraftStatus::Sent,
+        ], true);
     }
 
     protected function assertStatus(EmailDraftStatus $expected, string $action): void
