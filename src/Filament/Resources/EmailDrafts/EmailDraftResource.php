@@ -61,6 +61,16 @@ class EmailDraftResource extends Resource
         ];
     }
 
+    public static function getModelLabel(): string
+    {
+        return __('email-composer::drafts.label');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('email-composer::drafts.plural_label');
+    }
+
     /** @return array<int, string> */
     public static function getTranslatableLocales(): array
     {

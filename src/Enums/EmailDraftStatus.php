@@ -12,13 +12,7 @@ enum EmailDraftStatus: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::Draft => 'Draft',
-            self::UnderReview => 'Under Review',
-            self::Approved => 'Approved',
-            self::Sending => 'Sending',
-            self::Sent => 'Sent',
-        };
+        return __('email-composer::drafts.status.'.$this->value);
     }
 
     public function color(): string

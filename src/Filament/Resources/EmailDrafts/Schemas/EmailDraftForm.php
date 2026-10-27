@@ -39,14 +39,15 @@ class EmailDraftForm
                         EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
                     }),
                 Select::make('template')
+                    ->label(__('email-composer::drafts.fields.template'))
                     ->required()
                     ->live()
                     ->dehydrated(false)
                     ->options(fn () => [
-                        'Database' => EmailTemplate::pluck('name', 'id')
+                        __('email-composer::drafts.fields.template_groups.database') => EmailTemplate::pluck('name', 'id')
                             ->mapWithKeys(fn ($name, $id) => ["db:{$id}" => $name])
                             ->all(),
-                        'Files' => EmailComposer::templates()->fileTemplates()
+                        __('email-composer::drafts.fields.template_groups.files') => EmailComposer::templates()->fileTemplates()
                             ->mapWithKeys(fn ($template, $key) => ["file:{$key}" => $template->name])
                             ->all(),
                     ])
@@ -63,8 +64,9 @@ class EmailDraftForm
                     }),
                 Hidden::make('email_template_id'),
                 Hidden::make('template_key'),
-                TextInput::make('subject'),
-                Section::make('Placeholders')
+                TextInput::make('subject')
+                    ->label(__('email-composer::drafts.fields.subject')),
+                Section::make(__('email-composer::drafts.fields.placeholders'))
                     ->schema(function (Get $get) {
                         $templateId = $get('email_template_id');
                         $template = EmailComposer::templates()->resolve(
@@ -74,7 +76,7 @@ class EmailDraftForm
 
                         if (! $template) {
                             return [
-                                Text::make('Pick a template to see its placeholders.'),
+                                Text::make(__('email-composer::drafts.helpers.pick_template')),
                             ];
                         }
 
@@ -84,6 +86,7 @@ class EmailDraftForm
                         )->all();
                     }),
                 Radio::make('audience')
+                    ->label(__('email-composer::drafts.fields.audience'))
                     ->options(collect(EmailAudience::cases())->mapWithKeys(
                         fn ($case) => [$case->value => $case->label()]
                     ))
@@ -96,7 +99,7 @@ class EmailDraftForm
                         }
                     }),
                 Select::make('recipient_list_id')
-                    ->label('Recipient list')
+                    ->label(__('email-composer::drafts.fields.recipient_list'))
                     ->relationship('recipientList', 'name')
                     ->searchable()
                     ->preload()
@@ -104,6 +107,7 @@ class EmailDraftForm
                     ->required(fn (Get $get) => static::audience($get) === EmailAudience::List)
                     ->dehydratedWhenHidden(),
                 Select::make('recipients')
+                    ->label(__('email-composer::drafts.fields.recipients'))
                     ->multiple()
                     ->relationship('recipients', 'email')
                     ->searchable(['email', 'name'])

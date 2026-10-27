@@ -10,10 +10,6 @@ enum EmailAudience: string
 
     public function label(): string
     {
-        return match ($this) {
-            self::All => 'All recipients',
-            self::List => 'A recipient list',
-            self::Selected => 'Selected recipients',
-        };
+        return __('email-composer::drafts.audience.'.$this->value);
     }
 }
