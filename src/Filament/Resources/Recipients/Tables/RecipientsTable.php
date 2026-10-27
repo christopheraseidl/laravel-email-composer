@@ -4,7 +4,6 @@ namespace CSeidl\EmailComposer\Filament\Resources\Recipients\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
@@ -22,26 +21,31 @@ class RecipientsTable
             ->columns([
                 TextColumn::make('name')
                     ->label(__('email-composer::recipients.columns.name'))
-                    ->searchable(),
+                    ->searchable()
+                    ->visibleFrom('md'),
                 TextColumn::make('email')
                     ->label(__('email-composer::recipients.columns.email'))
                     ->searchable(),
                 TextColumn::make('locale')
-                    ->label(__('email-composer::recipients.columns.locale')),
+                    ->label(__('email-composer::recipients.columns.locale'))
+                    ->visibleFrom('md'),
                 TextColumn::make('unsubscribed_at')
                     ->label(__('email-composer::recipients.columns.unsubscribed_at'))
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
                 TextColumn::make('created_at')
                     ->label(__('email-composer::recipients.columns.created_at'))
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
                 TextColumn::make('updated_at')
                     ->label(__('email-composer::recipients.columns.updated_at'))
                     ->dateTime()
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->visibleFrom('md'),
             ])
             ->filters([
                 TrashedFilter::make(),
@@ -59,9 +63,6 @@ class RecipientsTable
                     ->label(__('email-composer::recipients.filters.lists'))
                     ->relationship('lists', 'name')
                     ->preload(),
-            ])
-            ->recordActions([
-                EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

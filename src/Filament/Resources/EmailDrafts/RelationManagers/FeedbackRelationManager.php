@@ -22,12 +22,15 @@ class FeedbackRelationManager extends RelationManager
                 TextColumn::make('comment')
                     ->wrap(),
                 TextColumn::make('reviewer')
-                    ->state(fn (DraftFeedback $record): string => static::reviewerLabel($record)),
+                    ->state(fn (DraftFeedback $record): string => static::reviewerLabel($record))
+                    ->visibleFrom('md'),
                 IconColumn::make('resolved')
-                    ->boolean(),
+                    ->boolean()
+                    ->visibleFrom('md'),
                 TextColumn::make('created_at')
                     ->dateTime()
-                    ->sortable(),
+                    ->sortable()
+                    ->visibleFrom('md'),
             ])
             ->recordActions([
                 Action::make('toggleResolved')
