@@ -3,7 +3,6 @@
 namespace CSeidl\EmailComposer\Jobs;
 
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
-use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
@@ -42,7 +41,7 @@ class SendEmailJob implements ShouldQueue
 
         $this->draft->recipients()->newPivotStatementForId($this->recipient->getKey())->increment('attempts');
 
-        $locale = $this->resolveLocale();
+        $locale = $this->draft->deliveryLocaleFor($this->recipient->locale);
         $sender->send($this->draft, $this->recipient, $locale);
 
         $this->updatePivotTable([
@@ -61,14 +60,6 @@ class SendEmailJob implements ShouldQueue
             'delivery_status' => EmailDeliveryStatus::Failed->value,
             'error' => $e->getMessage(),
         ]);
-    }
-
-    protected function resolveLocale(): string
-    {
-        $default = EmailComposer::config()->defaultLocale();
-        $preferred = $this->recipient->locale ?? $default;
-
-        return isset($this->draft->public_files[$preferred]) ? $preferred : $default;
     }
 
     /**

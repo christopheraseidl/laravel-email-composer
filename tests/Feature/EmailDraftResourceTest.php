@@ -162,6 +162,45 @@ it('shows the send test notification in the panel language', function () {
             ->body('Enviado a ada@example.com.'));
 });
 
+it('shows the send counts in the send modal', function () {
+    $draft = EmailDraft::factory()->approved()->create([
+        'public_files' => ['en' => 'drafts/1/en.html', 'es' => 'drafts/1/es.html'],
+        'placeholders' => [
+            'en' => ['greeting' => 'Hello', 'body' => '', 'signature' => ''],
+            'es' => ['greeting' => 'Hola', 'body' => 'Cuerpo.', 'signature' => ''],
+        ],
+    ]);
+    $draft->recipients()->attach(Recipient::factory()->count(2)->create(['locale' => 'en']));
+    $draft->recipients()->attach(Recipient::factory()->create(['locale' => 'es']));
+    $draft->recipients()->attach(Recipient::factory()->unsubscribed()->create());
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->mountAction('send')
+        ->assertMountedActionModalSee([
+            'Sends to 3 recipients (en: 2, es: 1). 1 will be skipped.',
+            'en: missing values for body, signature.',
+            'es: missing a value for signature.',
+        ]);
+});
+
+it('shows the send modal text in the panel language', function () {
+    app()->setLocale('es');
+
+    $draft = EmailDraft::factory()->approved()->create([
+        'public_files' => ['en' => 'drafts/1/en.html', 'es' => 'drafts/1/es.html'],
+        'placeholders' => ['es' => ['greeting' => 'Hola', 'body' => 'Cuerpo.', 'signature' => '']],
+    ]);
+    $draft->recipients()->attach(Recipient::factory()->count(2)->create(['locale' => 'es']));
+    $draft->recipients()->attach(Recipient::factory()->unsubscribed()->count(2)->create());
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->mountAction('send')
+        ->assertMountedActionModalSee([
+            'Se enviará a 2 destinatarios (es: 2). Se omitirán 2.',
+            'es: falta un valor para signature.',
+        ]);
+});
+
 it('renders the create form with no status in state', function () {
     livewire(CreateEmailDraft::class)
         ->assertSuccessful();

@@ -19,19 +19,23 @@ class ComposedEmail extends Mailable
 
     protected string $unsubscribeUrl;
 
+    /** Mailable::$locale is typed string|null; this mail always has one. */
+    protected string $draftLocale;
+
     public function __construct(
         public EmailDraft $draft,
         public Recipient $recipient,
         string $locale,
     ) {
         $this->locale($locale);
+        $this->draftLocale = $locale;
         // A test recipient is not stored, so it has nothing to unsubscribe.
         $this->unsubscribeUrl = $recipient->isTest() ? '#' : UnsubscribeLink::for($recipient);
     }
 
     public function envelope(): Envelope
     {
-        $subject = $this->draft->subjectFor($this->locale);
+        $subject = $this->draft->subjectFor($this->draftLocale);
 
         return new Envelope(subject: $this->recipient->isTest() ? "[Test] {$subject}" : $subject);
     }
@@ -39,14 +43,14 @@ class ComposedEmail extends Mailable
     public function content(): Content
     {
         $disk = Storage::disk(EmailComposer::config()->storageDisk());
-        $path = $this->draft->publicFileFor($this->locale);
+        $path = $this->draft->publicFileFor($this->draftLocale);
         $body = ($path && $disk->exists($path) ? $disk->get($path) : null)
-            ?? $this->draft->renderFor($this->locale);
-        $viewInBrowserUrl = $this->draft->viewInBrowserUrl($this->locale);
+            ?? $this->draft->renderFor($this->draftLocale);
+        $viewInBrowserUrl = $this->draft->viewInBrowserUrl($this->draftLocale);
 
         $text = (new HtmlToText)->convert($body)."\n\n"
-            .__('email-composer::mail.view_in_browser', [], $this->locale).": {$viewInBrowserUrl}\n"
-            .__('email-composer::mail.unsubscribe', [], $this->locale).": {$this->unsubscribeUrl}";
+            .__('email-composer::mail.view_in_browser', [], $this->draftLocale).": {$viewInBrowserUrl}\n"
+            .__('email-composer::mail.unsubscribe', [], $this->draftLocale).": {$this->unsubscribeUrl}";
 
         return new Content(
             htmlString: $this->appendFooter($body, $viewInBrowserUrl),

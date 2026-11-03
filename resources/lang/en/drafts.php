@@ -50,6 +50,11 @@ return [
     'tooltips' => [
         'lacks_audience' => 'Add recipients before sending.',
     ],
+    'send_summary' => [
+        'sends_to' => '{0} Sends to no recipients.|{1} Sends to 1 recipient (:locales).|[2,*] Sends to :count recipients (:locales).',
+        'skipped' => '{0} None will be skipped.|{1} 1 will be skipped.|[2,*] :count will be skipped.',
+        'missing_placeholders' => '{1} :locale: missing a value for :placeholders.|[2,*] :locale: missing values for :placeholders.',
+    ],
     'notifications' => [
         'not_approved' => 'Draft not approved',
         'not_returned' => 'Draft not returned',
@@ -68,6 +73,7 @@ return [
         'no_recipients' => 'Cannot send draft #:id: it has no recipients.',
         'already_sending' => 'Cannot send draft #:id: it is already sending or sent.',
         'list_missing' => 'Cannot send draft #:id: its recipient list no longer exists.',
+        'summary_list_missing' => 'Cannot summarize draft #:id: its recipient list no longer exists.',
     ],
     'status' => [
         'draft' => 'Draft',
