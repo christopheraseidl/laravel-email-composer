@@ -3,6 +3,8 @@
 namespace CSeidl\EmailComposer;
 
 use Closure;
+use CSeidl\EmailComposer\Actions\Drafts\SummarizeSend;
+use CSeidl\EmailComposer\Data\SendSummary;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\ConfigService;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
@@ -49,5 +51,11 @@ class EmailComposer
     public static function send(EmailDraft $draft): Batch
     {
         return app(DraftDispatcher::class)->dispatch($draft);
+    }
+
+    /** @throws \DomainException see SummarizeSend::__invoke() */
+    public static function dryRun(EmailDraft $draft): SendSummary
+    {
+        return app(SummarizeSend::class)($draft);
     }
 }

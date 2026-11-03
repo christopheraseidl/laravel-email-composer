@@ -50,6 +50,11 @@ return [
     'tooltips' => [
         'lacks_audience' => 'Añade destinatarios antes de enviar.',
     ],
+    'send_summary' => [
+        'sends_to' => '{0} No se enviará a ningún destinatario.|{1} Se enviará a 1 destinatario (:locales).|[2,*] Se enviará a :count destinatarios (:locales).',
+        'skipped' => '{0} No se omitirá ninguno.|{1} Se omitirá 1.|[2,*] Se omitirán :count.',
+        'missing_placeholders' => '{1} :locale: falta un valor para :placeholders.|[2,*] :locale: faltan valores para :placeholders.',
+    ],
     'notifications' => [
         'not_approved' => 'Borrador no aprobado',
         'not_returned' => 'Borrador no devuelto',
@@ -68,6 +73,7 @@ return [
         'no_recipients' => 'No se puede enviar el borrador n.º :id: no tiene destinatarios.',
         'already_sending' => 'No se puede enviar el borrador n.º :id: ya se está enviando o ya se envió.',
         'list_missing' => 'No se puede enviar el borrador n.º :id: su lista de destinatarios ya no existe.',
+        'summary_list_missing' => 'No se puede resumir el borrador n.º :id: su lista de destinatarios ya no existe.',
     ],
     'status' => [
         'draft' => 'Borrador',

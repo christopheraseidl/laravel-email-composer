@@ -174,6 +174,18 @@ class EmailDraft extends Model
     }
 
     /**
+     * The locale a recipient is sent in: their preferred one when the draft
+     * was published in it, otherwise the default.
+     */
+    public function deliveryLocaleFor(?string $preferred): string
+    {
+        $default = EmailComposer::config()->defaultLocale();
+        $preferred ??= $default;
+
+        return isset($this->public_files[$preferred]) ? $preferred : $default;
+    }
+
+    /**
      * Get the localized subject for the current application locale.
      */
     public function getLocalizedSubjectAttribute(): string
