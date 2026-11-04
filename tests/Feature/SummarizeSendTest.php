@@ -58,6 +58,16 @@ it('counts unsubscribed recipients as skipped and leaves deleted ones out', func
         ->perLocale->toBe(['en' => 3]);
 });
 
+it('counts the sendable recipients the draft was already sent to', function () {
+    $draft = summarizableDraft();
+    $draft->recipients()->attach(Recipient::factory()->count(2)->create(), ['delivery_status' => 'sent']);
+    $draft->recipients()->attach(Recipient::factory()->unsubscribed()->create(), ['delivery_status' => 'sent']);
+    $draft->recipients()->attach(Recipient::factory()->create(), ['delivery_status' => 'cancelled']);
+    $draft->recipients()->attach(Recipient::factory()->create());
+
+    expect(EmailComposer::dryRun($draft)->resent)->toBe(2);
+});
+
 it('counts a recipient whose locale has no public file under the default locale', function () {
     $draft = summarizableDraft(['public_files' => ['en' => 'drafts/1/en.html']]);
     $draft->recipients()->attach([

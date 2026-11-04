@@ -55,7 +55,7 @@ class EmailDraftPolicy
      */
     public function delete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent], true)) {
+        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled], true)) {
             return false;
         }
 
@@ -117,6 +117,15 @@ class EmailDraftPolicy
     }
 
     /**
+     * Determine whether the user can cancel the draft's send.
+     */
+    public function cancel(Authenticatable $user, EmailDraft $draft): bool
+    {
+        return EmailComposer::userCan($user, 'send-draft', $draft)
+            && $draft->status === EmailDraftStatus::Sending;
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(Authenticatable $user, EmailDraft $draft): bool
@@ -129,7 +138,7 @@ class EmailDraftPolicy
      */
     public function forceDelete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent], true)) {
+        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled], true)) {
             return false;
         }
 

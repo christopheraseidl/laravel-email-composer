@@ -37,6 +37,7 @@ class EmailDraftForm
                         EmailDraftStatus::Approved => Heroicon::OutlinedCheckCircle,
                         EmailDraftStatus::Sending => Heroicon::OutlinedArrowPath,
                         EmailDraftStatus::Sent => Heroicon::OutlinedPaperAirplane,
+                        EmailDraftStatus::Cancelled => Heroicon::OutlinedStopCircle,
                     }),
                 Select::make('template')
                     ->label(__('email-composer::drafts.fields.template'))

@@ -9,6 +9,7 @@ enum EmailDraftStatus: string
     case Approved = 'approved';
     case Sending = 'sending';
     case Sent = 'sent';
+    case Cancelled = 'cancelled';
 
     public function label(): string
     {
@@ -23,6 +24,7 @@ enum EmailDraftStatus: string
             self::Approved => 'info',
             self::Sending => 'primary',
             self::Sent => 'success',
+            self::Cancelled => 'gray',
         };
     }
 }

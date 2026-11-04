@@ -31,6 +31,7 @@ use Spatie\Translatable\HasTranslations;
  * @property array<string, string> $subject
  * @property array<string, array<string, string>> $placeholders
  * @property EmailDraftStatus $status
+ * @property string|null $batch_id
  * @property EmailAudience $audience
  * @property int|null $recipient_list_id
  * @property array<string, string>|null $public_files
@@ -60,6 +61,7 @@ class EmailDraft extends Model
         'subject',
         'placeholders',
         'status',
+        'batch_id',
         'audience',
         'recipient_list_id',
         'public_files',
@@ -286,6 +288,14 @@ class EmailDraft extends Model
         $this->update([
             'status' => EmailDraftStatus::Sent,
             'sent_at' => now(),
+        ]);
+    }
+
+    public function markCancelled(): void
+    {
+        $this->assertStatus(EmailDraftStatus::Sending, 'cannot_mark_cancelled');
+        $this->update([
+            'status' => EmailDraftStatus::Cancelled,
         ]);
     }
 

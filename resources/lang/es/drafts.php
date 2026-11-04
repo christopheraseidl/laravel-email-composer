@@ -11,6 +11,7 @@ return [
         'approve' => 'Aprobar',
         'return_to_draft' => 'Devolver a borrador',
         'send' => 'Enviar',
+        'cancel_send' => 'Cancelar envío',
         'close' => 'Cerrar',
     ],
     'fields' => [
@@ -44,6 +45,9 @@ return [
         'pick_template' => 'Seleccione una plantilla para ver sus marcadores.',
         'preview' => 'Muestra la última versión guardada. Guarde primero para previsualizar los cambios sin guardar.',
     ],
+    'confirmations' => [
+        'cancel_send' => 'Los destinatarios a los que aún no se ha enviado no recibirán este correo. Los correos ya enviados no se pueden recuperar.',
+    ],
     'placeholders' => [
         'send_to' => 'Añade una dirección de correo',
     ],
@@ -53,12 +57,15 @@ return [
     'send_summary' => [
         'sends_to' => '{0} No se enviará a ningún destinatario.|{1} Se enviará a 1 destinatario (:locales).|[2,*] Se enviará a :count destinatarios (:locales).',
         'skipped' => '{0} No se omitirá ninguno.|{1} Se omitirá 1.|[2,*] Se omitirán :count.',
+        'resent' => '{1} 1 destinatario ya recibió este correo y lo recibirá de nuevo.|[2,*] :count destinatarios ya recibieron este correo y lo recibirán de nuevo.',
         'missing_placeholders' => '{1} :locale: falta un valor para :placeholders.|[2,*] :locale: faltan valores para :placeholders.',
     ],
     'notifications' => [
         'not_approved' => 'Borrador no aprobado',
         'not_returned' => 'Borrador no devuelto',
         'not_sent' => 'Borrador no enviado',
+        'send_cancelled' => 'Envío cancelado',
+        'not_cancelled' => 'Envío no cancelado',
         'test_not_sent' => 'Correo de prueba no enviado',
         'test_sent' => 'Correo de prueba enviado',
         'test_sent_body' => 'Enviado a :emails.',
@@ -73,6 +80,9 @@ return [
         'no_recipients' => 'No se puede enviar el borrador n.º :id: no tiene destinatarios.',
         'already_sending' => 'No se puede enviar el borrador n.º :id: ya se está enviando o ya se envió.',
         'list_missing' => 'No se puede enviar el borrador n.º :id: su lista de destinatarios ya no existe.',
+        'cannot_mark_cancelled' => 'No se puede marcar como cancelado el borrador n.º :id: su estado es «:status» y debería ser «:expected».',
+        'cannot_cancel' => 'No se puede cancelar el envío del borrador n.º :id: su estado es «:status» y debería ser «:expected».',
+        'batch_missing' => 'No se puede cancelar el envío del borrador n.º :id: su lote de envío ya no existe.',
         'summary_list_missing' => 'No se puede resumir el borrador n.º :id: su lista de destinatarios ya no existe.',
     ],
     'status' => [
@@ -81,6 +91,7 @@ return [
         'approved' => 'Aprobado',
         'sending' => 'Enviando',
         'sent' => 'Enviado',
+        'cancelled' => 'Cancelado',
     ],
     'audience' => [
         'all' => 'Todos los destinatarios',
@@ -124,5 +135,6 @@ return [
         'sent' => 'Enviado',
         'failed' => 'Fallido',
         'skipped' => 'Omitido',
+        'cancelled' => 'Cancelado',
     ],
 ];

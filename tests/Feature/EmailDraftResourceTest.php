@@ -51,6 +51,16 @@ it('shows the submit action only where the policy allows it', function () {
         ->assertActionHidden('submit');
 });
 
+it('shows the cancel action only on a sending draft', function (string $state) {
+    $draft = $state === 'draft'
+        ? EmailDraft::factory()->create()
+        : EmailDraft::factory()->{$state}()->create();
+
+    $page = livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()]);
+
+    $state === 'sending' ? $page->assertActionVisible('cancel') : $page->assertActionHidden('cancel');
+})->with(['draft', 'underReview', 'approved', 'sending', 'sent', 'cancelled']);
+
 it('links each row to the edit page', function () {
     $draft = EmailDraft::factory()->create();
 
@@ -199,6 +209,16 @@ it('shows the send modal text in the panel language', function () {
             'Se enviará a 2 destinatarios (es: 2). Se omitirán 2.',
             'es: falta un valor para signature.',
         ]);
+});
+
+it('warns in the send modal how many recipients will receive the email again', function () {
+    $draft = EmailDraft::factory()->approved()->create(['public_files' => ['en' => 'drafts/1/en.html']]);
+    $draft->recipients()->attach(Recipient::factory()->count(2)->create(['locale' => 'en']), ['delivery_status' => 'sent']);
+    $draft->recipients()->attach(Recipient::factory()->create(['locale' => 'en']), ['delivery_status' => 'cancelled']);
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->mountAction('send')
+        ->assertMountedActionModalSee('2 recipients already received this email and will receive it again.');
 });
 
 it('renders the create form with no status in state', function () {

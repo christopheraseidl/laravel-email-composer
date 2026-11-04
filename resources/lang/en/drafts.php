@@ -11,6 +11,7 @@ return [
         'approve' => 'Approve',
         'return_to_draft' => 'Return to draft',
         'send' => 'Send',
+        'cancel_send' => 'Cancel send',
         'close' => 'Close',
     ],
     'fields' => [
@@ -44,6 +45,9 @@ return [
         'pick_template' => 'Pick a template to see its placeholders.',
         'preview' => 'Shows the last saved version. Save first to preview unsaved changes.',
     ],
+    'confirmations' => [
+        'cancel_send' => 'Recipients not yet sent to will not receive this email. Emails already sent cannot be recalled.',
+    ],
     'placeholders' => [
         'send_to' => 'Add an email address',
     ],
@@ -53,12 +57,15 @@ return [
     'send_summary' => [
         'sends_to' => '{0} Sends to no recipients.|{1} Sends to 1 recipient (:locales).|[2,*] Sends to :count recipients (:locales).',
         'skipped' => '{0} None will be skipped.|{1} 1 will be skipped.|[2,*] :count will be skipped.',
+        'resent' => '{1} 1 recipient already received this email and will receive it again.|[2,*] :count recipients already received this email and will receive it again.',
         'missing_placeholders' => '{1} :locale: missing a value for :placeholders.|[2,*] :locale: missing values for :placeholders.',
     ],
     'notifications' => [
         'not_approved' => 'Draft not approved',
         'not_returned' => 'Draft not returned',
         'not_sent' => 'Draft not sent',
+        'send_cancelled' => 'Send cancelled',
+        'not_cancelled' => 'Send not cancelled',
         'test_not_sent' => 'Test email not sent',
         'test_sent' => 'Test email sent',
         'test_sent_body' => 'Sent to :emails.',
@@ -73,6 +80,9 @@ return [
         'no_recipients' => 'Cannot send draft #:id: it has no recipients.',
         'already_sending' => 'Cannot send draft #:id: it is already sending or sent.',
         'list_missing' => 'Cannot send draft #:id: its recipient list no longer exists.',
+        'cannot_mark_cancelled' => "Cannot mark draft #:id as cancelled: status is ':status', expected ':expected'.",
+        'cannot_cancel' => "Cannot cancel draft #:id: status is ':status', expected ':expected'.",
+        'batch_missing' => 'Cannot cancel draft #:id: its send batch no longer exists.',
         'summary_list_missing' => 'Cannot summarize draft #:id: its recipient list no longer exists.',
     ],
     'status' => [
@@ -81,6 +91,7 @@ return [
         'approved' => 'Approved',
         'sending' => 'Sending',
         'sent' => 'Sent',
+        'cancelled' => 'Cancelled',
     ],
     'audience' => [
         'all' => 'All recipients',
@@ -124,5 +135,6 @@ return [
         'sent' => 'Sent',
         'failed' => 'Failed',
         'skipped' => 'Skipped',
+        'cancelled' => 'Cancelled',
     ],
 ];

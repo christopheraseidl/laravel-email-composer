@@ -6,6 +6,8 @@ use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\Recipient;
+use Illuminate\Bus\Batch;
+use Illuminate\Bus\BatchRepository;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\Factories\UserFactory;
@@ -96,6 +98,22 @@ it('skips a soft deleted recipient', function () {
 
     expect($draft->recipients()->withTrashed()->findOrFail($recipient->getKey())->pivot)
         ->delivery_status->toBe('skipped')
+        ->sent_at->toBeNull()
+        ->attempts->toBe(0);
+});
+
+it('sends nothing and marks the recipient cancelled when its batch is cancelled', function () {
+    $draft = sendableDraft();
+    $recipient = attachedRecipient($draft);
+    $batch = Mockery::mock(Batch::class);
+    $batch->shouldReceive('cancelled')->andReturnTrue();
+    $this->mock(BatchRepository::class)->shouldReceive('find')->andReturn($batch);
+    $this->mock(EmailSenderInterface::class)->shouldNotReceive('send');
+
+    app()->call([(new SendEmailJob($draft, $recipient))->withBatchId('batch'), 'handle']);
+
+    expect(pivotRow($draft, $recipient))
+        ->delivery_status->toBe('cancelled')
         ->sent_at->toBeNull()
         ->attempts->toBe(0);
 });

@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages;
 
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ApproveDraftAction;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\CancelSendAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\PreviewDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReturnToDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ReviewLinkAction;
@@ -68,6 +69,7 @@ class EditEmailDraft extends EditRecord
             ApproveDraftAction::make(),
             ReturnToDraftAction::make(),
             SendDraftAction::make(),
+            CancelSendAction::make(),
             DeleteAction::make(),
             ForceDeleteAction::make(),
             RestoreAction::make(),

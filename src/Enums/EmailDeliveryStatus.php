@@ -8,6 +8,7 @@ enum EmailDeliveryStatus: string
     case Sent = 'sent';
     case Failed = 'failed';
     case Skipped = 'skipped';
+    case Cancelled = 'cancelled';
 
     public function label(): string
     {
@@ -21,6 +22,7 @@ enum EmailDeliveryStatus: string
             self::Sent => 'success',
             self::Failed => 'danger',
             self::Skipped => 'info',
+            self::Cancelled => 'gray',
         };
     }
 }

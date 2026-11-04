@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Actions\Drafts;
 
 use CSeidl\EmailComposer\Data\SendSummary;
+use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 
@@ -25,6 +26,11 @@ class SummarizeSend
         $total = (clone $query)->count();
         $skipped = (clone $query)->whereNotNull($unsubscribedAt)->count();
 
+        $sentTo = $draft->recipients()->newPivotQuery()
+            ->where('delivery_status', EmailDeliveryStatus::Sent->value)
+            ->select($draft->recipients()->getRelatedPivotKeyName());
+        $resent = (clone $query)->whereNull($unsubscribedAt)->whereIn($recipient->getQualifiedKeyName(), $sentTo)->count();
+
         $rows = (clone $query)->toBase()
             ->whereNull($unsubscribedAt)
             ->groupBy($locale)
@@ -44,6 +50,6 @@ class SummarizeSend
             $missingPlaceholders[$deliveryLocale] = $draft->missingPlaceholders($deliveryLocale);
         }
 
-        return new SendSummary($total, $skipped, $perLocale, $missingPlaceholders);
+        return new SendSummary($total, $skipped, $perLocale, $missingPlaceholders, $resent);
     }
 }

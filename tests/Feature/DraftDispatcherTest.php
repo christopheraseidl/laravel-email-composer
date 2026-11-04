@@ -15,6 +15,9 @@ use Illuminate\Bus\Batch;
 use Illuminate\Bus\BatchRepository;
 use Illuminate\Bus\PendingBatch;
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Orchestra\Testbench\Factories\UserFactory;
 
 use function Pest\Livewire\livewire;
 
@@ -159,6 +162,66 @@ it('ends sent when dispatched on the sync queue', function () {
     app(DraftDispatcher::class)->dispatch($draft);
 
     expect($draft->fresh()->status)->toBe(EmailDraftStatus::Sent);
+});
+
+it('stores the batch id on the draft', function () {
+    $draft = approvedDraftWithRecipients(1);
+    $this->mock(EmailSenderInterface::class)->shouldReceive('send');
+
+    $batch = app(DraftDispatcher::class)->dispatch($draft);
+
+    expect($draft->fresh()->batch_id)->toBe($batch->id);
+});
+
+it('ends cancelled when its batch is cancelled and sent when it is not', function (bool $cancel, EmailDraftStatus $status) {
+    config()->set('email-composer.bulk.chunk_size', 1);
+    $draft = approvedDraftWithRecipients(3);
+    $this->mock(EmailSenderInterface::class)->shouldReceive('send')
+        ->andReturnUsing(fn () => $cancel ? Bus::findBatch(DB::table('job_batches')->value('id'))->cancel() : null);
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect($draft->fresh()->status)->toBe($status);
+})->with([
+    'cancelled' => [true, EmailDraftStatus::Cancelled],
+    'not cancelled' => [false, EmailDraftStatus::Sent],
+]);
+
+it('resends to every recipient after a cancelled send is edited and approved again', function () {
+    Storage::fake(config('email-composer.storage.disk'));
+    config()->set('email-composer.bulk.chunk_size', 1);
+    $draft = approvedDraftWithRecipients(3);
+    $sends = [];
+    $cancel = true;
+    $this->mock(EmailSenderInterface::class)->shouldReceive('send')
+        ->andReturnUsing(function (EmailDraft $sent, Recipient $recipient) use (&$sends, &$cancel) {
+            $sends[] = [$recipient->id, $sent->subjectFor('en')];
+
+            if ($cancel) {
+                Bus::findBatch(DB::table('job_batches')->value('id'))->cancel();
+            }
+        });
+
+    app(DraftDispatcher::class)->dispatch($draft);
+
+    expect($draft->refresh()->status)->toBe(EmailDraftStatus::Cancelled)
+        ->and($draft->recipients->pluck('pivot.delivery_status')->sort()->values()->all())
+        ->toBe(['cancelled', 'cancelled', 'sent']);
+
+    $draft->returnToDraft();
+    $draft->update(['subject' => ['en' => 'Fixed', 'es' => 'Arreglado']]);
+    $draft->submit();
+    $draft->approve(UserFactory::new()->create());
+    $cancel = false;
+    $sends = [];
+
+    app(DraftDispatcher::class)->dispatch($draft->refresh());
+
+    expect($draft->refresh()->status)->toBe(EmailDraftStatus::Sent)
+        ->and(sortedIds(array_column($sends, 0)))->toBe(pivotIds($draft))
+        ->and(array_unique(array_column($sends, 1)))->toBe(['Fixed'])
+        ->and($draft->recipients->map(fn (Recipient $r) => $r->pivot->only('delivery_status', 'attempts'))->unique()->all())
+        ->toBe([['delivery_status' => 'sent', 'attempts' => 1]]);
 });
 
 it('refuses a draft with no recipients', function () {

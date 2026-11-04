@@ -77,4 +77,11 @@ class EmailDraftFactory extends Factory
             'sent_at' => now()->subMinutes(30),
         ]);
     }
+
+    public function cancelled(): static
+    {
+        return $this->approved()->state(fn () => [
+            'status' => EmailDraftStatus::Cancelled,
+        ]);
+    }
 }
