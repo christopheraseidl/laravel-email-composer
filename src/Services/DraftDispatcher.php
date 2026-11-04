@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Services;
 
 use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Jobs\QueueDraftRecipients;
 use CSeidl\EmailComposer\Models\EmailDraft;
@@ -14,7 +15,7 @@ use Illuminate\Support\Facades\Bus;
 class DraftDispatcher
 {
     /**
-     * Queue one SendEmailJob per recipient and mark the draft sent once all have run.
+     * Queue one SendEmailJob per recipient and mark the draft sent, or cancelled, once all have run.
      *
      * @throws \DomainException when the draft is not approved, its audience is empty or its list is gone, or another dispatch claimed it
      */
@@ -45,15 +46,28 @@ class DraftDispatcher
         $draft->status = EmailDraftStatus::Sending;
         $draft->syncOriginalAttribute('status');
         $draft->recipients()->sync($recipientIds);
+        // A draft resent after a cancel goes to its whole audience again.
+        $draft->recipients()->newPivotQuery()->update([
+            'delivery_status' => EmailDeliveryStatus::Pending->value,
+            'locale' => null,
+            'sent_at' => null,
+            'error' => null,
+            'attempts' => 0,
+        ]);
+        // Queued copies of the draft reload its loaded relations; the jobs query recipients themselves.
         $draft->unsetRelation('recipients');
 
-        return Bus::batch([new QueueDraftRecipients($draft)])
+        $batch = Bus::batch([new QueueDraftRecipients($draft)])
             ->name("email-composer draft #{$draft->id}")
             ->when(EmailComposer::config()->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))
             ->onQueue(EmailComposer::config()->queueName())
             ->allowFailures()
-            ->finally(fn () => $draft->markSent())
+            ->finally(fn (Batch $batch) => $batch->cancelled() ? $draft->markCancelled() : $draft->markSent())
             ->dispatch();
+
+        $draft->update(['batch_id' => $batch->id]);
+
+        return $batch;
     }
 
     /** @return Collection<int, int> */

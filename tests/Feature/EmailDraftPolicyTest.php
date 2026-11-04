@@ -71,7 +71,7 @@ it('denies updating a draft that has left draft status', function (string $state
     $draft = draftInState($state, ['author_id' => $author->getKey()]);
 
     expect($author->can('update', $draft))->toBeFalse();
-})->with(['underReview', 'approved', 'sending', 'sent']);
+})->with(['underReview', 'approved', 'sending', 'sent', 'cancelled']);
 
 it('denies deleting a sending or sent draft but allows deleting an approved one', function () {
     grantAbilitiesToAuthor(['delete-draft']);
@@ -132,7 +132,7 @@ it('gates a transition action on the draft status', function (string $action, st
 
     $user = UserFactory::new()->create();
 
-    foreach (['draft', 'underReview', 'approved', 'sending', 'sent'] as $state) {
+    foreach (['draft', 'underReview', 'approved', 'sending', 'sent', 'cancelled'] as $state) {
         expect($user->can($action, draftInState($state)))->toBe($state === $allowedState);
     }
 })->with([
@@ -140,6 +140,17 @@ it('gates a transition action on the draft status', function (string $action, st
     'approve' => ['approve', 'approve-draft', 'underReview'],
     'share' => ['share', 'share-draft', 'underReview'],
     'send' => ['send', 'send-draft', 'approved'],
+    'cancel' => ['cancel', 'send-draft', 'sending'],
+]);
+
+it('denies deleting, force deleting or sending a cancelled draft', function (string $action, string $ability) {
+    grantAbilities([$ability]);
+
+    expect(UserFactory::new()->create()->can($action, draftInState('cancelled')))->toBeFalse();
+})->with([
+    'delete' => ['delete', 'delete-draft'],
+    'force delete' => ['forceDelete', 'force-delete-draft'],
+    'send' => ['send', 'send-draft'],
 ]);
 
 it('allows returning a draft to draft in any status but draft, sending or sent', function (string $state) {
@@ -147,7 +158,7 @@ it('allows returning a draft to draft in any status but draft, sending or sent',
 
     expect(UserFactory::new()->create()->can('returnToDraft', draftInState($state)))
         ->toBe(! in_array($state, ['draft', 'sending', 'sent'], true));
-})->with(['draft', 'underReview', 'approved', 'sending', 'sent']);
+})->with(['draft', 'underReview', 'approved', 'sending', 'sent', 'cancelled']);
 
 it('denies returning a draft to draft without the approve-draft ability', function () {
     grantAbilities(['view-any-draft', 'update-draft']);

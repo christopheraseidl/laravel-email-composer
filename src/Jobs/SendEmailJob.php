@@ -33,6 +33,12 @@ class SendEmailJob implements ShouldQueue
      */
     public function handle(EmailSenderInterface $sender): void
     {
+        if ($this->batch()?->cancelled()) {
+            $this->updatePivotTable(['delivery_status' => EmailDeliveryStatus::Cancelled->value]);
+
+            return;
+        }
+
         if ($this->recipient->trashed() || ! is_null($this->recipient->unsubscribed_at)) {
             $this->updatePivotTable(['delivery_status' => EmailDeliveryStatus::Skipped->value]);
 

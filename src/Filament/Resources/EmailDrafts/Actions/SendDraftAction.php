@@ -64,6 +64,10 @@ class SendDraftAction
                 .' '.trans_choice('email-composer::drafts.send_summary.skipped', $summary->skipped),
         ];
 
+        if ($summary->resent > 0) {
+            $lines[] = trans_choice('email-composer::drafts.send_summary.resent', $summary->resent);
+        }
+
         foreach (array_filter($summary->missingPlaceholders) as $locale => $names) {
             $lines[] = trans_choice('email-composer::drafts.send_summary.missing_placeholders', count($names), [
                 'locale' => $locale,
