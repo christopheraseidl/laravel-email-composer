@@ -9,7 +9,6 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\ConfigService;
 use CSeidl\EmailComposer\Services\DraftDispatcher;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
-use Illuminate\Bus\Batch;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -48,9 +47,9 @@ class EmailComposer
     }
 
     /** @throws \DomainException see DraftDispatcher::dispatch() */
-    public static function send(EmailDraft $draft): Batch
+    public static function send(EmailDraft $draft): void
     {
-        return app(DraftDispatcher::class)->dispatch($draft);
+        app(DraftDispatcher::class)->dispatch($draft);
     }
 
     /** @throws \DomainException see SummarizeSend::__invoke() */

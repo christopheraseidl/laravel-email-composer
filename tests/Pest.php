@@ -17,3 +17,17 @@ function csvFixture(string $contents): string
 
     return $path;
 }
+
+/**
+ * Run every queued job on the database queue, the way a worker would. The worker's
+ * default 128 MB limit stops it after one job in a long-running test process.
+ */
+function workDatabaseQueue(bool $once = false): void
+{
+    test()->artisan('queue:work', [
+        'connection' => 'database',
+        '--sleep' => 0,
+        '--memory' => 4096,
+        $once ? '--once' : '--stop-when-empty' => true,
+    ]);
+}

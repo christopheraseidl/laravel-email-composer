@@ -71,6 +71,72 @@ class ConfigService
         return $this->stringOrNull('email-composer.queue.queue');
     }
 
+    /** null means no limit. */
+    public function rateLimitPerMinute(): ?int
+    {
+        return $this->positiveIntOrNull('email-composer.queue.rate_limit_per_minute');
+    }
+
+    /** null means no limit. */
+    public function rateLimitPerHour(): ?int
+    {
+        return $this->positiveIntOrNull('email-composer.queue.rate_limit_per_hour');
+    }
+
+    /** null means no limit. */
+    public function rateLimitPerDay(): ?int
+    {
+        return $this->positiveIntOrNull('email-composer.queue.rate_limit_per_day');
+    }
+
+    /** Per rolling 30 days. null means no limit. */
+    public function rateLimitPerMonth(): ?int
+    {
+        return $this->positiveIntOrNull('email-composer.queue.rate_limit_per_month');
+    }
+
+    /**
+     * null unless both the amount and the window are set.
+     *
+     * @return array{amount: int, seconds: int}|null
+     */
+    public function customRateLimit(): ?array
+    {
+        $amount = $this->positiveIntOrNull('email-composer.queue.custom_rate_limit_amount');
+        $seconds = $this->positiveIntOrNull('email-composer.queue.custom_rate_limit_seconds');
+
+        return $amount === null || $seconds === null ? null : ['amount' => $amount, 'seconds' => $seconds];
+    }
+
+    /**
+     * Every configured limit, keyed by name. Empty means sending is not limited.
+     *
+     * @return array<string, array{amount: int, seconds: int}>
+     */
+    public function rateLimits(): array
+    {
+        $periods = [
+            'minute' => [$this->rateLimitPerMinute(), 60],
+            'hour' => [$this->rateLimitPerHour(), 3600],
+            'day' => [$this->rateLimitPerDay(), 86400],
+            'month' => [$this->rateLimitPerMonth(), 30 * 86400],
+        ];
+
+        $limits = [];
+
+        foreach ($periods as $name => [$amount, $seconds]) {
+            if ($amount !== null) {
+                $limits[$name] = ['amount' => $amount, 'seconds' => $seconds];
+            }
+        }
+
+        if (($custom = $this->customRateLimit()) !== null) {
+            $limits['custom'] = $custom;
+        }
+
+        return $limits;
+    }
+
     public function bulkChunkSize(): int
     {
         return max(1, (int) config('email-composer.bulk.chunk_size', 100));
@@ -137,6 +203,18 @@ class ConfigService
         }
 
         return $model;
+    }
+
+    /** null for null, non-numbers and anything below 1. */
+    protected function positiveIntOrNull(string $key): ?int
+    {
+        $value = config($key);
+
+        if (! is_numeric($value) || (int) $value < 1) {
+            return null;
+        }
+
+        return (int) $value;
     }
 
     protected function stringOrNull(string $key, ?string $default = null): ?string

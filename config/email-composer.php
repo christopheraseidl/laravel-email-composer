@@ -25,9 +25,17 @@ return [
     'queue' => [
         'connection' => env('EMAIL_COMPOSER_QUEUE_CONNECTION', null),
         'queue' => env('EMAIL_COMPOSER_QUEUE_NAME', null),
+        'rate_limit_per_minute' => env('EMAIL_COMPOSER_RATE_LIMIT'),
+        'rate_limit_per_hour' => env('EMAIL_COMPOSER_RATE_LIMIT_PER_HOUR'),
+        'rate_limit_per_day' => env('EMAIL_COMPOSER_RATE_LIMIT_PER_DAY'),
+        // A rolling 30 days, not a calendar month.
+        'rate_limit_per_month' => env('EMAIL_COMPOSER_RATE_LIMIT_PER_MONTH'),
+        // Limit applies only when both of the below values are set, e.g. 500 every 10s.
+        'custom_rate_limit_amount' => env('EMAIL_COMPOSER_CUSTOM_RATE_LIMIT_AMOUNT'),
+        'custom_rate_limit_seconds' => env('EMAIL_COMPOSER_CUSTOM_RATE_LIMIT_SECONDS'),
     ],
 
-    // Send jobs added to the batch per queue push when a draft is sent.
+    // Send jobs per queue push when sends are queued.
     // Bounds memory and the size of each push (one insert on the database driver).
     'bulk' => [
         'chunk_size' => 100,

@@ -29,6 +29,10 @@ it('returns the configured value', function (string $method, string $key, mixed 
     ['templatesPath', 'templates.path', '/tmp/templates'],
     ['queueConnection', 'queue.connection', 'redis'],
     ['queueName', 'queue.queue', 'mail'],
+    ['rateLimitPerMinute', 'queue.rate_limit_per_minute', 600],
+    ['rateLimitPerHour', 'queue.rate_limit_per_hour', 6000],
+    ['rateLimitPerDay', 'queue.rate_limit_per_day', 60000],
+    ['rateLimitPerMonth', 'queue.rate_limit_per_month', 600000],
     ['bulkChunkSize', 'bulk.chunk_size', 50],
     ['importMaxFileSize', 'import.max_file_size', 2048],
     ['importRowsPerPart', 'import.rows_per_part', 500],
@@ -57,6 +61,52 @@ it('falls back when the key is unset', function (string $method, string $key, mi
     ['reviewLinkTtlDays', 'review.link_ttl_days', 7],
     ['navigationGroup', 'filament.navigation_group', 'Email'],
 ]);
+
+it('reads a rate limit from an env string', function () {
+    config(['email-composer.queue.rate_limit_per_minute' => '600']);
+
+    expect(EmailComposer::config()->rateLimitPerMinute())->toBe(600);
+});
+
+it('has no rate limit for null or below 1', function (string $method, string $key, mixed $value) {
+    config(["email-composer.queue.{$key}" => $value]);
+
+    expect(EmailComposer::config()->{$method}())->toBeNull();
+})->with([
+    ['rateLimitPerMinute', 'rate_limit_per_minute'],
+    ['rateLimitPerHour', 'rate_limit_per_hour'],
+    ['rateLimitPerDay', 'rate_limit_per_day'],
+    ['rateLimitPerMonth', 'rate_limit_per_month'],
+])->with([null, 0, -1, '0', '']);
+
+it('has a custom rate limit only when the amount and the window are both set', function (mixed $amount, mixed $seconds, ?array $expected) {
+    config([
+        'email-composer.queue.custom_rate_limit_amount' => $amount,
+        'email-composer.queue.custom_rate_limit_seconds' => $seconds,
+    ]);
+
+    expect(EmailComposer::config()->customRateLimit())->toBe($expected);
+})->with([
+    'both' => ['500', '10', ['amount' => 500, 'seconds' => 10]],
+    'no window' => [500, null, null],
+    'no amount' => [null, 10, null],
+    'a zero window' => [500, 0, null],
+]);
+
+it('lists every configured rate limit with its window', function () {
+    config([
+        'email-composer.queue.rate_limit_per_minute' => 100,
+        'email-composer.queue.rate_limit_per_month' => 50000,
+        'email-composer.queue.custom_rate_limit_amount' => 500,
+        'email-composer.queue.custom_rate_limit_seconds' => 10,
+    ]);
+
+    expect(EmailComposer::config()->rateLimits())->toBe([
+        'minute' => ['amount' => 100, 'seconds' => 60],
+        'month' => ['amount' => 50000, 'seconds' => 30 * 86400],
+        'custom' => ['amount' => 500, 'seconds' => 10],
+    ]);
+});
 
 it('translates the navigation group', function (?string $group, ?string $expected) {
     app()->setLocale('es');
