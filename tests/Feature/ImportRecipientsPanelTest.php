@@ -39,12 +39,6 @@ function storedImports(): array
     return Storage::disk('local')->allFiles(EmailComposer::config()->importsPath());
 }
 
-/** Run every queued job on the database queue, the way a worker would. */
-function workDatabaseQueue(bool $once = false): void
-{
-    test()->artisan('queue:work', ['connection' => 'database', $once ? '--once' : '--stop-when-empty' => true]);
-}
-
 it('hides the import action without the import-recipients ability', function () {
     EmailComposer::resolveAbilityUsing(fn ($user, string $ability) => $ability !== 'import-recipients');
 

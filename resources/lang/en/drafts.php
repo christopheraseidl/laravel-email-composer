@@ -82,7 +82,6 @@ return [
         'list_missing' => 'Cannot send draft #:id: its recipient list no longer exists.',
         'cannot_mark_cancelled' => "Cannot mark draft #:id as cancelled: status is ':status', expected ':expected'.",
         'cannot_cancel' => "Cannot cancel draft #:id: status is ':status', expected ':expected'.",
-        'batch_missing' => 'Cannot cancel draft #:id: its send batch no longer exists.',
         'summary_list_missing' => 'Cannot summarize draft #:id: its recipient list no longer exists.',
     ],
     'status' => [
@@ -129,6 +128,7 @@ return [
         'filters' => [
             'status' => 'Status',
         ],
+        'gave_up' => 'Gave up after :count failed attempts.',
     ],
     'delivery_status' => [
         'pending' => 'Pending',

@@ -5,7 +5,7 @@ namespace CSeidl\EmailComposer\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @method static \Illuminate\Bus\Batch send(\CSeidl\EmailComposer\Models\EmailDraft $draft)
+ * @method static void send(\CSeidl\EmailComposer\Models\EmailDraft $draft)
  * @method static \CSeidl\EmailComposer\Data\SendSummary dryRun(\CSeidl\EmailComposer\Models\EmailDraft $draft)
  * @method static \CSeidl\EmailComposer\Services\ConfigService config()
  * @method static void resolveAbilityUsing(\Closure $callback)

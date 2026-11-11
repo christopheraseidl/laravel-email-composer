@@ -2,24 +2,24 @@
 
 namespace CSeidl\EmailComposer\Services;
 
-use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\Actions\Drafts\QueueSends;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
-use CSeidl\EmailComposer\Jobs\QueueDraftRecipients;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
-use Illuminate\Bus\Batch;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Bus;
 
 class DraftDispatcher
 {
+    public function __construct(protected QueueSends $queueSends) {}
+
     /**
-     * Queue one SendEmailJob per recipient and mark the draft sent, or cancelled, once all have run.
+     * Mark the draft sending and queue its first sends. QueueSends marks it sent once every
+     * recipient has a result.
      *
      * @throws \DomainException when the draft is not approved, its audience is empty or its list is gone, or another dispatch claimed it
      */
-    public function dispatch(EmailDraft $draft): Batch
+    public function dispatch(EmailDraft $draft): void
     {
         if ($draft->status !== EmailDraftStatus::Approved) {
             throw new \DomainException(__('email-composer::drafts.notifications.cannot_send', [
@@ -53,21 +53,9 @@ class DraftDispatcher
             'sent_at' => null,
             'error' => null,
             'attempts' => 0,
+            'queued_at' => null,
         ]);
-        // Queued copies of the draft reload its loaded relations; the jobs query recipients themselves.
-        $draft->unsetRelation('recipients');
-
-        $batch = Bus::batch([new QueueDraftRecipients($draft)])
-            ->name("email-composer draft #{$draft->id}")
-            ->when(EmailComposer::config()->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))
-            ->onQueue(EmailComposer::config()->queueName())
-            ->allowFailures()
-            ->finally(fn (Batch $batch) => $batch->cancelled() ? $draft->markCancelled() : $draft->markSent())
-            ->dispatch();
-
-        $draft->update(['batch_id' => $batch->id]);
-
-        return $batch;
+        ($this->queueSends)($draft);
     }
 
     /** @return Collection<int, int> */

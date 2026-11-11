@@ -82,7 +82,6 @@ return [
         'list_missing' => 'No se puede enviar el borrador n.º :id: su lista de destinatarios ya no existe.',
         'cannot_mark_cancelled' => 'No se puede marcar como cancelado el borrador n.º :id: su estado es «:status» y debería ser «:expected».',
         'cannot_cancel' => 'No se puede cancelar el envío del borrador n.º :id: su estado es «:status» y debería ser «:expected».',
-        'batch_missing' => 'No se puede cancelar el envío del borrador n.º :id: su lote de envío ya no existe.',
         'summary_list_missing' => 'No se puede resumir el borrador n.º :id: su lista de destinatarios ya no existe.',
     ],
     'status' => [
@@ -129,6 +128,7 @@ return [
         'filters' => [
             'status' => 'Estado',
         ],
+        'gave_up' => 'Se abandonó tras :count intentos fallidos.',
     ],
     'delivery_status' => [
         'pending' => 'Pendiente',

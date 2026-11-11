@@ -31,7 +31,6 @@ use Spatie\Translatable\HasTranslations;
  * @property array<string, string> $subject
  * @property array<string, array<string, string>> $placeholders
  * @property EmailDraftStatus $status
- * @property string|null $batch_id
  * @property EmailAudience $audience
  * @property int|null $recipient_list_id
  * @property array<string, string>|null $public_files
@@ -61,7 +60,6 @@ class EmailDraft extends Model
         'subject',
         'placeholders',
         'status',
-        'batch_id',
         'audience',
         'recipient_list_id',
         'public_files',
@@ -112,7 +110,7 @@ class EmailDraft extends Model
     public function recipients(): BelongsToMany
     {
         return $this->belongsToMany(Recipient::class, 'email_composer_draft_recipient')
-            ->withPivot(['delivery_status', 'locale', 'sent_at', 'error', 'attempts'])
+            ->withPivot(['delivery_status', 'locale', 'sent_at', 'error', 'attempts', 'queued_at'])
             ->withTimestamps();
     }
 
