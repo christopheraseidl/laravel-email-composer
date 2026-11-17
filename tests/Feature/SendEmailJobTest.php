@@ -6,9 +6,12 @@ use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Models\SendFailure;
+use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\Factories\UserFactory;
 
@@ -322,5 +325,71 @@ it('marks the recipient failed after three exceptions', function () {
         ->delivery_status->toBe('failed')
         ->error->toBe('SMTP down')
         ->attempts->toBe(3);
-    expect(DB::table('jobs')->count())->toBe(0);
+    expect(DB::table('jobs')->count())->toBe(0)
+        ->and(SendFailure::where('recipient_id', $recipient->id)->pluck('error')->all())
+        ->toBe(['SMTP down', 'SMTP down', 'SMTP down']);
 });
+
+it('records a send that throws and still throws', function () {
+    $this->freezeTime();
+    $this->mock(EmailSenderInterface::class)
+        ->shouldReceive('send')
+        ->once()
+        ->andThrow(new RuntimeException('SMTP down'));
+    $draft = sendableDraft();
+    [$recipient] = queueSends($draft, 1)->all();
+    $thrown = [];
+    Queue::exceptionOccurred(function (JobExceptionOccurred $event) use (&$thrown) {
+        $thrown[] = $event->exception->getMessage();
+    });
+
+    workDatabaseQueue();
+
+    expect($thrown)->toBe(['SMTP down'])
+        ->and(SendFailure::sole())
+        ->email_draft_id->toBe($draft->id)
+        ->recipient_id->toBe($recipient->id)
+        ->error->toBe('SMTP down')
+        ->failed_at->timestamp->toBe(now()->timestamp)
+        ->and(pivotRow($draft, $recipient)->delivery_status)->toBe('pending');
+});
+
+it('records no failures for a send that succeeds', function () {
+    $this->mock(EmailSenderInterface::class)->shouldReceive('send')->once();
+    $draft = sendableDraft();
+    queueSends($draft, 1);
+
+    workDatabaseQueue();
+
+    expect(SendFailure::count())->toBe(0);
+});
+
+it('keeps the rate limit slot of a send that throws', function () {
+    config(['email-composer.queue.rate_limit_per_minute' => 1]);
+    $this->mock(EmailSenderInterface::class)
+        ->shouldReceive('send')
+        ->once()
+        ->andThrow(new RuntimeException('SMTP down'));
+    $draft = sendableDraft();
+    [$recipient] = queueSends($draft, 1)->all();
+
+    workDatabaseQueue();
+    $this->travel(31)->seconds();
+    workDatabaseQueue();
+
+    expect(SendFailure::count())->toBe(1)
+        ->and(pivotRow($draft, $recipient))
+        ->delivery_status->toBe('pending')
+        ->queued_at->toBeNull()
+        ->attempts->toBe(1);
+});
+
+it('deletes failure rows with their draft or recipient', function (string $deleted) {
+    $failure = SendFailure::factory()->create();
+    SendFailure::factory()->create();
+
+    $failure->{$deleted}->forceDelete();
+
+    expect(SendFailure::find($failure->id))->toBeNull()
+        ->and(SendFailure::count())->toBe(1);
+})->with(['draft', 'recipient']);

@@ -19,6 +19,24 @@ it('cancels the draft and every recipient not sent yet', function () {
         ->toBe(['sent', 'cancelled', 'cancelled']);
 });
 
+it('fails a cancelled retry\'s recipients again and keeps the draft sent', function () {
+    $sentAt = now()->subHour();
+    $draft = EmailDraft::factory()->sending()->create(['sent_at' => $sentAt]);
+    [$sent, $retried] = Recipient::factory()->count(2)->create()->all();
+    $draft->recipients()->attach($sent, ['delivery_status' => 'sent']);
+    $draft->recipients()->attach($retried, ['queued_at' => now()]);
+
+    app(CancelSend::class)($draft);
+
+    expect($draft->fresh())
+        ->status->toBe(EmailDraftStatus::Sent)
+        ->sent_at->timestamp->toBe($sentAt->timestamp)
+        ->and($draft->recipients()->findOrFail($retried->id)->pivot)
+        ->delivery_status->toBe('failed')
+        ->error->toBe('Retry cancelled.')
+        ->and($draft->recipients()->findOrFail($sent->id)->pivot->delivery_status)->toBe('sent');
+});
+
 it('refuses a draft that is not sending', function (string $state) {
     $draft = $state === 'draft'
         ? EmailDraft::factory()->create()

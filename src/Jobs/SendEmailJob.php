@@ -6,6 +6,7 @@ use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Models\SendFailure;
 use CSeidl\EmailComposer\Services\SendRateLimiter;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Query\Builder;
@@ -78,7 +79,19 @@ class SendEmailJob implements ShouldQueue
         $this->pivot()->increment('attempts');
 
         $locale = $this->draft->deliveryLocaleFor($this->recipient->locale);
-        $sender->send($this->draft, $this->recipient, $locale);
+
+        try {
+            $sender->send($this->draft, $this->recipient, $locale);
+        } catch (Throwable $e) {
+            SendFailure::create([
+                'email_draft_id' => $this->draft->getKey(),
+                'recipient_id' => $this->recipient->getKey(),
+                'error' => $e->getMessage(),
+                'failed_at' => now(),
+            ]);
+
+            throw $e;
+        }
 
         $this->updatePivot([
             'delivery_status' => EmailDeliveryStatus::Sent->value,

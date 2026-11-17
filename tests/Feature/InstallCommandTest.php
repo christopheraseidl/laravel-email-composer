@@ -1,6 +1,7 @@
 <?php
 
 use CSeidl\EmailComposer\Commands\InstallCommand;
+use CSeidl\EmailComposer\EmailComposerServiceProvider;
 use CSeidl\EmailComposer\Tests\Fixtures\InstallCommandWithMissingClasses;
 use Filament\Panel;
 use Illuminate\Process\PendingProcess;
@@ -30,7 +31,7 @@ it('publishes the config and migrations, and the migrate prompt can be declined'
             ->assertSuccessful();
 
         expect(File::exists(config_path('email-composer.php')))->toBeTrue()
-            ->and(File::glob(database_path('migrations/*_create_email_composer_*_table.php')))->toHaveCount(8);
+            ->and(File::glob(database_path('migrations/*_create_email_composer_*_table.php')))->toHaveCount(count(EmailComposerServiceProvider::MIGRATIONS));
     } finally {
         deletePublishedInstallFiles();
     }
