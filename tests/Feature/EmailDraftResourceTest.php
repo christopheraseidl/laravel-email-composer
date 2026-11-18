@@ -61,6 +61,64 @@ it('shows the cancel action only on a sending draft', function (string $state) {
     $state === 'sending' ? $page->assertActionVisible('cancel') : $page->assertActionHidden('cancel');
 })->with(['draft', 'underReview', 'approved', 'sending', 'sent', 'cancelled']);
 
+it('words the cancel action for a retry', function () {
+    $draft = EmailDraft::factory()->sending()->create(['sent_at' => now()->subHour()]);
+    $draft->recipients()->attach(Recipient::factory()->create());
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->mountAction('cancel')
+        ->assertMountedActionModalSee('Recipients being retried will not receive this email and go back to Failed. The draft stays Sent.')
+        ->callMountedAction()
+        ->assertNotified('Retry cancelled');
+
+    expect($draft->fresh()->status)->toBe(EmailDraftStatus::Sent);
+});
+
+it('shows resume only on a cancelled draft with recipients not reached', function (string $state, array $deliveries, bool $visible) {
+    $draft = EmailDraft::factory()->{$state}()->create();
+
+    foreach ($deliveries as $status) {
+        $draft->recipients()->attach(Recipient::factory()->create(), ['delivery_status' => $status]);
+    }
+
+    $page = livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()]);
+
+    $visible ? $page->assertActionVisible('resume') : $page->assertActionHidden('resume');
+})->with([
+    'cancelled partway' => ['cancelled', ['sent', 'cancelled'], true],
+    'cancelled with a failure' => ['cancelled', ['sent', 'failed'], true],
+    'cancelled after every send' => ['cancelled', ['sent', 'skipped'], false],
+    'sent' => ['sent', ['sent', 'failed'], false],
+    'sending' => ['sending', ['pending'], false],
+]);
+
+it('hides resume without send-draft', function () {
+    EmailComposer::resolveAbilityUsing(fn ($user, string $ability) => $ability !== 'send-draft');
+    $draft = EmailDraft::factory()->cancelled()->create();
+    $draft->recipients()->attach(Recipient::factory()->create(), ['delivery_status' => 'cancelled']);
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->assertActionHidden('resume');
+});
+
+it('resumes a cancelled draft', function () {
+    config()->set('queue.default', 'database');
+    $draft = EmailDraft::factory()->cancelled()->create();
+    $draft->recipients()->attach(Recipient::factory()->create(), ['delivery_status' => 'sent']);
+    $draft->recipients()->attach(Recipient::factory()->count(2)->create()->modelKeys(), ['delivery_status' => 'cancelled']);
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
+        ->mountAction('resume')
+        ->assertMountedActionModalSee('The 2 recipients not reached yet will be sent this email. Recipients already sent to will not get it again.')
+        ->callMountedAction()
+        ->assertNotified(Notification::make()
+            ->success()
+            ->title('Send resumed')
+            ->body('Sending to 2 recipients.'));
+
+    expect($draft->fresh()->status)->toBe(EmailDraftStatus::Sending);
+});
+
 it('links each row to the edit page', function () {
     $draft = EmailDraft::factory()->create();
 
@@ -98,6 +156,7 @@ it('shows return to draft on any draft that has left draft status but is not sen
     'approved' => ['approved', true],
     'sending' => ['sending', false],
     'sent' => ['sent', false],
+    'cancelled' => ['cancelled', true],
 ]);
 
 it('hides return to draft without the approve-draft ability', function () {

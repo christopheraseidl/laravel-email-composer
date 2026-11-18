@@ -41,6 +41,7 @@ use Spatie\Translatable\HasTranslations;
  * @property-read EmailTemplate|null $template
  * @property-read RecipientList|null $recipientList
  * @property-read Collection<int, DraftFeedback> $feedback
+ * @property-read Collection<int, SendFailure> $sendFailures
  */
 #[UseFactory(EmailDraftFactory::class)]
 class EmailDraft extends Model
@@ -124,6 +125,12 @@ class EmailDraft extends Model
     public function feedback(): HasMany
     {
         return $this->hasMany(DraftFeedback::class, 'email_draft_id');
+    }
+
+    /** @return HasMany<SendFailure, $this> */
+    public function sendFailures(): HasMany
+    {
+        return $this->hasMany(SendFailure::class, 'email_draft_id');
     }
 
     public function resolveTemplate(): EmailTemplate|FileTemplate|null
@@ -280,12 +287,34 @@ class EmailDraft extends Model
         app(DraftPublisher::class)->publish($this->refresh());
     }
 
+    /**
+     * Reloads the draft and locks its row until the transaction ends. QueueSends, RetryDeliveries
+     * and CancelSend each take it before changing the status, so none acts on rows another is changing.
+     */
+    public function refreshForUpdate(): static
+    {
+        $locked = $this->newQueryWithoutScopes()->whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+        $this->setRawAttributes($locked->getAttributes(), true);
+
+        return $this;
+    }
+
+    /**
+     * Whether a sent draft is sending again to recipients it did not reach. Only markSent sets
+     * sent_at, and a sent draft never sends to its whole audience again.
+     */
+    public function isRetryingSent(): bool
+    {
+        return $this->status === EmailDraftStatus::Sending && $this->sent_at !== null;
+    }
+
     public function markSent(): void
     {
         $this->assertStatus(EmailDraftStatus::Sending, 'cannot_mark_sent');
+        // A retry ends sent again and keeps the first send's time.
         $this->update([
             'status' => EmailDraftStatus::Sent,
-            'sent_at' => now(),
+            'sent_at' => $this->sent_at ?? now(),
         ]);
     }
 

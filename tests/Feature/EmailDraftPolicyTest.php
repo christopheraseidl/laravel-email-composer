@@ -127,20 +127,22 @@ it('allows viewAny from either draft-viewing ability', function (string $ability
     expect(UserFactory::new()->create()->can('viewAny', EmailDraft::class))->toBeTrue();
 })->with(['view-any-draft', 'view-draft']);
 
-it('gates a transition action on the draft status', function (string $action, string $ability, string $allowedState) {
+it('gates a transition action on the draft status', function (string $action, string $ability, array $allowedStates) {
     grantAbilities([$ability]);
 
     $user = UserFactory::new()->create();
 
     foreach (['draft', 'underReview', 'approved', 'sending', 'sent', 'cancelled'] as $state) {
-        expect($user->can($action, draftInState($state)))->toBe($state === $allowedState);
+        expect($user->can($action, draftInState($state)))->toBe(in_array($state, $allowedStates, true));
     }
 })->with([
-    'submit' => ['submit', 'submit-draft', 'draft'],
-    'approve' => ['approve', 'approve-draft', 'underReview'],
-    'share' => ['share', 'share-draft', 'underReview'],
-    'send' => ['send', 'send-draft', 'approved'],
-    'cancel' => ['cancel', 'send-draft', 'sending'],
+    'submit' => ['submit', 'submit-draft', ['draft']],
+    'approve' => ['approve', 'approve-draft', ['underReview']],
+    'share' => ['share', 'share-draft', ['underReview']],
+    'send' => ['send', 'send-draft', ['approved']],
+    'cancel' => ['cancel', 'send-draft', ['sending']],
+    'retry' => ['retry', 'send-draft', ['sending', 'sent', 'cancelled']],
+    'resume' => ['resume', 'send-draft', ['cancelled']],
 ]);
 
 it('denies deleting, force deleting or sending a cancelled draft', function (string $action, string $ability) {

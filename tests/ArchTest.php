@@ -1,6 +1,7 @@
 <?php
 
 use CSeidl\EmailComposer\Models\EmailTheme;
+use CSeidl\EmailComposer\Models\SendFailure;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
@@ -49,17 +50,21 @@ arch('factories declare their model')
     ->classes()
     ->toHaveAttribute(UseModel::class);
 
-it('has a policy for every model', function (string $model) {
+// SendFailure is a log shown only through its draft, and goes with its draft or recipient.
+it('has a policy for every model except SendFailure', function (string $model) {
     $policy = str_replace('\\Models\\', '\\Policies\\', $model).'Policy';
 
     expect(Gate::getPolicyFor($model))->toBeInstanceOf($policy);
-})->with(classesIn('src/Models', 'CSeidl\EmailComposer\Models'));
+})->with(array_values(array_diff(
+    classesIn('src/Models', 'CSeidl\EmailComposer\Models'),
+    [SendFailure::class],
+)));
 
-it('soft deletes every model except EmailTheme', function (string $model) {
+it('soft deletes every model except EmailTheme and SendFailure', function (string $model) {
     expect(class_uses_recursive($model))->toHaveKey(SoftDeletes::class);
 })->with(array_values(array_diff(
     classesIn('src/Models', 'CSeidl\EmailComposer\Models'),
-    [EmailTheme::class],
+    [EmailTheme::class, SendFailure::class],
 )));
 
 it('returns bool from every policy method', function (ReflectionMethod $method) {

@@ -319,8 +319,9 @@ Once per clone:
 - To send mail, fill in the `MAIL_*` keys.
 
 ```bash
-composer run serve                # builds, then serves http://127.0.0.1:8000/admin
-vendor/bin/testbench queue:work   # second terminal, sends mail and runs imports
+composer run serve                  # builds, then serves http://127.0.0.1:8000/admin
+vendor/bin/testbench queue:work     # second terminal, sends mail and runs imports
+vendor/bin/testbench schedule:work  # third terminal, queues the rest of each send and marks it sent
 ```
 
 - Log in as `test@example.com` / `password`.

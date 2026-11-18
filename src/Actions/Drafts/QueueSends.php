@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Cache;
 
 /**
  * Queues a sending draft's unqueued recipients, as many as the rate limits have room for,
- * and marks the draft sent once none is pending. DraftDispatcher runs it on Send, and the
+ * and once none is pending, marks the draft sent, or cancelled while any recipient is. DraftDispatcher runs it on Send, and the
  * scheduled email-composer:queue-sends command runs it again for the rest. Nothing waits
  * in the queue: a recipient not queued yet waits in its pivot row.
  */
@@ -69,15 +69,27 @@ class QueueSends
             $room -= $ids->count();
         }
 
-        // A cancel may have landed while these were queued.
-        if (! $this->pending($draft)->exists() && $draft->refresh()->status === EmailDraftStatus::Sending) {
-            $draft->markSent();
-        }
+        // A cancel may have landed while these were queued, and a retry may be adding rows.
+        $draft->getConnection()->transaction(function () use ($draft) {
+            if ($draft->refreshForUpdate()->status !== EmailDraftStatus::Sending || $this->pending($draft)->exists()) {
+                return;
+            }
+
+            // A cancelled draft retried in part stays cancelled.
+            $this->rows($draft)->where('delivery_status', EmailDeliveryStatus::Cancelled->value)->exists()
+                ? $draft->markCancelled()
+                : $draft->markSent();
+        });
     }
 
     protected function pending(EmailDraft $draft): Builder
     {
-        return $draft->recipients()->newPivotQuery()->where('delivery_status', EmailDeliveryStatus::Pending->value);
+        return $this->rows($draft)->where('delivery_status', EmailDeliveryStatus::Pending->value);
+    }
+
+    protected function rows(EmailDraft $draft): Builder
+    {
+        return $draft->recipients()->newPivotQuery();
     }
 
     protected function recipientKey(EmailDraft $draft): string

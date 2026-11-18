@@ -126,6 +126,24 @@ class EmailDraftPolicy
     }
 
     /**
+     * Determine whether the user can send the draft's failed deliveries again.
+     */
+    public function retry(Authenticatable $user, EmailDraft $draft): bool
+    {
+        return EmailComposer::userCan($user, 'send-draft', $draft)
+            && in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled], true);
+    }
+
+    /**
+     * Determine whether the user can send a cancelled draft to the recipients it did not reach.
+     */
+    public function resume(Authenticatable $user, EmailDraft $draft): bool
+    {
+        return EmailComposer::userCan($user, 'send-draft', $draft)
+            && $draft->status === EmailDraftStatus::Cancelled;
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(Authenticatable $user, EmailDraft $draft): bool
