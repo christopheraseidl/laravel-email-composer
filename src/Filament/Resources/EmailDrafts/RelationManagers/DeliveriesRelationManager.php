@@ -142,7 +142,12 @@ class DeliveriesRelationManager extends RelationManager
 
     protected function failed(Recipient $recipient): bool
     {
-        return $recipient->getRelationValue('pivot')?->getAttribute('delivery_status') === EmailDeliveryStatus::Failed->value;
+        // Filament checks selectability on some rows without hydrating the pivot, which leaves the alias column.
+        $status = $recipient->relationLoaded('pivot')
+            ? $recipient->getRelation('pivot')->getAttribute('delivery_status')
+            : $recipient->getAttribute('pivot_delivery_status');
+        
+        return $status === EmailDeliveryStatus::Failed->value;
     }
 
     protected function failedQuery(): Builder
