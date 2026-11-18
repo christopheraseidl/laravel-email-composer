@@ -146,7 +146,7 @@ class DeliveriesRelationManager extends RelationManager
         $status = $recipient->relationLoaded('pivot')
             ? $recipient->getRelation('pivot')->getAttribute('delivery_status')
             : $recipient->getAttribute('pivot_delivery_status');
-        
+
         return $status === EmailDeliveryStatus::Failed->value;
     }
 
