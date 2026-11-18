@@ -22,16 +22,17 @@ php artisan email-composer:install
 
 The install command:
 
-- creates the `job_batches` migration if the table is missing, and the
-  `notifications` migration when Filament is installed,
+- creates the `job_batches` migration if the table is missing and `queue.batching.driver` is `database`,
+- creates the `notifications` migration when Filament is installed,
 - publishes the config and migrations,
 - offers to run the migrations,
-- prints the remaining setup steps.
+- asks whether the app uses Filament (`--filament` or `--no-filament` skips the question) and offers to install the plugin's dependencies, but Filament itself must already be installed and set up,
+- prints the remaining setup steps, including the [ability resolver](#authorization).
 
-To publish by hand instead:
+To publish by hand:
 
 ```bash
-php artisan make:queue-batches-table   # if job_batches does not exist
+php artisan make:queue-batches-table   # database batch driver, if job_batches is missing
 php artisan vendor:publish --tag=email-composer-config
 php artisan vendor:publish --tag=email-composer-migrations
 php artisan migrate
@@ -40,11 +41,8 @@ php artisan migrate
 Optional publish tags:
 
 - `email-composer-views`: the layout, mail footer, review and unsubscribe pages, and `templates/default.html`, which lands in the default `templates.path` ready to edit
-- `email-composer-assets`: the default theme CSS
+- `email-composer-assets`: a reference copy of the default theme CSS, which lives in the database (see [Global theme](#global-theme))
 - `email-composer-translations`: `en` and `es` strings
-
-The published CSS is a reference copy, since the theme lives in the database
-(see [Global theme](#global-theme)).
 
 ## Configuration
 
@@ -54,19 +52,26 @@ The published CSS is a reference copy, since the theme lives in the database
 - `default_locale`: the fallback locale (`'en'`)
 - `storage.disk`: disk for approved drafts' HTML, stored as `.txt` because some providers delete `.html` files automatically (`EMAIL_COMPOSER_DISK`, default `local`)
 - `storage.path`: directory on that disk (`'email-composer'`)
-- `storage.public_disk`: disk for uploaded logos, which must serve files by URL (`EMAIL_COMPOSER_PUBLIC_DISK`, default `public`)
+- `storage.public_disk`: disk for uploaded logos, which must serve files publicly by URL. Uploads take the disk's `visibility` config, else `private` (`EMAIL_COMPOSER_PUBLIC_DISK`, default `public`)
 - `templates.path`: directory for file templates
 - `queue.connection`: queue connection for sending (`EMAIL_COMPOSER_QUEUE_CONNECTION`)
 - `queue.queue`: queue name for sending (`EMAIL_COMPOSER_QUEUE_NAME`)
+- `queue.rate_limit_per_minute`, `queue.rate_limit_per_hour`, `queue.rate_limit_per_day`, `queue.rate_limit_per_month`: see [Rate limits](#rate-limits)
+- `queue.custom_rate_limit_amount`, `queue.custom_rate_limit_seconds`: see [Rate limits](#rate-limits)
 - `bulk.chunk_size`: send jobs queued at a time (`100`)
 - `import.max_file_size`: largest CSV the panel accepts, in KB (`10240`)
 - `import.rows_per_part`: rows per queued import job (`2000`)
 - `unsubscribe.link_ttl_days`: days before unsubscribe links expire (`null`, never)
 - `review.link_ttl_days`: days before review links expire (`7`)
-- `filament.navigation_group`: panel navigation group (`'Email'`, `null` for none)
+- `filament.navigation_group`: panel navigation group, as a translation key or a plain string (`'email-composer::navigation.group'`, "Email"; `null` for none)
 
 Drafts and feedback belong to the model named in
 `auth.providers.users.model`, which must be an Eloquent model.
+
+### Object storage
+
+- `EMAIL_COMPOSER_DISK`: a private bucket.
+- `EMAIL_COMPOSER_PUBLIC_DISK`: a bucket that serves files publicly by URL. A bucket with ACLs disabled works, because uploads follow the disk's `visibility` config: leave `visibility` unset on that disk.
 
 ## Authorization
 
@@ -81,15 +86,14 @@ EmailComposer::resolveAbilityUsing(
 );
 ```
 
-The resolver receives the authenticated user, the ability name, and the
-record being checked, or `null`. A guest is always denied.
+`$model` is the record being checked, or `null`. A guest is always denied.
 
 ### Abilities
 
 - **Recipients:** `view-recipients`, `view-recipient`, `create-recipients`, `import-recipients`, `update-recipient`, `delete-recipient`, `restore-recipient`, `force-delete-recipient`
 - **Recipient lists:** `view-recipient-lists`, `view-recipient-list`, `create-recipient-lists`, `update-recipient-list`, `delete-recipient-list`, `restore-recipient-list`, `force-delete-recipient-list`
 - **Templates:** `view-templates`, `view-template`, `create-templates`, `update-template`, `delete-template`, `restore-template`, `force-delete-template`
-- **Drafts:** `view-any-draft`, `view-draft`, `create-draft`, `update-draft`, `submit-draft`, `approve-draft`, `share-draft` (get the review link), `send-draft`, `delete-draft`, `restore-draft`, `force-delete-draft`
+- **Drafts:** `view-any-draft`, `view-draft`, `create-draft`, `update-draft`, `submit-draft`, `approve-draft`, `share-draft` (get the review link), `test-draft` (send a test), `send-draft` (also cancel, resume and retry), `delete-draft`, `restore-draft`, `force-delete-draft`
 - **Feedback:** `view-feedback`, `comment-on-draft`, `update-feedback`
 - **Theme:** `view-theme`, `update-theme`
 
@@ -126,7 +130,10 @@ The plugin adds the Recipients, Recipient Lists, Email Templates, and Email
 Drafts resources and the Manage Email Theme page. It also:
 
 - registers `SpatieTranslatablePlugin` with `locales`, unless the panel already registers it,
-- sets the language switcher's locales to `locales`, unless they were configured elsewhere.
+- sets the language switcher's locales to `locales`, unless they were configured elsewhere,
+- shows navigation icons only when `filament.navigation_group` is `null`.
+
+The panel and the review and unsubscribe pages come in `en` and `es`.
 
 ## Recipient lists
 
@@ -145,13 +152,15 @@ Deleting a list or a recipient soft-deletes it and keeps its memberships.
 
 ## Importing recipients
 
-A CSV needs a header row with an `email` column. `name` and `locale` are
-optional, and other columns go into `metadata`. Files must be UTF-8 or
-Windows-1252.
-
 ```bash
 php artisan email-composer:import-recipients recipients.csv --list=Staff
 ```
+
+- The CSV needs a header row with an `email` column. `name` and `locale` are optional, and other columns go into `metadata`.
+- Files must be UTF-8 or Windows-1252.
+- Rows match existing recipients by email, ignoring case.
+- An import never resubscribes or restores a recipient.
+- `--list` takes a list's name or ID and adds the imported recipients to it.
 
 The panel's Import action queues the import instead. It needs:
 
@@ -214,6 +223,9 @@ Token names use letters, digits, and underscores.
 The Manage Email Theme page edits the stylesheet and logo used by every
 email. Theme and template CSS are trusted and skip HTMLPurifier.
 
+- The default theme has light and dark modes. Apple Mail, iOS Mail, Outlook.com, and Outlook for Mac, iOS, and Android follow the reader's dark mode. Gmail and Outlook for Windows ignore it, and Gmail applies its own dark colours.
+- **Restore default CSS** replaces the theme CSS with the package default and keeps the logo.
+
 ```php
 use CSeidl\EmailComposer\Models\EmailTheme;
 
@@ -230,6 +242,7 @@ A draft moves through these statuses, each with a matching panel action:
 3. `approved`: one HTML file stored per locale (`$draft->approve($user)`)
 4. `sending`: recipient jobs queued (`EmailComposer::send($draft)`)
 5. `sent`: every recipient job has run
+6. `cancelled`: the send was cancelled before reaching every recipient
 
 `$draft->returnToDraft()` moves an `under_review` draft back to `draft`.
 
@@ -260,8 +273,27 @@ A draft's `audience` is one of:
 - `list`: the members of `recipient_list_id`,
 - `selected`: the recipients chosen on the draft.
 
-Sending queues one job per recipient. Delivery status is stored per
-recipient on the `email_composer_draft_recipient` table.
+Sending needs a queue worker and Laravel's scheduler. The package schedules
+`email-composer:queue-sends`, which queues the sends the rate limits allow
+and marks each draft `sent`.
+
+- **Preview** renders the last saved version of the draft in the panel, in any locale.
+- **Send test** sends the draft to up to 10 addresses. The subject starts with `[Test]`, the unsubscribe link goes nowhere, and no delivery is recorded.
+- **Send** first shows a summary: recipients per locale, unsubscribed recipients skipped, recipients already sent this draft, and missing placeholders. `EmailComposer::dryRun($draft)` returns the same as a `SendSummary`.
+- **Cancel send** stops a `sending` draft. Recipients not yet sent to are cancelled and the draft becomes `cancelled`; a job already sending finishes.
+- **Resume send** sends a `cancelled` draft to the recipients it did not reach.
+- The **Deliveries** tab lists each recipient's status, attempts, and last error. **Failures** on a row lists its failed attempts.
+- **Retry** sends a failed row again. **Retry all failed** and **Retry selected** do the same for several rows.
+
+### Rate limits
+
+- `EMAIL_COMPOSER_RATE_LIMIT`: sends per minute.
+- `EMAIL_COMPOSER_RATE_LIMIT_PER_HOUR`, `EMAIL_COMPOSER_RATE_LIMIT_PER_DAY`: sends per hour and per day.
+- `EMAIL_COMPOSER_RATE_LIMIT_PER_MONTH`: sends per rolling 30 days.
+- `EMAIL_COMPOSER_CUSTOM_RATE_LIMIT_AMOUNT` and `EMAIL_COMPOSER_CUSTOM_RATE_LIMIT_SECONDS`: sends per any window, applied only when both are set.
+- Every limit set applies at once. Unset means no limit.
+- The counts live in the cache, so all queue workers must share one cache store.
+- An app can replace the limits with `RateLimiter::for('email-composer', ...)`.
 
 ## View in browser and unsubscribe
 
@@ -272,8 +304,7 @@ Every sent email ends with a footer that has two signed links:
   `unsubscribed_at`, and later sends skip the recipient.
 
 Each email also carries `List-Unsubscribe` and `List-Unsubscribe-Post`
-headers, so mail clients can unsubscribe in one click. The unsubscribe POST
-route is exempt from CSRF verification so those requests succeed.
+headers, so mail clients can unsubscribe in one click.
 
 ## Troubleshooting
 
@@ -300,6 +331,9 @@ table's trashed filter.
 **Signed links return 403.** The link expired or was altered, or a proxy in
 front of the app changes the scheme or host it sees. Trust the proxy
 (`$middleware->trustProxies(at: '*')`) and set `APP_URL` to the public URL.
+
+**A draft stays `sending`.** The scheduler is not running (see
+[Sending](#sending)).
 
 ## Testing
 
