@@ -14,6 +14,8 @@ return [
         'cancel_send' => 'Cancel send',
         'resume_send' => 'Resume send',
         'close' => 'Close',
+        'add_feedback' => 'Add feedback',
+        'send_feedback' => 'Send feedback',
     ],
     'fields' => [
         'locale' => 'Locale',
@@ -45,6 +47,7 @@ return [
     'helpers' => [
         'pick_template' => 'Pick a template to see its placeholders.',
         'preview' => 'Shows the last saved version. Save first to preview unsaved changes.',
+        'add_feedback' => "Your comment is added to this draft's feedback.",
     ],
     'confirmations' => [
         'cancel_send' => 'Recipients not yet sent to will not receive this email. Emails already sent cannot be recalled.',
@@ -67,6 +70,7 @@ return [
         'missing_placeholders' => '{1} :locale: missing a value for :placeholders.|[2,*] :locale: missing values for :placeholders.',
     ],
     'notifications' => [
+        'feedback_sent' => 'Feedback sent',
         'not_approved' => 'Draft not approved',
         'not_returned' => 'Draft not returned',
         'not_sent' => 'Draft not sent',
@@ -126,6 +130,7 @@ return [
             'created_at' => 'Created at',
         ],
         'actions' => [
+            'view' => 'View',
             'resolve' => 'Resolve',
             'reopen' => 'Reopen',
         ],

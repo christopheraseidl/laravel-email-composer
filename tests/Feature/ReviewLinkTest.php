@@ -39,6 +39,33 @@ it('shows the rendered draft in the default locale', function () {
         ->assertDontSee('Hola a todos');
 });
 
+it('shows the app locale when the link has none', function () {
+    app()->setLocale('es');
+
+    $this->get(ReviewLink::for(reviewableDraft()))
+        ->assertOk()
+        ->assertSee('<html lang="es">', false)
+        ->assertSee('Hola a todos');
+});
+
+it('prefers the link locale over the app locale', function () {
+    app()->setLocale('es');
+
+    $this->get(ReviewLink::for(reviewableDraft(), 'en'))
+        ->assertOk()
+        ->assertSee('Hello there')
+        ->assertDontSee('Hola a todos');
+});
+
+it('falls back to default_locale when the app locale is not configured', function () {
+    config()->set('email-composer.default_locale', 'es');
+    app()->setLocale('fr');
+
+    $this->get(ReviewLink::for(reviewableDraft()))
+        ->assertOk()
+        ->assertSee('Hola a todos');
+});
+
 it('sends hardening headers without a content security policy', function () {
     $this->get(ReviewLink::for(reviewableDraft()))
         ->assertOk()
@@ -130,6 +157,15 @@ it('thanks the reviewer in the link locale', function () {
         ->assertSee('Gracias, sus comentarios se han enviado.');
 });
 
+it('thanks the reviewer in the app locale when the link has none', function () {
+    app()->setLocale('es');
+
+    $this->followingRedirects()
+        ->post(ReviewLink::for(reviewableDraft()), feedbackInput())
+        ->assertOk()
+        ->assertSee('Gracias, sus comentarios se han enviado.');
+});
+
 it('throttles feedback to 10 posts a minute', function () {
     $link = ReviewLink::for(reviewableDraft());
 
@@ -150,6 +186,18 @@ it('rejects feedback without a name, a valid email, or a comment', function () {
     ])->assertSessionHasErrors(['reviewer_name', 'reviewer_email', 'comment']);
 
     expect(DraftFeedback::count())->toBe(0);
+});
+
+it('names fields by their labels in validation errors', function () {
+    $this->post(ReviewLink::for(reviewableDraft()), [
+        'reviewer_name' => '',
+        'reviewer_email' => 'not-an-email',
+        'comment' => '',
+    ])->assertSessionHasErrors([
+        'reviewer_name' => 'The name field is required.',
+        'reviewer_email' => 'The email field must be a valid email address.',
+        'comment' => 'The comment field is required.',
+    ]);
 });
 
 it('refuses posting through a tampered link', function () {
