@@ -94,7 +94,7 @@ EmailComposer::resolveAbilityUsing(
 - **Recipient lists:** `view-recipient-lists`, `view-recipient-list`, `create-recipient-lists`, `update-recipient-list`, `delete-recipient-list`, `restore-recipient-list`, `force-delete-recipient-list`
 - **Templates:** `view-templates`, `view-template`, `create-templates`, `update-template`, `delete-template`, `restore-template`, `force-delete-template`
 - **Drafts:** `view-any-draft`, `view-draft`, `create-draft`, `update-draft`, `submit-draft`, `approve-draft`, `share-draft` (get the review link), `test-draft` (send a test), `send-draft` (also cancel, resume and retry), `delete-draft`, `restore-draft`, `force-delete-draft`
-- **Feedback:** `view-feedback`, `comment-on-draft`, `update-feedback`
+- **Feedback:** `view-feedback`, `comment-on-draft` (add feedback in the panel), `update-feedback`
 - **Theme:** `view-theme`, `update-theme`
 
 Draft status rules apply on top of the resolver. For example, only a `draft`
@@ -263,7 +263,11 @@ $url = ReviewLink::for($draft);          // expires after review.link_ttl_days
 $url = ReviewLink::for($draft, 'es');    // opens in Spanish
 ```
 
-Feedback appears in the draft's Feedback tab.
+Without a locale, the page opens in the app locale when it is one of
+`locales`, otherwise in `default_locale`.
+
+Feedback appears in the draft's Feedback tab. Panel users with
+`comment-on-draft` add feedback with the draft's Add feedback action.
 
 ### Sending
 

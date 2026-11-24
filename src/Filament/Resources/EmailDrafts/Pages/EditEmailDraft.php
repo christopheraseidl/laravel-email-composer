@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages;
 
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\AddFeedbackAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\ApproveDraftAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\CancelSendAction;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\PreviewDraftAction;
@@ -66,6 +67,7 @@ class EditEmailDraft extends EditRecord
                 ->modalDescription(__('email-composer::drafts.helpers.preview')),
             SendTestAction::make(),
             ReviewLinkAction::make(),
+            AddFeedbackAction::make(),
             SubmitDraftAction::make(),
             ApproveDraftAction::make(),
             ReturnToDraftAction::make(),

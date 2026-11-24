@@ -10,6 +10,7 @@ use CSeidl\EmailComposer\Review\ReviewLink;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Str;
 
 class ReviewController
 {
@@ -18,7 +19,7 @@ class ReviewController
         $this->ensureUnderReview($draft);
 
         $locales = EmailComposer::config()->locales();
-        $locale = EmailComposer::config()->localeOrDefault($request->query('locale'));
+        $locale = $this->locale($request);
 
         $expires = Carbon::createFromTimestamp((int) $request->query('expires'));
         $localeLinks = collect($locales)->mapWithKeys(fn (string $code) => [
@@ -41,18 +42,32 @@ class ReviewController
     {
         $this->ensureUnderReview($draft);
 
+        // Field names follow the app locale, as the validation messages do.
         $validated = $request->validate([
             'reviewer_name' => ['required', 'string', 'max:255'],
             'reviewer_email' => ['required', 'email', 'max:255'],
             'comment' => ['required', 'string', 'max:10000'],
+        ], attributes: [
+            'reviewer_name' => Str::lower(__('email-composer::review.fields.name')),
+            'reviewer_email' => Str::lower(__('email-composer::review.fields.email')),
+            'comment' => Str::lower(__('email-composer::review.fields.comment')),
         ]);
 
         $draft->feedback()->create($validated);
 
-        $locale = EmailComposer::config()->localeOrDefault($request->query('locale'));
+        $locale = $this->locale($request);
 
         return redirect()->to($request->fullUrl())
             ->with('status', __('email-composer::review.notifications.thank_you', [], $locale));
+    }
+
+    /** The link's locale, then the app's, then default_locale; the first one configured wins. */
+    protected function locale(Request $request): string
+    {
+        $config = EmailComposer::config();
+        $locale = $request->query('locale');
+
+        return $config->localeOrDefault(in_array($locale, $config->locales(), true) ? $locale : app()->getLocale());
     }
 
     protected function ensureUnderReview(EmailDraft $draft): void

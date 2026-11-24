@@ -14,6 +14,8 @@ return [
         'cancel_send' => 'Cancelar envío',
         'resume_send' => 'Reanudar envío',
         'close' => 'Cerrar',
+        'add_feedback' => 'Añadir comentario',
+        'send_feedback' => 'Enviar comentario',
     ],
     'fields' => [
         'locale' => 'Idioma',
@@ -45,6 +47,7 @@ return [
     'helpers' => [
         'pick_template' => 'Seleccione una plantilla para ver sus marcadores.',
         'preview' => 'Muestra la última versión guardada. Guarde primero para previsualizar los cambios sin guardar.',
+        'add_feedback' => 'Su comentario se añadirá a los comentarios de este borrador.',
     ],
     'confirmations' => [
         'cancel_send' => 'Los destinatarios a los que aún no se ha enviado no recibirán este correo. Los correos ya enviados no se pueden recuperar.',
@@ -67,6 +70,7 @@ return [
         'missing_placeholders' => '{1} :locale: falta un valor para :placeholders.|[2,*] :locale: faltan valores para :placeholders.',
     ],
     'notifications' => [
+        'feedback_sent' => 'Comentario enviado',
         'not_approved' => 'Borrador no aprobado',
         'not_returned' => 'Borrador no devuelto',
         'not_sent' => 'Borrador no enviado',
@@ -126,6 +130,7 @@ return [
             'created_at' => 'Fecha de creación',
         ],
         'actions' => [
+            'view' => 'Ver',
             'resolve' => 'Resolver',
             'reopen' => 'Reabrir',
         ],
