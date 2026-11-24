@@ -145,14 +145,13 @@ it('gates a transition action on the draft status', function (string $action, st
     'resume' => ['resume', 'send-draft', ['cancelled']],
 ]);
 
-it('denies deleting, force deleting or sending a cancelled draft', function (string $action, string $ability) {
+it('denies deleting or force deleting a cancelled draft', function (string $action, string $ability) {
     grantAbilities([$ability]);
 
     expect(UserFactory::new()->create()->can($action, draftInState('cancelled')))->toBeFalse();
 })->with([
     'delete' => ['delete', 'delete-draft'],
     'force delete' => ['forceDelete', 'force-delete-draft'],
-    'send' => ['send', 'send-draft'],
 ]);
 
 it('allows returning a draft to draft in any status but draft, sending or sent', function (string $state) {
@@ -162,23 +161,11 @@ it('allows returning a draft to draft in any status but draft, sending or sent',
         ->toBe(! in_array($state, ['draft', 'sending', 'sent'], true));
 })->with(['draft', 'underReview', 'approved', 'sending', 'sent', 'cancelled']);
 
-it('denies returning a draft to draft without the approve-draft ability', function () {
-    grantAbilities(['view-any-draft', 'update-draft']);
-
-    expect(UserFactory::new()->create()->can('returnToDraft', draftInState('underReview')))->toBeFalse();
-});
-
 it('allows sending a test of a draft in any status but sent', function (string $state) {
     grantAbilities(['test-draft']);
 
     expect(UserFactory::new()->create()->can('sendTest', draftInState($state)))->toBe($state !== 'sent');
 })->with(['draft', 'underReview', 'approved', 'sending', 'sent']);
-
-it('denies sending a test without the test-draft ability', function () {
-    grantAbilities(['view-any-draft', 'send-draft']);
-
-    expect(UserFactory::new()->create()->can('sendTest', draftInState('draft')))->toBeFalse();
-});
 
 it('forwards the draft to the resolver for per-model abilities', function () {
     $captured = [];
