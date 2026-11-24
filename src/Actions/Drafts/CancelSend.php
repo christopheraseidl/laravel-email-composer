@@ -15,6 +15,11 @@ use CSeidl\EmailComposer\Models\EmailDraft;
  */
 class CancelSend
 {
+    public function __construct(
+        protected MarkDraftSent $markDraftSent,
+        protected MarkDraftCancelled $markDraftCancelled,
+    ) {}
+
     /** @throws \DomainException when the draft is not sending */
     public function __invoke(EmailDraft $draft): void
     {
@@ -37,13 +42,13 @@ class CancelSend
                     'error' => __('email-composer::drafts.deliveries.retry_cancelled'),
                     'updated_at' => now(),
                 ]);
-                $draft->markSent();
+                ($this->markDraftSent)($draft);
 
                 return;
             }
 
             $pending->update(['delivery_status' => EmailDeliveryStatus::Cancelled->value]);
-            $draft->markCancelled();
+            ($this->markDraftCancelled)($draft);
         });
     }
 }

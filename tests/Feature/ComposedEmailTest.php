@@ -1,5 +1,6 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Mail\MailableSender;
@@ -33,7 +34,7 @@ function composedDraft(bool $published = true): EmailDraft
     ]);
 
     if ($published) {
-        $draft->approve(UserFactory::new()->create());
+        app(ApproveDraft::class)($draft, UserFactory::new()->create());
     }
 
     return $draft;

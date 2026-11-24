@@ -1,25 +1,23 @@
 <?php
 
-namespace CSeidl\EmailComposer\Services;
+namespace CSeidl\EmailComposer\Actions\Drafts;
 
-use CSeidl\EmailComposer\Actions\Drafts\QueueSends;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Support\Collection;
 
-class DraftDispatcher
+/**
+ * Marks the draft sending and queues its first sends. QueueSends marks it sent once every
+ * recipient has a result.
+ */
+class SendDraft
 {
     public function __construct(protected QueueSends $queueSends) {}
 
-    /**
-     * Mark the draft sending and queue its first sends. QueueSends marks it sent once every
-     * recipient has a result.
-     *
-     * @throws \DomainException when the draft is not approved, its audience is empty or its list is gone, or another dispatch claimed it
-     */
-    public function dispatch(EmailDraft $draft): void
+    /** @throws \DomainException when the draft is not approved, its audience is empty or its list is gone, or another send claimed it */
+    public function __invoke(EmailDraft $draft): void
     {
         if ($draft->status !== EmailDraftStatus::Approved) {
             throw new \DomainException(__('email-composer::drafts.notifications.cannot_send', [

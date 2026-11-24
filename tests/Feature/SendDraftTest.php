@@ -1,6 +1,10 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
 use CSeidl\EmailComposer\Actions\Drafts\CancelSend;
+use CSeidl\EmailComposer\Actions\Drafts\ReturnDraftToDraft;
+use CSeidl\EmailComposer\Actions\Drafts\SendDraft;
+use CSeidl\EmailComposer\Actions\Drafts\SubmitDraft;
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
@@ -10,7 +14,6 @@ use CSeidl\EmailComposer\Jobs\SendEmailJob;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
-use CSeidl\EmailComposer\Services\DraftDispatcher;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Contracts\Queue\Queue as QueueContract;
 use Illuminate\Support\Facades\DB;
@@ -65,7 +68,7 @@ it('queues one send job per recipient on the configured queue', function () {
     Queue::fake();
     $draft = approvedDraftWithRecipients(3);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     Queue::assertPushedOn('emails', SendEmailJob::class);
     expect(Queue::pushed(SendEmailJob::class)->map(fn (SendEmailJob $job) => $job->recipient->id)->sort()->values()->all())
@@ -82,7 +85,7 @@ it('pushes the send jobs in chunks of bulk.chunk_size', function () {
     });
     $this->mock(QueueFactory::class)->shouldReceive('connection')->with('sync')->andReturn($queue);
 
-    app(DraftDispatcher::class)->dispatch(approvedDraftWithRecipients(5));
+    app(SendDraft::class)(approvedDraftWithRecipients(5));
 
     expect($chunks)->toBe([2, 2, 1]);
 });
@@ -92,7 +95,7 @@ it('refuses a draft that is not approved', function (EmailDraftStatus $status) {
     $draft = EmailDraft::factory()->create(['status' => $status]);
     $draft->recipients()->attach(Recipient::factory()->create());
 
-    expect(fn () => app(DraftDispatcher::class)->dispatch($draft))->toThrow(DomainException::class);
+    expect(fn () => app(SendDraft::class)($draft))->toThrow(DomainException::class);
 
     Queue::assertNothingPushed();
 })->with([
@@ -106,7 +109,7 @@ it('marks the draft sending when it is dispatched', function () {
     Queue::fake();
     $draft = approvedDraftWithRecipients(1);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect($draft->status)->toBe(EmailDraftStatus::Sending)
         ->and($draft->fresh()->status)->toBe(EmailDraftStatus::Sending);
@@ -117,9 +120,9 @@ it('refuses a second dispatch of a draft that is already sending', function () {
     $draft = approvedDraftWithRecipients(1);
     $stale = EmailDraft::find($draft->getKey());
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
-    expect(fn () => app(DraftDispatcher::class)->dispatch($stale))
+    expect(fn () => app(SendDraft::class)($stale))
         ->toThrow(DomainException::class, 'already sending or sent');
 
     Queue::assertPushed(SendEmailJob::class, 1);
@@ -129,7 +132,7 @@ it('ends sent when dispatched on the sync queue', function () {
     $draft = approvedDraftWithRecipients(1);
     $this->mock(EmailSenderInterface::class)->shouldReceive('send')->once();
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect($draft->fresh()->status)->toBe(EmailDraftStatus::Sent);
 });
@@ -140,7 +143,7 @@ it('ends cancelled when cancelled during the send and sent when not', function (
     $this->mock(EmailSenderInterface::class)->shouldReceive('send')
         ->andReturnUsing(fn () => $cancel ? app(CancelSend::class)($draft->fresh()) : null);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect($draft->fresh()->status)->toBe($status);
 })->with([
@@ -163,20 +166,20 @@ it('resends to every recipient after a cancelled send is edited and approved aga
             }
         });
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect($draft->refresh()->status)->toBe(EmailDraftStatus::Cancelled)
         ->and($draft->recipients->pluck('pivot.delivery_status')->sort()->values()->all())
         ->toBe(['cancelled', 'cancelled', 'sent']);
 
-    $draft->returnToDraft();
+    app(ReturnDraftToDraft::class)($draft);
     $draft->update(['subject' => ['en' => 'Fixed', 'es' => 'Arreglado']]);
-    $draft->submit();
-    $draft->approve(UserFactory::new()->create());
+    app(SubmitDraft::class)($draft);
+    app(ApproveDraft::class)($draft, UserFactory::new()->create());
     $cancel = false;
     $sends = [];
 
-    app(DraftDispatcher::class)->dispatch($draft->refresh());
+    app(SendDraft::class)($draft->refresh());
 
     expect($draft->refresh()->status)->toBe(EmailDraftStatus::Sent)
         ->and(sortedIds(array_column($sends, 0)))->toBe(pivotIds($draft))
@@ -188,7 +191,7 @@ it('resends to every recipient after a cancelled send is edited and approved aga
 it('refuses a draft with no recipients', function () {
     Queue::fake();
 
-    expect(fn () => app(DraftDispatcher::class)->dispatch(EmailDraft::factory()->approved()->create()))
+    expect(fn () => app(SendDraft::class)(EmailDraft::factory()->approved()->create()))
         ->toThrow(DomainException::class, 'no recipients');
 
     Queue::assertNothingPushed();
@@ -217,6 +220,13 @@ it('marks the draft sent only after every chunk has been sent', function () {
     expect($draft->recipients->pluck('pivot.delivery_status')->all())->toBe(['sent', 'sent', 'sent']);
 });
 
+it('sends through EmailComposer::send with the SendDraft bound in the container', function () {
+    $draft = EmailDraft::factory()->approved()->create();
+    $this->mock(SendDraft::class)->shouldReceive('__invoke')->once()->with($draft);
+
+    EmailComposer::send($draft);
+});
+
 it('sends from the Filament send action', function () {
     Queue::fake();
     $draft = approvedDraftWithRecipients(2);
@@ -232,7 +242,7 @@ it('sends to every recipient when the audience is all', function () {
     $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::All]);
     $sent = recordSends();
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect(sortedIds($sent))->toBe(sortedIds($recipients))
         ->and(pivotIds($draft))->toBe(sortedIds($recipients));
@@ -246,7 +256,7 @@ it('sends to the members of the list when the audience is a list', function () {
     $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::List, 'recipient_list_id' => $list->id]);
     $sent = recordSends();
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect(sortedIds($sent))->toBe(sortedIds($members))
         ->and(pivotIds($draft))->toBe(sortedIds($members));
@@ -259,7 +269,7 @@ it('sends to the attached recipients when the audience is selected', function ()
     $draft->recipients()->attach($chosen);
     $sent = recordSends();
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
 
     expect(sortedIds($sent))->toBe(sortedIds($chosen))
         ->and(pivotIds($draft))->toBe(sortedIds($chosen));
@@ -273,7 +283,7 @@ it('refuses a list draft whose list was deleted', function (bool $force) {
 
     $force ? $list->forceDelete() : $list->delete();
 
-    expect(fn () => app(DraftDispatcher::class)->dispatch($draft->fresh()))
+    expect(fn () => app(SendDraft::class)($draft->fresh()))
         ->toThrow(DomainException::class, 'recipient list no longer exists');
 
     Queue::assertNothingPushed();
@@ -287,7 +297,7 @@ it('refuses an all draft when there are no recipients', function () {
     Queue::fake();
     $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::All]);
 
-    expect(fn () => app(DraftDispatcher::class)->dispatch($draft))
+    expect(fn () => app(SendDraft::class)($draft))
         ->toThrow(DomainException::class, 'no recipients');
 
     Queue::assertNothingPushed();
@@ -300,7 +310,7 @@ it('does not send to a recipient added to the list after dispatch', function () 
     $list->recipients()->attach($member);
     $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::List, 'recipient_list_id' => $list->id]);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
     $list->recipients()->attach(Recipient::factory()->create());
 
     expect(pivotIds($draft))->toBe([$member->id]);
@@ -313,7 +323,7 @@ it('queues only what the rate limit has room for, and the rest on later schedule
     $sent = recordSends();
     $draft = approvedDraftWithRecipients(5);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
     workDatabaseQueue();
 
     expect($sent)->toHaveCount(2)
@@ -344,7 +354,7 @@ it('queues a row again once its job has been gone longer than a job may retry', 
     Queue::fake();
     $draft = approvedDraftWithRecipients(1);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
     $this->artisan('email-composer:queue-sends');
 
     Queue::assertPushed(SendEmailJob::class, 1);
@@ -363,7 +373,7 @@ it('cancels every recipient not sent yet at once', function () {
     recordSends();
     $draft = approvedDraftWithRecipients(3);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
     workDatabaseQueue();
     app(CancelSend::class)($draft->fresh());
 
@@ -376,7 +386,7 @@ it('queues no more sends than the rate limit has room for, counting those still 
     config(['email-composer.queue.rate_limit_per_minute' => 2]);
     $draft = approvedDraftWithRecipients(5);
 
-    app(DraftDispatcher::class)->dispatch($draft);
+    app(SendDraft::class)($draft);
     $this->artisan('email-composer:queue-sends');
 
     Queue::assertPushed(SendEmailJob::class, 2);

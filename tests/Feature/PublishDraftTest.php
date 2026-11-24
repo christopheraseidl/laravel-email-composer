@@ -1,8 +1,9 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\PublishDraft;
+use CSeidl\EmailComposer\Actions\Drafts\UnpublishDraft;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
-use CSeidl\EmailComposer\Services\DraftPublisher;
 use Illuminate\Support\Facades\Storage;
 
 beforeEach(fn () => Storage::fake(config('email-composer.storage.disk')));
@@ -33,7 +34,7 @@ it('writes one file per content locale plus the default', function () {
         'placeholders' => ['fr' => ['body' => 'Corps français.']],
     ]);
 
-    $paths = app(DraftPublisher::class)->publish($draft);
+    $paths = app(PublishDraft::class)($draft);
 
     $base = 'email-composer/drafts/'.expectedFolder($draft);
     expect($paths)->toBe([
@@ -52,7 +53,7 @@ it('writes one file per content locale plus the default', function () {
 it('writes the files private', function () {
     $draft = publishableDraft();
 
-    $path = app(DraftPublisher::class)->publish($draft)['en'];
+    $path = app(PublishDraft::class)($draft)['en'];
 
     expect(Storage::disk(config('email-composer.storage.disk'))->getVisibility($path))->toBe('private');
 })->skipOnWindows(); // Visibility is read from Unix permissions, which Windows lacks.
@@ -60,7 +61,7 @@ it('writes the files private', function () {
 it('saves the locale to path map on the draft', function () {
     $draft = publishableDraft();
 
-    $paths = app(DraftPublisher::class)->publish($draft);
+    $paths = app(PublishDraft::class)($draft);
 
     expect($draft->fresh()->public_files)->toBe($paths);
 });
@@ -74,7 +75,7 @@ it('stores the rendered body for each locale', function () {
         ],
     ]);
 
-    $paths = app(DraftPublisher::class)->publish($draft);
+    $paths = app(PublishDraft::class)($draft);
     $disk = Storage::disk(config('email-composer.storage.disk'));
 
     expect($disk->get($paths['en']))
@@ -92,7 +93,7 @@ it('trims slashes from the configured storage path', function () {
     config()->set('email-composer.storage.path', '/custom/root/');
     $draft = publishableDraft(['subject' => ['en' => 'Welcome'], 'placeholders' => []]);
 
-    $paths = app(DraftPublisher::class)->publish($draft);
+    $paths = app(PublishDraft::class)($draft);
 
     expect($paths)->toBe(['en' => 'custom/root/drafts/'.expectedFolder($draft).'/en.txt']);
 });
@@ -101,9 +102,9 @@ it('stores each draft under a folder that does not reveal its id', function () {
     $first = publishableDraft();
     $second = publishableDraft();
 
-    $publisher = app(DraftPublisher::class);
-    $firstFolder = dirname($publisher->publish($first)['en']);
-    $secondFolder = dirname($publisher->publish($second)['en']);
+    $publisher = app(PublishDraft::class);
+    $firstFolder = dirname($publisher($first)['en']);
+    $secondFolder = dirname($publisher($second)['en']);
 
     expect(basename($firstFolder))
         ->toMatch('/^[0-9a-f]{64}$/')
@@ -113,11 +114,11 @@ it('stores each draft under a folder that does not reveal its id', function () {
 
 it('overwrites the same files when a draft is published again', function () {
     $draft = publishableDraft();
-    $publisher = app(DraftPublisher::class);
+    $publisher = app(PublishDraft::class);
 
-    $paths = $publisher->publish($draft);
+    $paths = $publisher($draft);
 
-    expect($publisher->publish($draft))->toBe($paths);
+    expect($publisher($draft))->toBe($paths);
     expect(Storage::disk(config('email-composer.storage.disk'))->allFiles('email-composer/drafts'))
         ->toHaveCount(count($paths));
 });
@@ -125,12 +126,12 @@ it('overwrites the same files when a draft is published again', function () {
 it('deletes the published files and clears them from the draft', function () {
     $draft = publishableDraft(['subject' => ['en' => 'Welcome', 'es' => 'Bienvenido']]);
     $other = publishableDraft();
-    $publisher = app(DraftPublisher::class);
+    $publisher = app(PublishDraft::class);
 
-    $paths = $publisher->publish($draft);
-    $otherPaths = $publisher->publish($other);
+    $paths = $publisher($draft);
+    $otherPaths = $publisher($other);
 
-    $publisher->unpublish($draft);
+    app(UnpublishDraft::class)($draft);
 
     $disk = Storage::disk(config('email-composer.storage.disk'));
     foreach ($paths as $path) {
@@ -144,12 +145,12 @@ it('deletes the published files and clears them from the draft', function () {
 
 it('deletes files from locales the draft no longer has', function () {
     $draft = publishableDraft(['subject' => ['en' => 'Welcome', 'es' => 'Bienvenido']]);
-    $publisher = app(DraftPublisher::class);
-    $publisher->publish($draft);
+    $publisher = app(PublishDraft::class);
+    $publisher($draft);
 
     $draft->forceFill(['public_files' => ['en' => 'email-composer/drafts/'.expectedFolder($draft).'/en.txt']])->save();
 
-    $publisher->unpublish($draft);
+    app(UnpublishDraft::class)($draft);
 
     expect(Storage::disk(config('email-composer.storage.disk'))->allFiles('email-composer/drafts'))->toBeEmpty();
 });
@@ -157,7 +158,7 @@ it('deletes files from locales the draft no longer has', function () {
 it('unpublishes a draft that was never published', function () {
     $draft = publishableDraft();
 
-    app(DraftPublisher::class)->unpublish($draft);
+    app(UnpublishDraft::class)($draft);
 
     expect($draft->fresh()->public_files)->toBeNull();
 });

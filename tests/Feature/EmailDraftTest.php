@@ -2,31 +2,10 @@
 
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
-use CSeidl\EmailComposer\Models\EmailTemplate;
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\Factories\UserFactory;
 
 beforeEach(fn () => Storage::fake(config('email-composer.storage.disk')));
-
-/**
- * Create a draft backed by a template that declares the given placeholders.
- *
- * @param  array<string, mixed>  $attributes
- * @param  array<int, string>  $placeholders
- */
-function draftWithTemplate(array $attributes = [], array $placeholders = ['greeting', 'body']): EmailDraft
-{
-    $template = EmailTemplate::factory()->create([
-        'key' => 'greeting-and-body',
-        'body' => '<div>[[ greeting ]]</div><div>[[ body ]]</div>',
-        'placeholders' => $placeholders,
-    ]);
-
-    return EmailDraft::factory()->create([
-        'email_template_id' => $template->id,
-        ...$attributes,
-    ]);
-}
 
 it('persists translatable subject and placeholders', function () {
     $subject = ['en' => 'Welcome', 'es' => 'Bienvenido'];
@@ -186,99 +165,6 @@ it('reports no missing placeholders when every value resolves', function () {
 
     expect($draft->missingPlaceholders('en'))->toBe([]);
 });
-
-it('submits a draft for review', function () {
-    $draft = draftWithTemplate();
-
-    $draft->submit();
-
-    expect($draft->fresh())
-        ->status->toBe(EmailDraftStatus::UnderReview)
-        ->submitted_at->not->toBeNull();
-});
-
-it('approves a draft under review', function () {
-    $approver = UserFactory::new()->create();
-    $draft = EmailDraft::factory()->underReview()->create();
-
-    $draft->approve($approver);
-
-    expect($draft->fresh())
-        ->status->toBe(EmailDraftStatus::Approved)
-        ->approved_at->not->toBeNull()
-        ->approved_by->toBe($approver->getKey());
-});
-
-it('publishes the rendered locales when approved', function () {
-    $draft = EmailDraft::factory()->underReview()->create();
-
-    $draft->approve(UserFactory::new()->create());
-
-    $files = $draft->fresh()->public_files;
-    expect($files)->toHaveKeys(['en', 'es']);
-    foreach ($files as $path) {
-        Storage::disk(config('email-composer.storage.disk'))->assertExists($path);
-    }
-});
-
-it('returns a draft under review to draft', function () {
-    $draft = EmailDraft::factory()->underReview()->create();
-
-    $draft->returnToDraft();
-
-    expect($draft->fresh())
-        ->status->toBe(EmailDraftStatus::Draft)
-        ->submitted_at->toBeNull();
-});
-
-it('returns an approved draft to draft and clears the approval', function () {
-    $draft = EmailDraft::factory()->approved()->create();
-
-    $draft->returnToDraft();
-
-    expect($draft->fresh())
-        ->status->toBe(EmailDraftStatus::Draft)
-        ->submitted_at->toBeNull()
-        ->approved_at->toBeNull()
-        ->approved_by->toBeNull();
-});
-
-it('unpublishes an approved draft returned to draft', function () {
-    $draft = EmailDraft::factory()->underReview()->create();
-    $draft->approve(UserFactory::new()->create());
-    $paths = $draft->fresh()->public_files;
-
-    $draft->fresh()->returnToDraft();
-
-    foreach ($paths as $path) {
-        Storage::disk(config('email-composer.storage.disk'))->assertMissing($path);
-    }
-    expect($draft->fresh()->public_files)->toBeNull();
-});
-
-it('rejects an invalid transition', function (string $state, string $action) {
-    $draft = $state === 'draft'
-        ? EmailDraft::factory()->create()
-        : EmailDraft::factory()->{$state}()->create();
-
-    $call = $action === 'approve'
-        ? fn () => $draft->approve(UserFactory::new()->create())
-        : fn () => $draft->{$action}();
-
-    expect($call)->toThrow(DomainException::class);
-})->with([
-    'approve while in draft' => ['draft', 'approve'],
-    'mark sent while in draft' => ['draft', 'markSent'],
-    'return a draft to draft' => ['draft', 'returnToDraft'],
-    'submit while under review' => ['underReview', 'submit'],
-    'mark sent while under review' => ['underReview', 'markSent'],
-    'submit while approved' => ['approved', 'submit'],
-    'return a sending draft to draft' => ['sending', 'returnToDraft'],
-    'return a sent draft to draft' => ['sent', 'returnToDraft'],
-    'mark an approved draft sent' => ['approved', 'markSent'],
-    'mark an already sent draft sent' => ['sent', 'markSent'],
-    'submit a sent draft' => ['sent', 'submit'],
-]);
 
 it('scopes drafts to their author', function () {
     $user = UserFactory::new()->create();
