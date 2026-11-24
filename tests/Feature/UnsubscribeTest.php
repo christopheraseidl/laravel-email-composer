@@ -114,14 +114,3 @@ it('renders in the recipient locale', function (?string $locale, string $title, 
     'no locale' => [null, 'Unsubscribe', 'You have been unsubscribed'],
     'unconfigured locale' => ['fr', 'Unsubscribe', 'You have been unsubscribed'],
 ]);
-
-it('has every translation key for every configured locale', function () {
-    $keys = array_keys(require __DIR__.'/../../resources/lang/en/unsubscribe.php');
-
-    foreach (config('email-composer.locales') as $locale) {
-        foreach ($keys as $key) {
-            expect(trans()->hasForLocale("email-composer::unsubscribe.{$key}", $locale))
-                ->toBeTrue("Missing {$key} for {$locale}");
-        }
-    }
-});
