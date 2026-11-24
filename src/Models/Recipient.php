@@ -69,16 +69,6 @@ class Recipient extends Model
     }
 
     /**
-     * Mark the recipient as unsubscribed, keeping the first unsubscribe time.
-     */
-    public function unsubscribe(): void
-    {
-        if ($this->unsubscribed_at === null) {
-            $this->update(['unsubscribed_at' => now()]);
-        }
-    }
-
-    /**
      * Scope the query to only include subscribed recipients.
      *
      * @param  Builder<self>  $query

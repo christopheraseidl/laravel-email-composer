@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Http\Controllers;
 
+use CSeidl\EmailComposer\Actions\Recipients\UnsubscribeRecipient;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class UnsubscribeController
 
     public function store(Recipient $recipient): View
     {
-        $recipient->unsubscribe();
+        app(UnsubscribeRecipient::class)($recipient);
 
         $this->useRecipientLocale($recipient);
 

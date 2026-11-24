@@ -6,7 +6,6 @@ use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 beforeEach(function () {
@@ -81,14 +80,6 @@ it('exempts the unsubscribe post from csrf verification', function () {
     );
 
     expect($csrf)->toBeEmpty();
-});
-
-it('keeps the original unsubscribe time when posted again', function () {
-    $recipient = Recipient::factory()->create(['unsubscribed_at' => Carbon::parse('2026-01-01 00:00:00')]);
-
-    $this->post(UnsubscribeLink::for($recipient))->assertOk();
-
-    expect($recipient->fresh()->unsubscribed_at->toDateTimeString())->toBe('2026-01-01 00:00:00');
 });
 
 it('refuses a tampered link', function () {

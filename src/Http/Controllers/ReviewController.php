@@ -3,6 +3,7 @@
 namespace CSeidl\EmailComposer\Http\Controllers;
 
 use Carbon\Carbon;
+use CSeidl\EmailComposer\Actions\Feedback\StoreReviewFeedback;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
@@ -53,7 +54,7 @@ class ReviewController
             'comment' => Str::lower(__('email-composer::review.fields.comment')),
         ]);
 
-        $draft->feedback()->create($validated);
+        app(StoreReviewFeedback::class)($draft, $validated);
 
         $locale = $this->locale($request);
 
