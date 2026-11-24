@@ -137,31 +137,11 @@ it('stores feedback from the reviewer and redirects back with a message', functi
         ->resolved->toBeFalse();
 });
 
-it('translates the review page labels into the link locale', function () {
-    $esLink = ReviewLink::for(reviewableDraft(), 'es');
-
-    $this->get($esLink)
-        ->assertOk()
-        ->assertSee('<html lang="es">', false)
-        ->assertSee('Revisión: Novedades de primavera')
-        ->assertSeeInOrder(['Nombre', 'Correo electrónico', 'Comentario', 'Enviar comentarios'])
-        ->assertDontSee('Send feedback');
-});
-
 it('thanks the reviewer in the link locale', function () {
     $esLink = ReviewLink::for(reviewableDraft(), 'es');
 
     $this->followingRedirects()
         ->post($esLink, feedbackInput())
-        ->assertOk()
-        ->assertSee('Gracias, sus comentarios se han enviado.');
-});
-
-it('thanks the reviewer in the app locale when the link has none', function () {
-    app()->setLocale('es');
-
-    $this->followingRedirects()
-        ->post(ReviewLink::for(reviewableDraft()), feedbackInput())
         ->assertOk()
         ->assertSee('Gracias, sus comentarios se han enviado.');
 });

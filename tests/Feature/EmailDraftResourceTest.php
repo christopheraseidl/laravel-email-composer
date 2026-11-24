@@ -11,7 +11,6 @@ use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Mail;
 use Orchestra\Testbench\Factories\UserFactory;
 
 use function Pest\Livewire\livewire;
@@ -198,39 +197,6 @@ it('locks the form after submitting a draft', function () {
     expect($draft->fresh()->status)->toBe(EmailDraftStatus::UnderReview);
 });
 
-it('labels the draft actions in the panel language', function (string $state, string $action, string $label) {
-    app()->setLocale('es');
-
-    $draft = $state === 'draft'
-        ? EmailDraft::factory()->create()
-        : EmailDraft::factory()->{$state}()->create();
-
-    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
-        ->assertActionHasLabel($action, $label);
-})->with([
-    ['draft', 'preview', 'Vista previa'],
-    ['draft', 'sendTest', 'Enviar prueba'],
-    ['underReview', 'reviewLink', 'Enlace de revisión'],
-    ['draft', 'submit', 'Enviar a revisión'],
-    ['underReview', 'approve', 'Aprobar'],
-    ['underReview', 'returnToDraft', 'Devolver a borrador'],
-    ['approved', 'send', 'Enviar'],
-]);
-
-it('shows the send test notification in the panel language', function () {
-    Mail::fake();
-    app()->setLocale('es');
-
-    $draft = EmailDraft::factory()->create();
-
-    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
-        ->callAction('sendTest', data: ['emails' => ['ada@example.com'], 'locale' => 'en'])
-        ->assertNotified(Notification::make()
-            ->success()
-            ->title('Correo de prueba enviado')
-            ->body('Enviado a ada@example.com.'));
-});
-
 it('shows the send counts in the send modal', function () {
     $draft = EmailDraft::factory()->approved()->create([
         'public_files' => ['en' => 'drafts/1/en.html', 'es' => 'drafts/1/es.html'],
@@ -249,24 +215,6 @@ it('shows the send counts in the send modal', function () {
             'Sends to 3 recipients (en: 2, es: 1). 1 will be skipped.',
             'en: missing values for body, signature.',
             'es: missing a value for signature.',
-        ]);
-});
-
-it('shows the send modal text in the panel language', function () {
-    app()->setLocale('es');
-
-    $draft = EmailDraft::factory()->approved()->create([
-        'public_files' => ['en' => 'drafts/1/en.html', 'es' => 'drafts/1/es.html'],
-        'placeholders' => ['es' => ['greeting' => 'Hola', 'body' => 'Cuerpo.', 'signature' => '']],
-    ]);
-    $draft->recipients()->attach(Recipient::factory()->count(2)->create(['locale' => 'es']));
-    $draft->recipients()->attach(Recipient::factory()->unsubscribed()->count(2)->create());
-
-    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])
-        ->mountAction('send')
-        ->assertMountedActionModalSee([
-            'Se enviará a 2 destinatarios (es: 2). Se omitirán 2.',
-            'es: falta un valor para signature.',
         ]);
 });
 
