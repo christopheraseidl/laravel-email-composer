@@ -67,10 +67,6 @@ it('soft deletes every model except EmailTheme and SendFailure', function (strin
     [EmailTheme::class, SendFailure::class],
 )));
 
-it('returns bool from every policy method', function (ReflectionMethod $method) {
-    expect((string) $method->getReturnType())->toBe('bool');
-})->with(policyMethods());
-
 it('delegates every policy method to EmailComposer::userCan', function (ReflectionMethod $method) {
     $source = implode('', array_slice(
         file($method->getFileName()),

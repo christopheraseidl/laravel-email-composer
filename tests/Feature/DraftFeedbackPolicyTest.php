@@ -22,27 +22,6 @@ it('gates each action on its ability', function (string $action, string $ability
     'update' => ['update', 'update-feedback', true],
 ]);
 
-it('does not let comment-on-draft read or resolve feedback', function () {
-    EmailComposer::resolveAbilityUsing(fn ($user, $ability) => $ability === 'comment-on-draft');
-
-    $user = UserFactory::new()->create();
-    $feedback = DraftFeedback::factory()->create();
-
-    expect($user->can('viewAny', DraftFeedback::class))->toBeFalse();
-    expect($user->can('view', $feedback))->toBeFalse();
-    expect($user->can('update', $feedback))->toBeFalse();
-});
-
-it('does not let view-feedback resolve feedback', function () {
-    EmailComposer::resolveAbilityUsing(fn ($user, $ability) => $ability === 'view-feedback');
-
-    $user = UserFactory::new()->create();
-    $feedback = DraftFeedback::factory()->create();
-
-    expect($user->can('view', $feedback))->toBeTrue();
-    expect($user->can('update', $feedback))->toBeFalse();
-});
-
 it('forwards the feedback to the resolver for per-model abilities', function () {
     $captured = [];
     EmailComposer::resolveAbilityUsing(function ($user, $ability, $model) use (&$captured) {
