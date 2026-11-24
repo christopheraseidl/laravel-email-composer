@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\RelationManagers;
 
+use CSeidl\EmailComposer\Actions\Feedback\ToggleFeedbackResolved;
 use CSeidl\EmailComposer\Models\DraftFeedback;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
@@ -77,7 +78,7 @@ class FeedbackRelationManager extends RelationManager
                     ->icon(fn (DraftFeedback $record) => $record->resolved
                         ? Heroicon::OutlinedArrowUturnLeft
                         : Heroicon::OutlinedCheckCircle)
-                    ->action(fn (DraftFeedback $record) => $record->update(['resolved' => ! $record->resolved]))
+                    ->action(fn (DraftFeedback $record) => app(ToggleFeedbackResolved::class)($record))
                     ->authorize(fn (DraftFeedback $record) => Gate::allows('update', $record)),
             ])
             ->defaultSort('created_at', 'desc')
