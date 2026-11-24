@@ -235,16 +235,18 @@ EmailTheme::current()->update(['logo_url' => $url]);
 
 ## Drafts
 
-A draft moves through these statuses, each with a matching panel action:
+A draft moves through these statuses, each with a matching panel action.
+The action classes are in `CSeidl\EmailComposer\Actions\Drafts`.
 
 1. `draft`: editable
-2. `under_review`: read-only and open to review links (`$draft->submit()`)
-3. `approved`: one HTML file stored per locale (`$draft->approve($user)`)
+2. `under_review`: read-only and open to review links (`app(SubmitDraft::class)($draft)`)
+3. `approved`: one HTML file stored per locale (`app(ApproveDraft::class)($draft, $user)`)
 4. `sending`: recipient jobs queued (`EmailComposer::send($draft)`)
 5. `sent`: every recipient job has run
 6. `cancelled`: the send was cancelled before reaching every recipient
 
-`$draft->returnToDraft()` moves an `under_review` draft back to `draft`.
+`app(ReturnDraftToDraft::class)($draft)` moves an `under_review` draft
+back to `draft`.
 
 `subject` and `placeholders` are translatable. Edit each locale with the
 locale switcher on the draft page. Missing values fall back to

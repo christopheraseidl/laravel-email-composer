@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 
+use CSeidl\EmailComposer\Actions\Drafts\ReturnDraftToDraft;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -19,7 +20,7 @@ class ReturnToDraftAction
             ->requiresConfirmation()
             ->action(function (EmailDraft $record) {
                 try {
-                    $record->returnToDraft();
+                    app(ReturnDraftToDraft::class)($record);
                 } catch (\DomainException $e) {
                     Notification::make()
                         ->danger()

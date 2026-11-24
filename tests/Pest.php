@@ -1,5 +1,7 @@
 <?php
 
+use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Models\EmailTemplate;
 use CSeidl\EmailComposer\Tests\TestCase;
 
 uses(TestCase::class)->in(__DIR__);
@@ -29,5 +31,25 @@ function workDatabaseQueue(bool $once = false): void
         '--sleep' => 0,
         '--memory' => 4096,
         $once ? '--once' : '--stop-when-empty' => true,
+    ]);
+}
+
+/**
+ * Create a draft backed by a template that declares the given placeholders.
+ *
+ * @param  array<string, mixed>  $attributes
+ * @param  array<int, string>  $placeholders
+ */
+function draftWithTemplate(array $attributes = [], array $placeholders = ['greeting', 'body']): EmailDraft
+{
+    $template = EmailTemplate::factory()->create([
+        'key' => 'greeting-and-body',
+        'body' => '<div>[[ greeting ]]</div><div>[[ body ]]</div>',
+        'placeholders' => $placeholders,
+    ]);
+
+    return EmailDraft::factory()->create([
+        'email_template_id' => $template->id,
+        ...$attributes,
     ]);
 }

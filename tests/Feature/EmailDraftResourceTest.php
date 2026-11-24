@@ -1,5 +1,9 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
+use CSeidl\EmailComposer\Actions\Drafts\ReturnDraftToDraft;
+use CSeidl\EmailComposer\Actions\Drafts\SendDraft;
+use CSeidl\EmailComposer\Actions\Drafts\SubmitDraft;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
@@ -158,6 +162,19 @@ it('locks the form after submitting a draft', function () {
 
     expect($draft->fresh()->status)->toBe(EmailDraftStatus::UnderReview);
 });
+
+it('calls the draft action bound in the container', function (EmailDraftStatus $status, string $name, string $action) {
+    $draft = EmailDraft::factory()->create(['status' => $status]);
+    $draft->recipients()->attach(Recipient::factory()->create());
+    $this->mock($action)->shouldReceive('__invoke')->once();
+
+    livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])->callAction($name);
+})->with([
+    'submit' => [EmailDraftStatus::Draft, 'submit', SubmitDraft::class],
+    'approve' => [EmailDraftStatus::UnderReview, 'approve', ApproveDraft::class],
+    'return to draft' => [EmailDraftStatus::UnderReview, 'returnToDraft', ReturnDraftToDraft::class],
+    'send' => [EmailDraftStatus::Approved, 'send', SendDraft::class],
+]);
 
 it('shows the send counts in the send modal', function () {
     $draft = EmailDraft::factory()->approved()->create([

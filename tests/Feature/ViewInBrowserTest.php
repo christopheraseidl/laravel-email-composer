@@ -1,5 +1,6 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\EmailTemplate;
 use Illuminate\Support\Facades\Storage;
@@ -25,7 +26,7 @@ function publishedDraft(bool $published = true): EmailDraft
     ]);
 
     if ($published) {
-        $draft->approve(UserFactory::new()->create());
+        app(ApproveDraft::class)($draft, UserFactory::new()->create());
     }
 
     return $draft;

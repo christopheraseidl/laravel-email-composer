@@ -1,12 +1,12 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\SendDraft;
 use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
-use CSeidl\EmailComposer\Services\DraftDispatcher;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Gate;
 
@@ -25,8 +25,8 @@ it('shows a lost send claim as an error notification', function () {
     $draft = EmailDraft::factory()->approved()->create(['audience' => EmailAudience::Selected]);
     $draft->recipients()->attach(Recipient::factory()->create());
 
-    $this->partialMock(DraftDispatcher::class)
-        ->shouldReceive('dispatch')
+    $this->partialMock(SendDraft::class)
+        ->shouldReceive('__invoke')
         ->andThrow(new DomainException("Cannot send draft #{$draft->id}: it is already sending or sent."));
 
     livewire(EditEmailDraft::class, ['record' => $draft->getRouteKey()])

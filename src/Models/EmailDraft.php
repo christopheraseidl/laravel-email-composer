@@ -7,10 +7,8 @@ use CSeidl\EmailComposer\Database\Factories\EmailDraftFactory;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
-use CSeidl\EmailComposer\Services\DraftPublisher;
 use CSeidl\EmailComposer\Templates\FileTemplate;
 use CSeidl\EmailComposer\Templates\TemplateRenderer;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -261,32 +259,6 @@ class EmailDraft extends Model
         ]);
     }
 
-    public function submit(): void
-    {
-        $this->assertStatus(EmailDraftStatus::Draft, 'cannot_submit');
-        $this->update([
-            'status' => EmailDraftStatus::UnderReview,
-            'submitted_at' => now(),
-        ]);
-    }
-
-    public function approve(Authenticatable $approver): void
-    {
-        $this->assertStatus(EmailDraftStatus::UnderReview, 'cannot_approve');
-
-        if (! $this->resolveTemplate()) {
-            throw new \DomainException(__('email-composer::drafts.notifications.no_template', ['id' => $this->id]));
-        }
-
-        $this->update([
-            'status' => EmailDraftStatus::Approved,
-            'approved_at' => now(),
-            'approved_by' => $approver->getAuthIdentifier(),
-        ]);
-
-        app(DraftPublisher::class)->publish($this->refresh());
-    }
-
     /**
      * Reloads the draft and locks its row until the transaction ends. QueueSends, RetryDeliveries
      * and CancelSend each take it before changing the status, so none acts on rows another is changing.
@@ -300,49 +272,12 @@ class EmailDraft extends Model
     }
 
     /**
-     * Whether a sent draft is sending again to recipients it did not reach. Only markSent sets
+     * Whether a sent draft is sending again to recipients it did not reach. Only MarkDraftSent sets
      * sent_at, and a sent draft never sends to its whole audience again.
      */
     public function isRetryingSent(): bool
     {
         return $this->status === EmailDraftStatus::Sending && $this->sent_at !== null;
-    }
-
-    public function markSent(): void
-    {
-        $this->assertStatus(EmailDraftStatus::Sending, 'cannot_mark_sent');
-        // A retry ends sent again and keeps the first send's time.
-        $this->update([
-            'status' => EmailDraftStatus::Sent,
-            'sent_at' => $this->sent_at ?? now(),
-        ]);
-    }
-
-    public function markCancelled(): void
-    {
-        $this->assertStatus(EmailDraftStatus::Sending, 'cannot_mark_cancelled');
-        $this->update([
-            'status' => EmailDraftStatus::Cancelled,
-        ]);
-    }
-
-    public function returnToDraft(): void
-    {
-        if (! $this->canReturnToDraft()) {
-            throw new \DomainException(__('email-composer::drafts.notifications.cannot_return', [
-                'id' => $this->id,
-                'status' => $this->status->label(),
-            ]));
-        }
-
-        $this->update([
-            'status' => EmailDraftStatus::Draft,
-            'submitted_at' => null,
-            'approved_at' => null,
-            'approved_by' => null,
-        ]);
-
-        app(DraftPublisher::class)->unpublish($this);
     }
 
     // Excludes the statuses that cannot return rather than listing the ones
@@ -354,18 +289,6 @@ class EmailDraft extends Model
             EmailDraftStatus::Sending,
             EmailDraftStatus::Sent,
         ], true);
-    }
-
-    /** @param  string  $message  a key in the drafts notifications group */
-    protected function assertStatus(EmailDraftStatus $expected, string $message): void
-    {
-        if ($this->status !== $expected) {
-            throw new \DomainException(__("email-composer::drafts.notifications.{$message}", [
-                'id' => $this->id,
-                'status' => $this->status->label(),
-                'expected' => $expected->label(),
-            ]));
-        }
     }
 
     /** @param Builder<self> $query */

@@ -2,10 +2,10 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 
+use CSeidl\EmailComposer\Actions\Drafts\SendDraft;
 use CSeidl\EmailComposer\Actions\Drafts\SummarizeSend;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
-use CSeidl\EmailComposer\Services\DraftDispatcher;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -27,7 +27,7 @@ class SendDraftAction
             ->tooltip(fn ($record) => static::lacksAudience($record) ? __('email-composer::drafts.tooltips.lacks_audience') : null)
             ->action(function ($record) {
                 try {
-                    app(DraftDispatcher::class)->dispatch($record);
+                    app(SendDraft::class)($record);
                 } catch (\DomainException $e) {
                     Notification::make()
                         ->danger()

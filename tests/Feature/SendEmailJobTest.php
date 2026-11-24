@@ -1,5 +1,6 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
 use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
 use CSeidl\EmailComposer\Jobs\SendEmailJob;
 use CSeidl\EmailComposer\Mail\ComposedEmail;
@@ -38,7 +39,7 @@ function sendableDraft(): EmailDraft
         ],
     ]);
 
-    $draft->approve(UserFactory::new()->create());
+    app(ApproveDraft::class)($draft, UserFactory::new()->create());
 
     return $draft;
 }

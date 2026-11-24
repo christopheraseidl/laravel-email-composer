@@ -2,6 +2,7 @@
 
 namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
@@ -18,7 +19,7 @@ class ApproveDraftAction
             ->requiresConfirmation()
             ->action(function ($record) {
                 try {
-                    $record->approve(auth()->user());
+                    app(ApproveDraft::class)($record, auth()->authenticate());
                 } catch (\DomainException $e) {
                     Notification::make()
                         ->danger()

@@ -3,11 +3,11 @@
 namespace CSeidl\EmailComposer;
 
 use Closure;
+use CSeidl\EmailComposer\Actions\Drafts\SendDraft;
 use CSeidl\EmailComposer\Actions\Drafts\SummarizeSend;
 use CSeidl\EmailComposer\Data\SendSummary;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\ConfigService;
-use CSeidl\EmailComposer\Services\DraftDispatcher;
 use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
@@ -46,10 +46,10 @@ class EmailComposer
         return app(TemplateRegistry::class);
     }
 
-    /** @throws \DomainException see DraftDispatcher::dispatch() */
+    /** @throws \DomainException see SendDraft::__invoke() */
     public static function send(EmailDraft $draft): void
     {
-        app(DraftDispatcher::class)->dispatch($draft);
+        app(SendDraft::class)($draft);
     }
 
     /** @throws \DomainException see SummarizeSend::__invoke() */
