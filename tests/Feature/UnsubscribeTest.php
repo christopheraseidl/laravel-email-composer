@@ -25,6 +25,7 @@ it('builds a link without expiry when no ttl is configured', function () {
 });
 
 it('builds a link that expires after the configured ttl', function () {
+    $this->freezeTime();
     config()->set('email-composer.unsubscribe.link_ttl_days', 3);
     $link = UnsubscribeLink::for(Recipient::factory()->create());
 

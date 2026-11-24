@@ -231,6 +231,7 @@ it('retries for a day', function () {
 });
 
 it('sends the configured number per window and hands back the rest until it ends', function (array $limits, int $window) {
+    $this->freezeTime();
     config(collect($limits)->mapWithKeys(fn ($value, $key) => ["email-composer.queue.{$key}" => $value])->all());
     $this->mock(EmailSenderInterface::class)->shouldReceive('send')->times(3);
     $draft = sendableDraft();
@@ -366,6 +367,7 @@ it('records no failures for a send that succeeds', function () {
 });
 
 it('keeps the rate limit slot of a send that throws', function () {
+    $this->freezeTime();
     config(['email-composer.queue.rate_limit_per_minute' => 1]);
     $this->mock(EmailSenderInterface::class)
         ->shouldReceive('send')
