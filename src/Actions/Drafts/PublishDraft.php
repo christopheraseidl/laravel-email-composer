@@ -5,7 +5,6 @@ namespace CSeidl\EmailComposer\Actions\Drafts;
 use CSeidl\EmailComposer\Actions\Drafts\Concerns\LocatesPublishedFiles;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\ConfigService;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Renders the draft once per locale and stores each as private text. Only the
@@ -20,7 +19,7 @@ class PublishDraft
     /** @return array<string, string> the { locale: storage-relative path } map, also saved on the draft */
     public function __invoke(EmailDraft $draft): array
     {
-        $disk = Storage::disk($this->config->storageDisk());
+        $disk = $this->config->storage();
         $directory = $this->directoryFor($draft);
 
         $paths = [];

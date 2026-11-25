@@ -5,7 +5,6 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 use CSeidl\EmailComposer\Actions\Drafts\ReturnDraftToDraft;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
@@ -18,17 +17,10 @@ class ReturnToDraftAction
             ->icon(Heroicon::OutlinedArrowUturnLeft)
             ->color('gray')
             ->requiresConfirmation()
-            ->action(function (EmailDraft $record) {
-                try {
-                    app(ReturnDraftToDraft::class)($record);
-                } catch (\DomainException $e) {
-                    Notification::make()
-                        ->danger()
-                        ->title(__('email-composer::drafts.notifications.not_returned'))
-                        ->body($e->getMessage())
-                        ->send();
-                }
-            })
+            ->action(fn (EmailDraft $record) => NotifiesDomainErrors::run(
+                fn () => app(ReturnDraftToDraft::class)($record),
+                __('email-composer::drafts.notifications.not_returned'),
+            ))
             ->authorize(fn (EmailDraft $record) => Gate::allows('returnToDraft', $record));
     }
 }

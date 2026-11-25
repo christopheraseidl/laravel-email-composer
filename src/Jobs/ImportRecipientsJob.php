@@ -7,6 +7,7 @@ use CSeidl\EmailComposer\Contracts\ImportNotifierInterface;
 use CSeidl\EmailComposer\Data\ImportResult;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\RecipientList;
+use CSeidl\EmailComposer\Services\ConfigService;
 use CSeidl\EmailComposer\Support\CsvReader;
 use Illuminate\Bus\Batch;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -16,7 +17,6 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Traits\Localizable;
 use Throwable;
@@ -70,14 +70,15 @@ class ImportRecipientsJob implements ShouldQueue
             ->onQueue(EmailComposer::config()->queueName());
     }
 
-    public function handle(CsvReader $reader, ImportNotifierInterface $notifier): void
+    public function handle(CsvReader $reader, ImportNotifierInterface $notifier, ConfigService $config): void
     {
-        static::inLocale($this->locale, fn () => $this->import($reader, $notifier));
+        static::inLocale($this->locale, fn () => $this->import($reader, $notifier, $config));
     }
 
-    protected function import(CsvReader $reader, ImportNotifierInterface $notifier): void
+    protected function import(CsvReader $reader, ImportNotifierInterface $notifier, ConfigService $config): void
     {
-        $this->pruneStaleUploads();
+        $disk = $config->storage();
+        $this->pruneStaleUploads($disk, $config->importsPath());
 
         $local = tempnam(sys_get_temp_dir(), 'email-composer-import-')
             ?: throw new \RuntimeException('Cannot create a temporary file for the import.');
@@ -87,8 +88,8 @@ class ImportRecipientsJob implements ShouldQueue
                 throw new \DomainException(__('email-composer::import.notifications.missing_list'));
             }
 
-            $this->copyToLocal($local);
-            $parts = $this->split($reader, $local);
+            $this->copyToLocal($disk, $local);
+            $parts = $this->split($reader, $local, $config->importRowsPerPart());
         } catch (\DomainException $e) {
             $user = static::user($this->userId);
 
@@ -99,7 +100,7 @@ class ImportRecipientsJob implements ShouldQueue
             return;
         } finally {
             File::delete($local);
-            $this->disk()->delete($this->path);
+            $disk->delete($this->path);
         }
 
         if ($parts === []) {
@@ -125,8 +126,8 @@ class ImportRecipientsJob implements ShouldQueue
         ))
             ->name('email-composer: import recipients')
             ->allowFailures()
-            ->when(EmailComposer::config()->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))
-            ->onQueue(EmailComposer::config()->queueName())
+            ->when($config->queueConnection(), fn ($batch, $connection) => $batch->onConnection($connection))
+            ->onQueue($config->queueName())
             ->finally(static fn (Batch $batch) => static::notifyTotals($importId, $userId, $count, $batch->failedJobs, $locale))
             ->dispatch();
     }
@@ -136,7 +137,7 @@ class ImportRecipientsJob implements ShouldQueue
      */
     public function failed(Throwable $e): void
     {
-        $this->disk()->delete($this->path);
+        EmailComposer::config()->storage()->delete($this->path);
 
         $user = static::user($this->userId);
 
@@ -175,7 +176,7 @@ class ImportRecipientsJob implements ShouldQueue
      *
      * @throws \DomainException when the file has no email column
      */
-    protected function split(CsvReader $reader, string $local): array
+    protected function split(CsvReader $reader, string $local, int $rowsPerPart): array
     {
         $rows = $bytes = 0;
 
@@ -185,7 +186,7 @@ class ImportRecipientsJob implements ShouldQueue
         }
 
         $parts = (int) max(
-            ceil($rows / EmailComposer::config()->importRowsPerPart()),
+            ceil($rows / $rowsPerPart),
             ceil($bytes / self::MAX_PART_BYTES),
         );
 
@@ -219,12 +220,11 @@ class ImportRecipientsJob implements ShouldQueue
     }
 
     /** Delete uploads left behind by imports that were lost before they ran. */
-    protected function pruneStaleUploads(): void
+    protected function pruneStaleUploads(Filesystem $disk, string $importsPath): void
     {
-        $disk = $this->disk();
         $cutoff = now()->getTimestamp() - self::STALE_UPLOAD_SECONDS;
 
-        foreach ($disk->files(EmailComposer::config()->importsPath()) as $file) {
+        foreach ($disk->files($importsPath) as $file) {
             if ($file !== $this->path && $disk->lastModified($file) < $cutoff) {
                 $disk->delete($file);
             }
@@ -232,9 +232,9 @@ class ImportRecipientsJob implements ShouldQueue
     }
 
     /** The reader uses SplFileObject, which needs a local path. */
-    protected function copyToLocal(string $local): void
+    protected function copyToLocal(Filesystem $disk, string $local): void
     {
-        $stream = $this->disk()->readStream($this->path)
+        $stream = $disk->readStream($this->path)
             ?? throw new \RuntimeException("Cannot read the uploaded file {$this->path}.");
 
         try {
@@ -264,10 +264,5 @@ class ImportRecipientsJob implements ShouldQueue
         {
             use Localizable;
         })->withLocale($locale, $callback);
-    }
-
-    protected function disk(): Filesystem
-    {
-        return Storage::disk(EmailComposer::config()->storageDisk());
     }
 }

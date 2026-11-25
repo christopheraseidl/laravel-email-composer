@@ -21,25 +21,15 @@ class ResumeSendAction
             ->requiresConfirmation()
             ->modalDescription(fn (EmailDraft $record) => trans_choice('email-composer::drafts.confirmations.resume_send', static::unreached($record)))
             ->visible(fn (EmailDraft $record) => $record->status === EmailDraftStatus::Cancelled && static::unreached($record) > 0)
-            ->action(function (EmailDraft $record) {
-                try {
-                    $count = app(ResumeSend::class)($record);
-                } catch (\DomainException $e) {
-                    Notification::make()
-                        ->danger()
-                        ->title(__('email-composer::drafts.notifications.not_resumed'))
-                        ->body($e->getMessage())
-                        ->send();
-
-                    return;
-                }
-
-                Notification::make()
+            ->action(fn (EmailDraft $record) => NotifiesDomainErrors::run(
+                fn () => app(ResumeSend::class)($record),
+                __('email-composer::drafts.notifications.not_resumed'),
+                fn (int $count) => Notification::make()
                     ->success()
                     ->title(__('email-composer::drafts.notifications.send_resumed'))
                     ->body(trans_choice('email-composer::drafts.notifications.resumed', $count))
-                    ->send();
-            })
+                    ->send(),
+            ))
             ->authorize(fn (EmailDraft $record) => Gate::allows('resume', $record));
     }
 

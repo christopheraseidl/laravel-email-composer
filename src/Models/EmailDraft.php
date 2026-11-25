@@ -178,6 +178,15 @@ class EmailDraft extends Model
             ?? null;
     }
 
+    /** The published file's contents, or null when there is no file for the locale or it is missing. */
+    public function publishedHtml(string $locale): ?string
+    {
+        $path = $this->publicFileFor($locale);
+        $disk = EmailComposer::config()->storage();
+
+        return $path !== null && $disk->exists($path) ? $disk->get($path) : null;
+    }
+
     /**
      * The locale a recipient is sent in: their preferred one when the draft
      * was published in it, otherwise the default.

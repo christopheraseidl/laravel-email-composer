@@ -4,7 +4,6 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 
 use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
@@ -17,17 +16,10 @@ class ApproveDraftAction
             ->icon(Heroicon::OutlinedCheckCircle)
             ->color('info')
             ->requiresConfirmation()
-            ->action(function ($record) {
-                try {
-                    app(ApproveDraft::class)($record, auth()->authenticate());
-                } catch (\DomainException $e) {
-                    Notification::make()
-                        ->danger()
-                        ->title(__('email-composer::drafts.notifications.not_approved'))
-                        ->body($e->getMessage())
-                        ->send();
-                }
-            })
+            ->action(fn ($record) => NotifiesDomainErrors::run(
+                fn () => app(ApproveDraft::class)($record, auth()->authenticate()),
+                __('email-composer::drafts.notifications.not_approved'),
+            ))
             ->authorize(fn ($record) => Gate::allows('approve', $record));
     }
 }

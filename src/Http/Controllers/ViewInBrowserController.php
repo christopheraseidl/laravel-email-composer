@@ -2,25 +2,23 @@
 
 namespace CSeidl\EmailComposer\Http\Controllers;
 
-use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Services\ConfigService;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 
 class ViewInBrowserController
 {
+    public function __construct(protected ConfigService $config) {}
+
     /**
      * Show the published draft HTML.
      */
     public function show(EmailDraft $draft, string $locale): Response
     {
-        $path = $draft->publicFileFor($locale);
+        abort_if($draft->publicFileFor($locale) === null, 404);
 
-        abort_if($path === null, 404);
-
-        $disk = Storage::disk(EmailComposer::config()->storageDisk());
-        $html = ($disk->exists($path) ? $disk->get($path) : null)
-            ?? rescue(fn () => $draft->renderFor(EmailComposer::config()->localeOrDefault($locale)), null, false);
+        $html = $draft->publishedHtml($locale)
+            ?? rescue(fn () => $draft->renderFor($this->config->localeOrDefault($locale)), null, false);
 
         abort_if($html === null, 404);
 

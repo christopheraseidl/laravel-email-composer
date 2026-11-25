@@ -7,7 +7,6 @@ use CSeidl\EmailComposer\Actions\Drafts\SummarizeSend;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Gate;
@@ -25,17 +24,10 @@ class SendDraftAction
             ->modalDescription(fn ($record) => static::summary($record))
             ->disabled(fn ($record) => static::lacksAudience($record))
             ->tooltip(fn ($record) => static::lacksAudience($record) ? __('email-composer::drafts.tooltips.lacks_audience') : null)
-            ->action(function ($record) {
-                try {
-                    app(SendDraft::class)($record);
-                } catch (\DomainException $e) {
-                    Notification::make()
-                        ->danger()
-                        ->title(__('email-composer::drafts.notifications.not_sent'))
-                        ->body($e->getMessage())
-                        ->send();
-                }
-            })
+            ->action(fn ($record) => NotifiesDomainErrors::run(
+                fn () => app(SendDraft::class)($record),
+                __('email-composer::drafts.notifications.not_sent'),
+            ))
             ->authorize(fn ($record) => Gate::allows('send', $record));
     }
 

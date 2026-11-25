@@ -2,7 +2,9 @@
 
 namespace CSeidl\EmailComposer\Services;
 
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Typed reads of the email-composer config. Fallbacks cover nested keys,
@@ -33,6 +35,12 @@ class ConfigService
     public function storageDisk(): ?string
     {
         return $this->stringOrNull('email-composer.storage.disk');
+    }
+
+    /** The storage disk itself. */
+    public function storage(): Filesystem
+    {
+        return Storage::disk($this->storageDisk());
     }
 
     public function storagePath(): string

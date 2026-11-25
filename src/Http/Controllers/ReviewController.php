@@ -4,10 +4,10 @@ namespace CSeidl\EmailComposer\Http\Controllers;
 
 use Carbon\Carbon;
 use CSeidl\EmailComposer\Actions\Feedback\StoreReviewFeedback;
-use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Review\ReviewLink;
+use CSeidl\EmailComposer\Services\ConfigService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -15,11 +15,13 @@ use Illuminate\Support\Str;
 
 class ReviewController
 {
+    public function __construct(protected ConfigService $config) {}
+
     public function show(Request $request, EmailDraft $draft): Response
     {
         $this->ensureUnderReview($draft);
 
-        $locales = EmailComposer::config()->locales();
+        $locales = $this->config->locales();
         $locale = $this->locale($request);
 
         $expires = Carbon::createFromTimestamp((int) $request->query('expires'));
@@ -65,10 +67,9 @@ class ReviewController
     /** The link's locale, then the app's, then default_locale; the first one configured wins. */
     protected function locale(Request $request): string
     {
-        $config = EmailComposer::config();
         $locale = $request->query('locale');
 
-        return $config->localeOrDefault(in_array($locale, $config->locales(), true) ? $locale : app()->getLocale());
+        return $this->config->localeOrDefault(in_array($locale, $this->config->locales(), true) ? $locale : app()->getLocale());
     }
 
     protected function ensureUnderReview(EmailDraft $draft): void

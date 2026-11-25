@@ -2,7 +2,6 @@
 
 namespace CSeidl\EmailComposer\Mail;
 
-use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Unsubscribe\UnsubscribeLink;
@@ -10,7 +9,6 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
-use Illuminate\Support\Facades\Storage;
 
 class ComposedEmail extends Mailable
 {
@@ -42,10 +40,7 @@ class ComposedEmail extends Mailable
 
     public function content(): Content
     {
-        $disk = Storage::disk(EmailComposer::config()->storageDisk());
-        $path = $this->draft->publicFileFor($this->draftLocale);
-        $body = ($path && $disk->exists($path) ? $disk->get($path) : null)
-            ?? $this->draft->renderFor($this->draftLocale);
+        $body = $this->draft->publishedHtml($this->draftLocale) ?? $this->draft->renderFor($this->draftLocale);
         $viewInBrowserUrl = $this->draft->viewInBrowserUrl($this->draftLocale);
 
         $text = (new HtmlToText)->convert($body)."\n\n"
