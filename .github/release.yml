@@ -1,0 +1,16 @@
+changelog:
+  categories:
+    - title: Added
+      labels: [feature]
+
+    - title: Fixed
+      labels: [fix]
+
+    - title: Changed
+      labels: [internal]
+
+    - title: Dependencies
+      labels: [dependencies]
+
+    - title: Other Changes
+      labels: ['*']
