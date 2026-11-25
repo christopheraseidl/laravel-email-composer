@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\RecipientLists;
 
 use BackedEnum;
 use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
+use CSeidl\EmailComposer\Filament\Concerns\HasLocaleCasedLabels;
 use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\CreateRecipientList;
 use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\EditRecipientList;
 use CSeidl\EmailComposer\Filament\Resources\RecipientLists\Pages\ListRecipientLists;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class RecipientListResource extends Resource
 {
     use HasEmailComposerNavigation;
+    use HasLocaleCasedLabels;
 
     protected static ?string $model = RecipientList::class;
 

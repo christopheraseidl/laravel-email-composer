@@ -23,6 +23,12 @@ class ConfigService
         return config()->array('email-composer.locales', [$this->defaultLocale()]);
     }
 
+    /** @return array<int, string> */
+    public function titleCaseLocales(): array
+    {
+        return config()->array('email-composer.title_case_locales', ['en']);
+    }
+
     /** The given locale when it is configured, otherwise the default. */
     public function localeOrDefault(mixed $locale): string
     {
