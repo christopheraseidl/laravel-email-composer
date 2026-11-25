@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailTemplates;
 
 use BackedEnum;
 use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
+use CSeidl\EmailComposer\Filament\Concerns\HasLocaleCasedLabels;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\CreateEmailTemplate;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\EditEmailTemplate;
 use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\Pages\ListEmailTemplates;
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class EmailTemplateResource extends Resource
 {
     use HasEmailComposerNavigation;
+    use HasLocaleCasedLabels;
 
     protected static ?string $model = EmailTemplate::class;
 

@@ -6,6 +6,9 @@ return [
     // (or equal to) the host app's available locales.
     'locales' => ['en', 'es'],
     'default_locale' => 'en',
+    // Locales whose panel titles capitalize every word. Others capitalize
+    // only the first letter.
+    'title_case_locales' => ['en'],
 
     // Where rendered email HTML is stored.
     'storage' => [

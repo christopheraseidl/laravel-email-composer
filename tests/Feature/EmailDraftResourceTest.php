@@ -7,6 +7,7 @@ use CSeidl\EmailComposer\Actions\Drafts\SubmitDraft;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailAudience;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
@@ -379,3 +380,12 @@ it('selects the file template when editing a draft that uses one', function () {
     livewire(EditEmailDraft::class, ['record' => $draft->getKey()])
         ->assertSchemaStateSet(['template' => 'file:default']);
 });
+
+it('cases resource titles for the locale', function (string $locale, string $title) {
+    app()->setLocale($locale);
+
+    expect(EmailDraftResource::getTitleCasePluralModelLabel())->toBe($title);
+})->with([
+    ['en', 'Email Drafts'],
+    ['es', 'Borradores de correo'],
+]);

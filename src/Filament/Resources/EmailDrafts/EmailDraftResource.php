@@ -5,6 +5,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts;
 use BackedEnum;
 use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Filament\Concerns\HasEmailComposerNavigation;
+use CSeidl\EmailComposer\Filament\Concerns\HasLocaleCasedLabels;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\CreateEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\EditEmailDraft;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Pages\ListEmailDrafts;
@@ -24,6 +25,7 @@ use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 class EmailDraftResource extends Resource
 {
     use HasEmailComposerNavigation;
+    use HasLocaleCasedLabels;
     use Translatable;
 
     protected static ?string $model = EmailDraft::class;

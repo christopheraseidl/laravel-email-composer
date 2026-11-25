@@ -23,6 +23,7 @@ it('returns the configured value', function (string $method, string $key, mixed 
 })->with([
     ['defaultLocale', 'default_locale', 'es'],
     ['locales', 'locales', ['en', 'fr']],
+    ['titleCaseLocales', 'title_case_locales', ['en', 'de']],
     ['storageDisk', 'storage.disk', 's3'],
     ['storagePath', 'storage.path', 'mail'],
     ['publicDisk', 'storage.public_disk', 's3'],
@@ -48,6 +49,7 @@ it('falls back when the key is unset', function (string $method, string $key, mi
     expect(EmailComposer::config()->{$method}())->toBe($fallback);
 })->with([
     ['defaultLocale', 'default_locale', 'en'],
+    ['titleCaseLocales', 'title_case_locales', ['en']],
     ['storageDisk', 'storage.disk', null],
     ['storagePath', 'storage.path', 'email-composer'],
     ['publicDisk', 'storage.public_disk', 'public'],
