@@ -1,0 +1,8 @@
+feature:
+  - head-branch: ['^feat/']
+
+fix:
+  - head-branch: ['^fix/']
+
+internal:
+  - head-branch: ['^refactor/', '^perf/', '^style/', '^test/', '^build/', '^ci/', '^chore/', '^docs/']
