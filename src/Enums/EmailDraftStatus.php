@@ -16,6 +16,12 @@ enum EmailDraftStatus: string
         return __('email-composer::drafts.status.'.$this->value);
     }
 
+    /** Sending has begun, whether it is running, finished or cancelled. */
+    public function isFinal(): bool
+    {
+        return in_array($this, [self::Sending, self::Sent, self::Cancelled], true);
+    }
+
     public function color(): string
     {
         return match ($this) {

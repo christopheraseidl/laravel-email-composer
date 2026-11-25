@@ -34,23 +34,15 @@ class SendTestAction
             ->action(function (EmailDraft $record, array $data) {
                 $emails = $data['emails'] ?? [];
 
-                try {
-                    app(SendTestEmail::class)($record, $emails, EmailComposer::config()->localeOrDefault($data['locale'] ?? null));
-                } catch (\DomainException $e) {
-                    Notification::make()
-                        ->danger()
-                        ->title(__('email-composer::drafts.notifications.test_not_sent'))
-                        ->body($e->getMessage())
-                        ->send();
-
-                    return;
-                }
-
-                Notification::make()
-                    ->success()
-                    ->title(__('email-composer::drafts.notifications.test_sent'))
-                    ->body(__('email-composer::drafts.notifications.test_sent_body', ['emails' => implode(', ', $emails)]))
-                    ->send();
+                NotifiesDomainErrors::run(
+                    fn () => app(SendTestEmail::class)($record, $emails, EmailComposer::config()->localeOrDefault($data['locale'] ?? null)),
+                    __('email-composer::drafts.notifications.test_not_sent'),
+                    fn () => Notification::make()
+                        ->success()
+                        ->title(__('email-composer::drafts.notifications.test_sent'))
+                        ->body(__('email-composer::drafts.notifications.test_sent_body', ['emails' => implode(', ', $emails)]))
+                        ->send(),
+                );
             });
     }
 }

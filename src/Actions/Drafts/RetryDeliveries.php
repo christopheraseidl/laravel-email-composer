@@ -24,9 +24,7 @@ class RetryDeliveries
     {
         // With the draft row locked, so QueueSends never marks it sent while the rows are reset.
         $reset = $draft->getConnection()->transaction(function () use ($draft, $recipientIds) {
-            $statuses = [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled];
-
-            if (! in_array($draft->refreshForUpdate()->status, $statuses, true)) {
+            if (! $draft->refreshForUpdate()->status->isFinal()) {
                 throw new \DomainException(__('email-composer::drafts.notifications.cannot_retry', [
                     'id' => $draft->id,
                     'status' => $draft->status->label(),

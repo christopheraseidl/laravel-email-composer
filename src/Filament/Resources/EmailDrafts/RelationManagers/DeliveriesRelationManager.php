@@ -5,6 +5,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\RelationManagers;
 use CSeidl\EmailComposer\Actions\Drafts\RetryDeliveries;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
+use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions\NotifiesDomainErrors;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\SendFailure;
@@ -161,25 +162,17 @@ class DeliveriesRelationManager extends RelationManager
      */
     protected function retry(array $recipientIds, ?string $email = null): void
     {
-        try {
-            $count = app(RetryDeliveries::class)($this->draft(), $recipientIds);
-        } catch (\DomainException $e) {
-            Notification::make()
-                ->danger()
-                ->title(__('email-composer::drafts.notifications.not_retried'))
-                ->body($e->getMessage())
-                ->send();
-
-            return;
-        }
-
-        Notification::make()
-            ->success()
-            ->title(__('email-composer::drafts.notifications.retried'))
-            ->body($email === null
-                ? trans_choice('email-composer::drafts.notifications.retried_many', $count)
-                : __('email-composer::drafts.notifications.retried_one', ['email' => $email]))
-            ->send();
+        NotifiesDomainErrors::run(
+            fn () => app(RetryDeliveries::class)($this->draft(), $recipientIds),
+            __('email-composer::drafts.notifications.not_retried'),
+            fn (int $count) => Notification::make()
+                ->success()
+                ->title(__('email-composer::drafts.notifications.retried'))
+                ->body($email === null
+                    ? trans_choice('email-composer::drafts.notifications.retried_many', $count)
+                    : __('email-composer::drafts.notifications.retried_one', ['email' => $email]))
+                ->send(),
+        );
     }
 
     protected function failures(Recipient $recipient): View

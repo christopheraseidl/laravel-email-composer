@@ -5,6 +5,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Tables;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Filament\Resources\EmailDrafts\EmailDraftResource;
 use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Support\NameWithEmail;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -37,9 +38,7 @@ class EmailDraftsTable
                             return __('email-composer::drafts.columns.no_author');
                         }
 
-                        $name = $record->author->name ?? '';
-                        $email = $record->author->email ? " <{$record->author->email}>" : '';
-                        $label = $name.$email;
+                        $label = NameWithEmail::format($record->author->name ?? null, $record->author->email ?? null);
 
                         return $label !== '' ? $label : __('email-composer::drafts.columns.author_fallback', ['id' => $record->author_id]);
                     })

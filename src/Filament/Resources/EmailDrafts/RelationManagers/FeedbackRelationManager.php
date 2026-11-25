@@ -4,6 +4,7 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\RelationManagers;
 
 use CSeidl\EmailComposer\Actions\Feedback\ToggleFeedbackResolved;
 use CSeidl\EmailComposer\Models\DraftFeedback;
+use CSeidl\EmailComposer\Support\NameWithEmail;
 use Filament\Actions\Action;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -88,9 +89,10 @@ class FeedbackRelationManager extends RelationManager
     /** The in-app user's name and email, or the external reviewer's. */
     protected static function reviewerLabel(DraftFeedback $record): string
     {
-        $name = $record->user->name ?? $record->reviewer_name ?? '';
-        $email = $record->user->email ?? $record->reviewer_email;
-        $label = trim($name.($email ? " <{$email}>" : ''));
+        $label = NameWithEmail::format(
+            $record->user->name ?? $record->reviewer_name,
+            $record->user->email ?? $record->reviewer_email,
+        );
 
         return $label !== '' ? $label : __('email-composer::drafts.feedback.unknown_reviewer');
     }

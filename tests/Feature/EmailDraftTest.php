@@ -55,6 +55,32 @@ it('returns null when the draft has no public files', function () {
     expect($draft->publicFileFor('en'))->toBeNull();
 });
 
+it('reads the published HTML for the locale', function () {
+    Storage::disk(config('email-composer.storage.disk'))->put('drafts/1/es.txt', '<p>Hola</p>');
+
+    $draft = draftWithTemplate(['public_files' => ['en' => 'drafts/1/en.txt', 'es' => 'drafts/1/es.txt']]);
+
+    expect($draft->publishedHtml('es'))->toBe('<p>Hola</p>');
+});
+
+it('reads the default locale published HTML for a locale without a file', function () {
+    config()->set('email-composer.default_locale', 'es');
+    Storage::disk(config('email-composer.storage.disk'))->put('drafts/1/es.txt', '<p>Hola</p>');
+
+    $draft = draftWithTemplate(['public_files' => ['es' => 'drafts/1/es.txt']]);
+
+    expect($draft->publishedHtml('en'))->toBe('<p>Hola</p>');
+});
+
+it('returns null published HTML when the draft is unpublished or the file is missing', function (?array $publicFiles) {
+    $draft = draftWithTemplate(['public_files' => $publicFiles]);
+
+    expect($draft->publishedHtml('en'))->toBeNull();
+})->with([
+    'unpublished' => [null],
+    'missing file' => [['en' => 'drafts/1/en.txt']],
+]);
+
 it('resolves placeholder values for the requested locale', function () {
     $draft = draftWithTemplate(['placeholders' => [
         'en' => ['greeting' => 'Hello', 'body' => 'English body.'],

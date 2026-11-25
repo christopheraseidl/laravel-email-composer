@@ -24,24 +24,16 @@ class CancelSendAction
             ->action(function (EmailDraft $record) {
                 $retrying = $record->isRetryingSent();
 
-                try {
-                    app(CancelSend::class)($record);
-                } catch (\DomainException $e) {
-                    Notification::make()
-                        ->danger()
-                        ->title(__('email-composer::drafts.notifications.not_cancelled'))
-                        ->body($e->getMessage())
-                        ->send();
-
-                    return;
-                }
-
-                Notification::make()
-                    ->success()
-                    ->title($retrying
-                        ? __('email-composer::drafts.notifications.retry_cancelled')
-                        : __('email-composer::drafts.notifications.send_cancelled'))
-                    ->send();
+                NotifiesDomainErrors::run(
+                    fn () => app(CancelSend::class)($record),
+                    __('email-composer::drafts.notifications.not_cancelled'),
+                    fn () => Notification::make()
+                        ->success()
+                        ->title($retrying
+                            ? __('email-composer::drafts.notifications.retry_cancelled')
+                            : __('email-composer::drafts.notifications.send_cancelled'))
+                        ->send(),
+                );
             })
             ->authorize(fn ($record) => Gate::allows('cancel', $record));
     }

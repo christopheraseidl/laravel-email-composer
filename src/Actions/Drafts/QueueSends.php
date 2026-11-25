@@ -2,12 +2,12 @@
 
 namespace CSeidl\EmailComposer\Actions\Drafts;
 
-use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailDeliveryStatus;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Jobs\SendEmailJob;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
+use CSeidl\EmailComposer\Services\ConfigService;
 use CSeidl\EmailComposer\Services\SendRateLimiter;
 use Illuminate\Contracts\Queue\Factory as QueueFactory;
 use Illuminate\Database\Query\Builder;
@@ -26,6 +26,7 @@ class QueueSends
         protected QueueFactory $queue,
         protected MarkDraftSent $markDraftSent,
         protected MarkDraftCancelled $markDraftCancelled,
+        protected ConfigService $config,
     ) {}
 
     public function __invoke(EmailDraft $draft): void
@@ -53,7 +54,7 @@ class QueueSends
             $ids = $this->pending($draft)
                 ->where(fn (Builder $query) => $query->whereNull('queued_at')->orWhere('queued_at', '<', $lostBefore))
                 ->orderBy($this->recipientKey($draft))
-                ->limit(min($room, EmailComposer::config()->bulkChunkSize()))
+                ->limit(min($room, $this->config->bulkChunkSize()))
                 ->pluck($this->recipientKey($draft));
 
             if ($ids->isEmpty()) {
@@ -66,8 +67,8 @@ class QueueSends
             $jobs = Recipient::withTrashed()->whereKey($ids)->get()
                 ->map(fn (Recipient $recipient) => new SendEmailJob($draft, $recipient, $queuedAt));
 
-            $this->queue->connection(EmailComposer::config()->queueConnection())
-                ->bulk($jobs->all(), queue: EmailComposer::config()->queueName());
+            $this->queue->connection($this->config->queueConnection())
+                ->bulk($jobs->all(), queue: $this->config->queueName());
             $room -= $ids->count();
         }
 

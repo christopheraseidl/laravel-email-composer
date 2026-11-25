@@ -55,7 +55,7 @@ class EmailDraftPolicy
      */
     public function delete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled], true)) {
+        if ($draft->status->isFinal()) {
             return false;
         }
 
@@ -131,7 +131,7 @@ class EmailDraftPolicy
     public function retry(Authenticatable $user, EmailDraft $draft): bool
     {
         return EmailComposer::userCan($user, 'send-draft', $draft)
-            && in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled], true);
+            && $draft->status->isFinal();
     }
 
     /**
@@ -156,7 +156,7 @@ class EmailDraftPolicy
      */
     public function forceDelete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if (in_array($draft->status, [EmailDraftStatus::Sending, EmailDraftStatus::Sent, EmailDraftStatus::Cancelled], true)) {
+        if ($draft->status->isFinal()) {
             return false;
         }
 
