@@ -2,8 +2,8 @@
 
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 
-it('is final once sending has begun', function (EmailDraftStatus $status, bool $final) {
-    expect($status->isFinal())->toBe($final);
+it('has started sending when sending is running, finished or cancelled', function (EmailDraftStatus $status, bool $hasStartedSending) {
+    expect($status->hasStartedSending())->toBe($hasStartedSending);
 })->with([
     [EmailDraftStatus::Draft, false],
     [EmailDraftStatus::UnderReview, false],
