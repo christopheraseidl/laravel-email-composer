@@ -58,7 +58,7 @@ class EmailDraftPolicy
      */
     public function delete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if ($draft->status->isFinal()) {
+        if ($draft->status->hasStartedSending()) {
             return false;
         }
 
@@ -134,7 +134,7 @@ class EmailDraftPolicy
     public function retry(Authenticatable $user, EmailDraft $draft): bool
     {
         return EmailComposer::userCan($user, 'send-draft', $draft)
-            && $draft->status->isFinal();
+            && $draft->status->hasStartedSending();
     }
 
     /**
@@ -159,7 +159,7 @@ class EmailDraftPolicy
      */
     public function forceDelete(Authenticatable $user, EmailDraft $draft): bool
     {
-        if ($draft->status->isFinal()) {
+        if ($draft->status->hasStartedSending()) {
             return false;
         }
 

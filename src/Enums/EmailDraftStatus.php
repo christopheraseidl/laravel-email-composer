@@ -17,7 +17,7 @@ enum EmailDraftStatus: string
     }
 
     /** Sending has begun, whether it is running, finished or cancelled. */
-    public function isFinal(): bool
+    public function hasStartedSending(): bool
     {
         return in_array($this, [self::Sending, self::Sent, self::Cancelled], true);
     }
