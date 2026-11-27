@@ -194,3 +194,11 @@ it('refuses a draft that is not under review', function (EmailDraftStatus $statu
 
     expect(DraftFeedback::count())->toBe(0);
 })->with([EmailDraftStatus::Draft, EmailDraftStatus::Approved, EmailDraftStatus::Sent]);
+
+it('refuses a draft that is not under review before validating input', function () {
+    $link = ReviewLink::for(reviewableDraft(['status' => EmailDraftStatus::Approved]));
+
+    $this->post($link, [])->assertNotFound();
+
+    expect(DraftFeedback::count())->toBe(0);
+});
