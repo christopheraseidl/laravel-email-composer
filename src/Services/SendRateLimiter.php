@@ -10,6 +10,8 @@ use Illuminate\Support\Collection;
 /**
  * Reads and counts the limits of the `email-composer` rate limiter, which the
  * service provider registers from config and an app may register over.
+ *
+ * @internal
  */
 class SendRateLimiter
 {

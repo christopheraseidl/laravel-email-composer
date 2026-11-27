@@ -2,6 +2,9 @@
 
 namespace CSeidl\EmailComposer\Data;
 
+/**
+ * @final
+ */
 readonly class ImportResult
 {
     /**

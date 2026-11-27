@@ -20,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property bool $resolved
  * @property Carbon|null $deleted_at
  * @property-read EmailDraft $draft
+ *
+ * @final
  */
 #[UseFactory(DraftFeedbackFactory::class)]
 class DraftFeedback extends Model

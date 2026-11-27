@@ -7,6 +7,9 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * @internal
+ */
 class MailableSender implements EmailSenderInterface
 {
     public function send(EmailDraft $draft, Recipient $recipient, string $locale): void

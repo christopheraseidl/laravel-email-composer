@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Cache;
  * and once none is pending, marks the draft sent, or cancelled while any recipient is. SendDraft runs it on Send, and the
  * scheduled email-composer:queue-sends command runs it again for the rest. Nothing waits
  * in the queue: a recipient not queued yet waits in its pivot row.
+ *
+ * @internal
  */
 class QueueSends
 {

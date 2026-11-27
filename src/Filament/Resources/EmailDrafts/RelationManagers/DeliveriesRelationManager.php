@@ -23,6 +23,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class DeliveriesRelationManager extends RelationManager
 {
     protected static string $relationship = 'recipients';

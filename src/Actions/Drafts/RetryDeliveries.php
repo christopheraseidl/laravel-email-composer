@@ -9,9 +9,12 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 /**
  * Sends a draft again to the chosen recipients it did not reach: those that failed or were
  * cancelled. The draft is sending until QueueSends finds none pending. Failure rows stay.
+ *
+ * @final
  */
 class RetryDeliveries
 {
+    /** @internal */
     public function __construct(protected QueueSends $queueSends) {}
 
     /**

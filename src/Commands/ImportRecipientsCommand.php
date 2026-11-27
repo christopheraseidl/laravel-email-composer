@@ -7,6 +7,9 @@ use CSeidl\EmailComposer\Models\RecipientList;
 use CSeidl\EmailComposer\Support\CsvReader;
 use Illuminate\Console\Command;
 
+/**
+ * @internal
+ */
 class ImportRecipientsCommand extends Command
 {
     protected $signature = 'email-composer:import-recipients

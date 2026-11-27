@@ -7,6 +7,9 @@ use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Process;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * @internal
+ */
 class InstallCommand extends Command
 {
     protected $signature = 'email-composer:install

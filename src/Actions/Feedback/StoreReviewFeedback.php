@@ -5,6 +5,9 @@ namespace CSeidl\EmailComposer\Actions\Feedback;
 use CSeidl\EmailComposer\Models\DraftFeedback;
 use CSeidl\EmailComposer\Models\EmailDraft;
 
+/**
+ * @internal
+ */
 class StoreReviewFeedback
 {
     /** @param  array<string, mixed>  $validated  reviewer_name, reviewer_email and comment */

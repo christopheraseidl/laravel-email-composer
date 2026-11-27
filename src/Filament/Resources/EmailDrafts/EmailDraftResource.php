@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use LaraZeus\SpatieTranslatable\Resources\Concerns\Translatable;
 
+/**
+ * @internal
+ */
 class EmailDraftResource extends Resource
 {
     use HasEmailComposerNavigation;

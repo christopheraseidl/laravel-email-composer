@@ -13,6 +13,9 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
+/**
+ * @internal
+ */
 class RecipientsTable
 {
     public static function configure(Table $table): Table

@@ -9,6 +9,9 @@ use HTMLPurifier_Config;
 use Illuminate\Support\Facades\View;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
+/**
+ * @internal
+ */
 class TemplateRenderer
 {
     /**

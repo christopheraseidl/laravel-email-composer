@@ -10,6 +10,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
+/**
+ * @internal
+ */
 class EmailTemplatesTable
 {
     public static function configure(Table $table): Table

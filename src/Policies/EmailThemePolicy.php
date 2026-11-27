@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use Illuminate\Contracts\Auth\Authenticatable;
 
+/**
+ * @internal
+ */
 class EmailThemePolicy
 {
     /**

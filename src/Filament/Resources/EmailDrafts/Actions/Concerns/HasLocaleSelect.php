@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\EmailComposer;
 use Filament\Forms\Components\Select;
 use Livewire\Component;
 
+/**
+ * @internal
+ */
 trait HasLocaleSelect
 {
     protected static function localeSelect(): Select

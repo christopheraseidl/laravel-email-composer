@@ -12,9 +12,12 @@ use CSeidl\EmailComposer\Models\EmailDraft;
  *
  * A cancelled retry of a sent draft instead fails its recipients again, so they can be
  * retried, and leaves the draft sent.
+ *
+ * @final
  */
 class CancelSend
 {
+    /** @internal */
     public function __construct(
         protected MarkDraftSent $markDraftSent,
         protected MarkDraftCancelled $markDraftCancelled,

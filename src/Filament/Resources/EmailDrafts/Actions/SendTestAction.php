@@ -12,6 +12,9 @@ use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class SendTestAction
 {
     use HasLocaleSelect;

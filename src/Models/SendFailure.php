@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $failed_at
  * @property-read EmailDraft $draft
  * @property-read Recipient $recipient
+ *
+ * @final
  */
 #[UseFactory(SendFailureFactory::class)]
 class SendFailure extends Model

@@ -25,6 +25,8 @@ use Illuminate\Support\Carbon;
  *
  * @method static \Illuminate\Database\Eloquent\Builder<static> subscribed()
  * @method static \Illuminate\Database\Eloquent\Builder<static> unsubscribed()
+ *
+ * @final
  */
 #[UseFactory(RecipientFactory::class)]
 class Recipient extends Model

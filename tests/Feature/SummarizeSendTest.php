@@ -2,8 +2,8 @@
 
 use CSeidl\EmailComposer\Actions\Drafts\SummarizeSend;
 use CSeidl\EmailComposer\Data\SendSummary;
+use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Enums\EmailAudience;
-use CSeidl\EmailComposer\Facades\EmailComposer;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Models\Recipient;
 use CSeidl\EmailComposer\Models\RecipientList;

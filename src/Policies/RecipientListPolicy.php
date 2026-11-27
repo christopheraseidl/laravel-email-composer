@@ -2,6 +2,9 @@
 
 namespace CSeidl\EmailComposer\Policies;
 
+/**
+ * @internal
+ */
 class RecipientListPolicy extends ResourcePolicy
 {
     protected function singular(): string

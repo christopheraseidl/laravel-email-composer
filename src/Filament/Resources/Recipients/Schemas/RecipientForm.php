@@ -9,6 +9,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
+/**
+ * @internal
+ */
 class RecipientForm
 {
     public static function configure(Schema $schema): Schema

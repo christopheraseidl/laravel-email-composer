@@ -17,6 +17,9 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\HtmlString;
 use Livewire\Attributes\On;
 
+/**
+ * @internal
+ */
 class FeedbackRelationManager extends RelationManager
 {
     public const REFRESH_EVENT = 'email-composer-feedback-added';

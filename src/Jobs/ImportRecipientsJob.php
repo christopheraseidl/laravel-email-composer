@@ -29,6 +29,8 @@ use Throwable;
  * Rows go to a part by a hash of their email, so every row for one email
  * lands in the same part in file order: the last one still wins, and no two
  * parts race to create the same recipient.
+ *
+ * @final
  */
 class ImportRecipientsJob implements ShouldQueue
 {
@@ -70,6 +72,7 @@ class ImportRecipientsJob implements ShouldQueue
             ->onQueue(EmailComposer::config()->queueName());
     }
 
+    /** @internal */
     public function handle(CsvReader $reader, ImportNotifierInterface $notifier, ConfigService $config): void
     {
         static::inLocale($this->locale, fn () => $this->import($reader, $notifier, $config));
@@ -149,6 +152,8 @@ class ImportRecipientsJob implements ShouldQueue
 
     /**
      * Total the parts' cached results and notify the user, if they still exist.
+     *
+     * @internal
      */
     public static function notifyTotals(string $importId, mixed $userId, int $parts, int $failed, string $locale): void
     {
@@ -164,6 +169,7 @@ class ImportRecipientsJob implements ShouldQueue
         }
     }
 
+    /** @internal */
     public static function resultKey(string $importId, int $part): string
     {
         return "email-composer:import:{$importId}:{$part}";

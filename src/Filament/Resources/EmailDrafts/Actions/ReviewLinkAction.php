@@ -9,6 +9,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class ReviewLinkAction
 {
     public static function make(): Action

@@ -4,6 +4,9 @@ namespace CSeidl\EmailComposer\Actions\Recipients;
 
 use CSeidl\EmailComposer\Models\Recipient;
 
+/**
+ * @final
+ */
 class UnsubscribeRecipient
 {
     /** Keeps the first unsubscribe time. */

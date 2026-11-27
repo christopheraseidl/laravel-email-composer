@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\View\View;
 
+/**
+ * @internal
+ */
 class UnsubscribeController
 {
     public function __construct(protected ConfigService $config) {}

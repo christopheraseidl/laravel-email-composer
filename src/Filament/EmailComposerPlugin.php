@@ -15,6 +15,9 @@ use LaraZeus\SpatieTranslatable\SpatieTranslatablePlugin;
 use LogicException;
 use Override;
 
+/**
+ * @final
+ */
 class EmailComposerPlugin implements Plugin
 {
     public static function make(): static

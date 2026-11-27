@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\Filament\Resources\EmailTemplates\EmailTemplateResource
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
+/**
+ * @internal
+ */
 class ListEmailTemplates extends ListRecords
 {
     protected static string $resource = EmailTemplateResource::class;

@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\ConfigService;
 use Illuminate\Http\Response;
 
+/**
+ * @internal
+ */
 class ViewInBrowserController
 {
     public function __construct(protected ConfigService $config) {}

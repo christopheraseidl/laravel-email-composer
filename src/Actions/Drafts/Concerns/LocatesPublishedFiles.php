@@ -5,7 +5,11 @@ namespace CSeidl\EmailComposer\Actions\Drafts\Concerns;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use CSeidl\EmailComposer\Services\ConfigService;
 
-/** @property ConfigService $config */
+/**
+ * @property ConfigService $config
+ *
+ * @internal
+ */
 trait LocatesPublishedFiles
 {
     protected function directoryFor(EmailDraft $draft): string

@@ -5,6 +5,9 @@ namespace CSeidl\EmailComposer\Actions\Drafts\Concerns;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 
+/**
+ * @internal
+ */
 trait AssertsDraftStatus
 {
     /**

@@ -10,6 +10,8 @@ use CSeidl\EmailComposer\Models\Recipient;
 /**
  * Counts who a send would reach and in which locale, without queueing or
  * writing anything.
+ *
+ * @internal
  */
 class SummarizeSend
 {

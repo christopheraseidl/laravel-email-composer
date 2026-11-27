@@ -8,6 +8,9 @@ use Filament\Actions\Action;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class ReturnToDraftAction
 {
     public static function make(): Action

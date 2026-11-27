@@ -301,6 +301,30 @@ and marks each draft `sent`.
 - The counts live in the cache, so all queue workers must share one cache store.
 - An app can replace the limits with `RateLimiter::for('email-composer', ...)`.
 
+### Custom sender
+
+- To send through something other than the default mailer, bind your own `EmailSenderInterface`.
+- Build the message with `ComposedEmail`, which adds the footer and the unsubscribe headers.
+
+```php
+use CSeidl\EmailComposer\Contracts\EmailSenderInterface;
+use CSeidl\EmailComposer\Mail\ComposedEmail;
+use CSeidl\EmailComposer\Models\EmailDraft;
+use CSeidl\EmailComposer\Models\Recipient;
+use Illuminate\Support\Facades\Mail;
+
+class SesSender implements EmailSenderInterface
+{
+    public function send(EmailDraft $draft, Recipient $recipient, string $locale): void
+    {
+        Mail::mailer('ses')->to($recipient->email)->send(new ComposedEmail($draft, $recipient, $locale));
+    }
+}
+
+// In a service provider's register() method:
+$this->app->bind(EmailSenderInterface::class, SesSender::class);
+```
+
 ## View in browser and unsubscribe
 
 Every sent email ends with a footer that has two signed links:
@@ -311,6 +335,14 @@ Every sent email ends with a footer that has two signed links:
 
 Each email also carries `List-Unsubscribe` and `List-Unsubscribe-Post`
 headers, so mail clients can unsubscribe in one click.
+
+To unsubscribe a recipient in code, for example from a bounce webhook:
+
+```php
+use CSeidl\EmailComposer\Actions\Recipients\UnsubscribeRecipient;
+
+app(UnsubscribeRecipient::class)($recipient);   // keeps the first unsubscribe time
+```
 
 ## Troubleshooting
 
@@ -374,6 +406,13 @@ After a change:
 - **`composer install`, `update` or `dump-autoload`:** run `composer run build`. These delete the Workbench database and uploaded files.
 - **`workbench/.env`:** run `vendor/bin/testbench package:sync-skeleton`, then restart the server and `queue:work`.
 - **`testbench.yaml.dist` or a local `testbench.yaml`:** restart the server and `queue:work`.
+
+## Versioning
+
+- The package follows semantic versioning.
+- Classes and methods marked `@internal` are not covered and may change in any release.
+- Constructors of classes in `Actions\` are not covered. Create actions with `app()`.
+- Extending a class marked `@final` is not covered.
 
 ## Changelog
 

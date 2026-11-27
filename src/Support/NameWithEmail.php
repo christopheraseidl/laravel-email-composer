@@ -2,6 +2,9 @@
 
 namespace CSeidl\EmailComposer\Support;
 
+/**
+ * @internal
+ */
 class NameWithEmail
 {
     /** "Name <email>", or whichever part is present, or '' when neither is. */

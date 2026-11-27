@@ -8,6 +8,8 @@ use CSeidl\EmailComposer\Services\ConfigService;
 
 /**
  * Deletes the draft's published files and clears them from the draft.
+ *
+ * @internal
  */
 class UnpublishDraft
 {

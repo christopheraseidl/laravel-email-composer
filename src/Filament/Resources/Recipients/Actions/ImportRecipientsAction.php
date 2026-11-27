@@ -14,6 +14,9 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class ImportRecipientsAction
 {
     public static function make(): Action

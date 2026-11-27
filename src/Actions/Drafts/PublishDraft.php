@@ -9,6 +9,8 @@ use CSeidl\EmailComposer\Services\ConfigService;
 /**
  * Renders the draft once per locale and stores each as private text. Only the
  * app reads these, never by URL.
+ *
+ * @internal
  */
 class PublishDraft
 {

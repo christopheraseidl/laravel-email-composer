@@ -21,7 +21,11 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
 
-/** @property-read Schema $form */
+/**
+ * @property-read Schema $form
+ *
+ * @internal
+ */
 class ManageEmailTheme extends Page
 {
     use HasEmailComposerNavigation;

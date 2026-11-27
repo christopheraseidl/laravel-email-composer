@@ -2,6 +2,9 @@
 
 namespace CSeidl\EmailComposer\Mail;
 
+/**
+ * @internal
+ */
 class HtmlToText
 {
     public function convert(string $html): string
