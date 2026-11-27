@@ -180,4 +180,5 @@ return [
         'skipped' => 'Omitido',
         'cancelled' => 'Cancelado',
     ],
+    'untitled' => 'Borrador sin título',
 ];

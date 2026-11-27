@@ -206,7 +206,7 @@ class EmailDraft extends Model
      */
     public function getLocalizedSubjectAttribute(): string
     {
-        return $this->subjectFor(app()->getLocale()) ?: 'Untitled Draft';
+        return $this->subjectFor(app()->getLocale()) ?: __('email-composer::drafts.untitled');
     }
 
     /** @return array<string, string> placeholder name => value for locale (with fallback) */
