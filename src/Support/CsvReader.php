@@ -8,6 +8,8 @@ use SplFileObject;
 /**
  * Reads a CSV with a header row. Column names are trimmed and lowercased,
  * and empty cells are left out.
+ *
+ * @internal
  */
 class CsvReader
 {

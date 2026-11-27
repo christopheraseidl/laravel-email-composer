@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * The CRUD checks, as abilities named from the resource's nouns: view-{plural},
  * view-{singular}, create-{plural}, update-{singular} and so on.
+ *
+ * @internal
  */
 abstract class ResourcePolicy
 {

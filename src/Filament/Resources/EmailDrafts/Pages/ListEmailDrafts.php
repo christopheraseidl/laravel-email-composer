@@ -8,6 +8,9 @@ use Filament\Resources\Pages\ListRecords;
 use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use LaraZeus\SpatieTranslatable\Resources\Pages\ListRecords\Concerns\Translatable;
 
+/**
+ * @internal
+ */
 class ListEmailDrafts extends ListRecords
 {
     use Translatable;

@@ -5,6 +5,9 @@ namespace CSeidl\EmailComposer\Policies;
 use CSeidl\EmailComposer\EmailComposer;
 use Illuminate\Contracts\Auth\Authenticatable;
 
+/**
+ * @internal
+ */
 class RecipientPolicy extends ResourcePolicy
 {
     protected function singular(): string

@@ -7,10 +7,14 @@ use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Contracts\Auth\Authenticatable;
 
+/**
+ * @final
+ */
 class ApproveDraft
 {
     use AssertsDraftStatus;
 
+    /** @internal */
     public function __construct(protected PublishDraft $publishDraft) {}
 
     /** @throws \DomainException when the draft is not under review or has no template */

@@ -11,9 +11,12 @@ use Illuminate\Support\Collection;
 /**
  * Marks the draft sending and queues its first sends. QueueSends marks it sent once every
  * recipient has a result.
+ *
+ * @final
  */
 class SendDraft
 {
+    /** @internal */
     public function __construct(protected QueueSends $queueSends) {}
 
     /** @throws \DomainException when the draft is not approved, its audience is empty or its list is gone, or another send claimed it */

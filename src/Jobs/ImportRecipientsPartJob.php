@@ -15,6 +15,8 @@ use Illuminate\Support\Traits\Localizable;
 /**
  * Imports one part split off by ImportRecipientsJob and caches its counts
  * for the batch's report. Encrypted, since the rows hold email addresses.
+ *
+ * @internal
  */
 class ImportRecipientsPartJob implements ShouldBeEncrypted, ShouldQueue
 {

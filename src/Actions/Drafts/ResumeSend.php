@@ -9,9 +9,12 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 /**
  * Sends a cancelled draft to the recipients it did not reach, cancelled or failed, and not to
  * those already sent to. The draft is sent once they are.
+ *
+ * @final
  */
 class ResumeSend
 {
+    /** @internal */
     public function __construct(protected RetryDeliveries $retryDeliveries) {}
 
     /**

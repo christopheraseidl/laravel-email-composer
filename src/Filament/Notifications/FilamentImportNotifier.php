@@ -10,6 +10,8 @@ use Override;
 
 /**
  * Reports imports through Filament database notifications.
+ *
+ * @internal
  */
 class FilamentImportNotifier implements ImportNotifierInterface
 {

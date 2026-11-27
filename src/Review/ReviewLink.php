@@ -7,6 +7,9 @@ use CSeidl\EmailComposer\Models\EmailDraft;
 use DateTimeInterface;
 use Illuminate\Support\Facades\URL;
 
+/**
+ * @final
+ */
 class ReviewLink
 {
     public static function for(EmailDraft $draft, ?string $locale = null, ?DateTimeInterface $expires = null): string

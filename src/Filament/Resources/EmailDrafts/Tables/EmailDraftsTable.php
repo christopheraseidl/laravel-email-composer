@@ -18,6 +18,9 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 
+/**
+ * @internal
+ */
 class EmailDraftsTable
 {
     public static function configure(Table $table): Table

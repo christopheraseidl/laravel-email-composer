@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Storage;
 /**
  * Typed reads of the email-composer config. Fallbacks cover nested keys,
  * which mergeConfigFrom() does not fill in when a published config drops them.
+ *
+ * @internal
  */
 class ConfigService
 {

@@ -8,6 +8,9 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
+/**
+ * @internal
+ */
 class EditEmailTemplate extends EditRecord
 {
     protected static string $resource = EmailTemplateResource::class;

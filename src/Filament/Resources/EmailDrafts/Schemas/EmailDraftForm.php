@@ -19,6 +19,9 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 
+/**
+ * @internal
+ */
 class EmailDraftForm
 {
     public static function configure(Schema $schema): Schema

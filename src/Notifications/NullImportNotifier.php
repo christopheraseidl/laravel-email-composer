@@ -10,6 +10,8 @@ use Override;
 /**
  * The default without Filament: results go nowhere until the app binds its
  * own ImportNotifierInterface.
+ *
+ * @internal
  */
 class NullImportNotifier implements ImportNotifierInterface
 {

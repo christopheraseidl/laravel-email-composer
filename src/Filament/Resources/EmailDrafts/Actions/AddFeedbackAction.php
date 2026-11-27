@@ -14,6 +14,9 @@ use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
+/**
+ * @internal
+ */
 class AddFeedbackAction
 {
     public static function make(): Action

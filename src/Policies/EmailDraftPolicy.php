@@ -7,6 +7,9 @@ use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Contracts\Auth\Authenticatable;
 
+/**
+ * @internal
+ */
 class EmailDraftPolicy
 {
     /**

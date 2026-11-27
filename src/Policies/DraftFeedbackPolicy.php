@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\DraftFeedback;
 use Illuminate\Contracts\Auth\Authenticatable;
 
+/**
+ * @internal
+ */
 class DraftFeedbackPolicy
 {
     /**

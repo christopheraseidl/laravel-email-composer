@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 
+/**
+ * @internal
+ */
 class ReviewController
 {
     public function __construct(protected ConfigService $config) {}

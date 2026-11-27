@@ -7,6 +7,9 @@ use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 use Illuminate\Console\Command;
 
+/**
+ * @internal
+ */
 class QueueSendsCommand extends Command
 {
     protected $signature = 'email-composer:queue-sends';

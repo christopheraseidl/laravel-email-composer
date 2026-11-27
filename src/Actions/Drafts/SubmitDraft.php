@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\Actions\Drafts\Concerns\AssertsDraftStatus;
 use CSeidl\EmailComposer\Enums\EmailDraftStatus;
 use CSeidl\EmailComposer\Models\EmailDraft;
 
+/**
+ * @final
+ */
 class SubmitDraft
 {
     use AssertsDraftStatus;

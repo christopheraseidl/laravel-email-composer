@@ -11,6 +11,9 @@ use Filament\Schemas\Components\View;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class PreviewDraftAction
 {
     use HasLocaleSelect;

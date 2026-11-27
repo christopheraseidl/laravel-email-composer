@@ -10,6 +10,9 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Headers;
 
+/**
+ * @final
+ */
 class ComposedEmail extends Mailable
 {
     /** Where the layout wants the footer. */

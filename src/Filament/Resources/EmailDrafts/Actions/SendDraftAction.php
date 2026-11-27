@@ -12,6 +12,9 @@ use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\HtmlString;
 
+/**
+ * @internal
+ */
 class SendDraftAction
 {
     public static function make(): Action

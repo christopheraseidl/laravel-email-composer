@@ -18,6 +18,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+/**
+ * @internal
+ */
 class EmailTemplateResource extends Resource
 {
     use HasEmailComposerNavigation;

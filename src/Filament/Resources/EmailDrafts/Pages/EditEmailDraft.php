@@ -22,6 +22,9 @@ use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use LaraZeus\SpatieTranslatable\Resources\Pages\EditRecord\Concerns\Translatable;
 use Override;
 
+/**
+ * @internal
+ */
 class EditEmailDraft extends EditRecord
 {
     use Translatable;

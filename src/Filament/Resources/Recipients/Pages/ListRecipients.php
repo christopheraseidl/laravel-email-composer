@@ -7,6 +7,9 @@ use CSeidl\EmailComposer\Filament\Resources\Recipients\RecipientResource;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
+/**
+ * @internal
+ */
 class ListRecipients extends ListRecords
 {
     protected static string $resource = RecipientResource::class;

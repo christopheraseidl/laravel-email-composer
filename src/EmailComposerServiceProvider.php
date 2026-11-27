@@ -20,6 +20,9 @@ use Override;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
+/**
+ * @final
+ */
 class EmailComposerServiceProvider extends PackageServiceProvider
 {
     /** In dependency order: a table comes after every table it references. */

@@ -8,6 +8,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\File;
 use Spatie\YamlFrontMatter\YamlFrontMatter;
 
+/**
+ * @internal
+ */
 class TemplateRegistry
 {
     /** @var array<int, string> */

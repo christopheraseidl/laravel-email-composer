@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
  * Filament title-cases these labels for headings, navigation and breadcrumbs.
  * Locales outside email-composer.title_case_locales get only the first
  * letter capitalized.
+ *
+ * @internal
  */
 trait HasLocaleCasedLabels
 {

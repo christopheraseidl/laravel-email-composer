@@ -11,6 +11,9 @@ use LaraZeus\SpatieTranslatable\Actions\LocaleSwitcher;
 use LaraZeus\SpatieTranslatable\Resources\Pages\CreateRecord\Concerns\Translatable;
 use Override;
 
+/**
+ * @internal
+ */
 class CreateEmailDraft extends CreateRecord
 {
     use Translatable;

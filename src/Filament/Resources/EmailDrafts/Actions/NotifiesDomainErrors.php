@@ -5,6 +5,9 @@ namespace CSeidl\EmailComposer\Filament\Resources\EmailDrafts\Actions;
 use Closure;
 use Filament\Notifications\Notification;
 
+/**
+ * @internal
+ */
 class NotifiesDomainErrors
 {
     /**

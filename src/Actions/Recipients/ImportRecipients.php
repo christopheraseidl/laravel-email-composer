@@ -15,6 +15,8 @@ use Illuminate\Validation\Rule;
  * Creates or updates recipients from CSV rows, matched by email
  * case-insensitively. Columns other than email, name and locale are merged
  * into metadata. Never resubscribes or restores a recipient.
+ *
+ * @internal
  */
 class ImportRecipients
 {

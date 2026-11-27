@@ -6,6 +6,9 @@ use BackedEnum;
 use CSeidl\EmailComposer\EmailComposer;
 use Illuminate\Contracts\Support\Htmlable;
 
+/**
+ * @internal
+ */
 trait HasEmailComposerNavigation
 {
     public static function getNavigationGroup(): ?string

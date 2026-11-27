@@ -12,6 +12,9 @@ use CSeidl\EmailComposer\Templates\TemplateRegistry;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @final
+ */
 class EmailComposer
 {
     protected static ?Closure $abilityResolver = null;
@@ -30,17 +33,19 @@ class EmailComposer
         return (bool) (static::$abilityResolver)($user, $ability, $model);
     }
 
-    /** Internal: used by tests to reset resolver state. */
+    /** @internal */
     public static function flushResolvers(): void
     {
         static::$abilityResolver = null;
     }
 
+    /** @internal */
     public static function config(): ConfigService
     {
         return app(ConfigService::class);
     }
 
+    /** @internal */
     public static function templates(): TemplateRegistry
     {
         return app(TemplateRegistry::class);

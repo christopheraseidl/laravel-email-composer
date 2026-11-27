@@ -92,10 +92,7 @@
         "laravel": {
             "providers": [
                 "CSeidl\\EmailComposer\\EmailComposerServiceProvider"
-            ],
-            "aliases": {
-                "EmailComposer": "CSeidl\\EmailComposer\\Facades\\EmailComposer"
-            }
+            ]
         }
     },
     "minimum-stability": "stable",

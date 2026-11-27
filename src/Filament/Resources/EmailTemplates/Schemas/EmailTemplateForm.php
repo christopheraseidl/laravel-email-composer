@@ -11,6 +11,9 @@ use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
+/**
+ * @internal
+ */
 class EmailTemplateForm
 {
     public static function configure(Schema $schema): Schema

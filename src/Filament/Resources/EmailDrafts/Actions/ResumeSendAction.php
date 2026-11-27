@@ -11,6 +11,9 @@ use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Gate;
 
+/**
+ * @internal
+ */
 class ResumeSendAction
 {
     public static function make(): Action

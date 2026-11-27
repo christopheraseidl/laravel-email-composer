@@ -1,22 +1,45 @@
 <?php
 
+use CSeidl\EmailComposer\Actions\Drafts\ApproveDraft;
+use CSeidl\EmailComposer\Actions\Drafts\CancelSend;
+use CSeidl\EmailComposer\Actions\Drafts\ResumeSend;
+use CSeidl\EmailComposer\Actions\Drafts\RetryDeliveries;
+use CSeidl\EmailComposer\Actions\Drafts\ReturnDraftToDraft;
+use CSeidl\EmailComposer\Actions\Drafts\SendDraft;
+use CSeidl\EmailComposer\Actions\Drafts\SendTestEmail;
+use CSeidl\EmailComposer\Actions\Drafts\SubmitDraft;
+use CSeidl\EmailComposer\Actions\Recipients\UnsubscribeRecipient;
+use CSeidl\EmailComposer\EmailComposer;
+use CSeidl\EmailComposer\EmailComposerServiceProvider;
+use CSeidl\EmailComposer\Filament\EmailComposerPlugin;
+use CSeidl\EmailComposer\Jobs\ImportRecipientsJob;
+use CSeidl\EmailComposer\Mail\ComposedEmail;
 use CSeidl\EmailComposer\Models\EmailTheme;
 use CSeidl\EmailComposer\Models\SendFailure;
+use CSeidl\EmailComposer\Review\ReviewLink;
+use CSeidl\EmailComposer\Templates\FileTemplate;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Factories\Attributes\UseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Symfony\Component\Finder\SplFileInfo;
 
 /** @return list<class-string> */
 function classesIn(string $directory, string $namespace): array
 {
     return array_map(
-        fn (string $file) => $namespace.'\\'.basename($file, '.php'),
-        glob(__DIR__."/../{$directory}/*.php"),
+        fn (SplFileInfo $file) => $namespace.'\\'.str_replace(['/', '.php'], ['\\', ''], $file->getRelativePathname()),
+        (new Filesystem)->allFiles(__DIR__."/../{$directory}"),
     );
+}
+
+function hasTag(ReflectionClass|ReflectionMethod $reflection, string $tag): bool
+{
+    return str_contains((string) $reflection->getDocComment(), $tag);
 }
 
 /** @return array<string, array{ReflectionMethod}> */
@@ -94,4 +117,63 @@ it('uses Filament only in src/Filament', function () {
         ->map(fn (SplFileInfo $file) => $file->getRelativePathname());
 
     expect($files->values()->all())->toBe([]);
+});
+
+it('marks the public API final and every other class internal', function () {
+    $publicClasses = [
+        EmailComposer::class,
+        EmailComposerServiceProvider::class,
+        EmailComposerPlugin::class,
+        FileTemplate::class,
+        ReviewLink::class,
+        ImportRecipientsJob::class,
+        ComposedEmail::class,
+        UnsubscribeRecipient::class,
+        SubmitDraft::class,
+        ApproveDraft::class,
+        ReturnDraftToDraft::class,
+        SendDraft::class,
+        CancelSend::class,
+        ResumeSend::class,
+        RetryDeliveries::class,
+        SendTestEmail::class,
+    ];
+
+    $publicNamespaces = [
+        'CSeidl\EmailComposer\Contracts\\',
+        'CSeidl\EmailComposer\Data\\',
+        'CSeidl\EmailComposer\Enums\\',
+        'CSeidl\EmailComposer\Exceptions\\',
+        'CSeidl\EmailComposer\Models\\',
+    ];
+
+    foreach (classesIn('src', 'CSeidl\EmailComposer') as $class) {
+        $public = in_array($class, $publicClasses, true) || Str::startsWith($class, $publicNamespaces);
+        $reflection = new ReflectionClass($class);
+
+        expect(hasTag($reflection, '@internal'))->toBe(! $public, $class);
+
+        if (! $public) {
+            continue;
+        }
+
+        if (! $reflection->isEnum() && ! $reflection->isInterface()) {
+            expect(hasTag($reflection, '@final'))->toBeTrue($class);
+        }
+
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor?->class !== $class) {
+            continue;
+        }
+
+        $takesInternal = collect($constructor->getParameters())
+            ->map(fn (ReflectionParameter $parameter) => $parameter->getType())
+            ->contains(fn (?ReflectionType $type) => $type instanceof ReflectionNamedType
+                && Str::startsWith($type->getName(), 'CSeidl\EmailComposer\\')
+                && hasTag(new ReflectionClass($type->getName()), '@internal'));
+
+        expect(hasTag($constructor, '@internal'))
+            ->toBe($takesInternal || Str::startsWith($class, 'CSeidl\EmailComposer\Actions\\'), $class.'::__construct');
+    }
 });

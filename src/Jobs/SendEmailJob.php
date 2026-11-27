@@ -19,6 +19,8 @@ use Throwable;
  * Sends one recipient's email. It acts only on the pivot row it was queued for, matched by
  * queued_at: a row that was cancelled, finished or queued again since belongs to no job or
  * to a newer one.
+ *
+ * @internal
  */
 class SendEmailJob implements ShouldQueue
 {

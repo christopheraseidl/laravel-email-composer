@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $logo_alt
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ *
+ * @final
  */
 #[UseFactory(EmailThemeFactory::class)]
 class EmailTheme extends Model

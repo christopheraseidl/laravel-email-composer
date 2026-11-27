@@ -10,11 +10,14 @@ use Illuminate\Support\Facades\Validator;
 /**
  * Sends the draft to the given addresses, outside its audience and its
  * delivery records.
+ *
+ * @final
  */
 class SendTestEmail
 {
     public const MAX_EMAILS = 10;
 
+    /** @internal */
     public function __construct(protected EmailSenderInterface $sender) {}
 
     /**

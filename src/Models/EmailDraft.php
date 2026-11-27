@@ -40,6 +40,8 @@ use Spatie\Translatable\HasTranslations;
  * @property-read RecipientList|null $recipientList
  * @property-read Collection<int, DraftFeedback> $feedback
  * @property-read Collection<int, SendFailure> $sendFailures
+ *
+ * @final
  */
 #[UseFactory(EmailDraftFactory::class)]
 class EmailDraft extends Model

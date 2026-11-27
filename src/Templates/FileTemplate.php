@@ -2,6 +2,9 @@
 
 namespace CSeidl\EmailComposer\Templates;
 
+/**
+ * @final
+ */
 class FileTemplate
 {
     /** @param array<int, string> $placeholders */

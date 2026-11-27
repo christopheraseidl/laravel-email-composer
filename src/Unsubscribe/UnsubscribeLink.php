@@ -6,6 +6,9 @@ use CSeidl\EmailComposer\EmailComposer;
 use CSeidl\EmailComposer\Models\Recipient;
 use Illuminate\Support\Facades\URL;
 
+/**
+ * @internal
+ */
 class UnsubscribeLink
 {
     public static function for(Recipient $recipient): string
