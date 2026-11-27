@@ -180,4 +180,5 @@ return [
         'skipped' => 'Skipped',
         'cancelled' => 'Cancelled',
     ],
+    'untitled' => 'Untitled Draft',
 ];

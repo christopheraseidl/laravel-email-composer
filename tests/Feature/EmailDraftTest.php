@@ -238,3 +238,10 @@ it('titles a draft with a placeholder when no subject resolves', function () {
 
     expect($draft->localized_subject)->toBe('Untitled Draft');
 });
+
+it('titles a draft with a translated placeholder when no subject resolves', function () {
+    app()->setLocale('es');
+    $draft = draftWithTemplate(['subject' => ['en' => '']]);
+
+    expect($draft->localized_subject)->toBe('Borrador sin título');
+});
